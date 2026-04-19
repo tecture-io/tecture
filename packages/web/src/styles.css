@@ -1,0 +1,432 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
+
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+/* ─── Blueprint Color Palette ─── */
+:root {
+  --bg-deep: #0a0f1a;
+  --bg-surface: #0f1628;
+  --bg-elevated: #141d33;
+  --border-default: #1e2d4a;
+  --border-accent: rgba(37, 99, 235, 0.25);
+  --grid-line: #1a2744;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --accent-cyan: #22d3ee;
+  --accent-blue: #3b82f6;
+  --accent-amber: #f59e0b;
+  --accent-amber-hover: #fbbf24;
+  --accent-emerald: #34d399;
+
+  /* Type stack aligned with tecture-ai: Geist for body, Geist Mono for code, DM Serif Display for headings. */
+  --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-display: "DM Serif Display", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-geist-sans: var(--font-sans);
+  --font-geist-mono: var(--font-mono);
+
+  --background: var(--bg-deep);
+  --foreground: var(--text-primary);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+html,
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+}
+
+/* Display headings — DM Serif Display (weight 400 is the only cut) for editorial hierarchy. */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* ─── Blueprint Grid Background ─── */
+.blueprint-grid {
+  background-color: #0a0f1a;
+  background-image:
+    linear-gradient(rgba(34, 78, 130, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 78, 130, 0.18) 1px, transparent 1px),
+    linear-gradient(rgba(34, 78, 130, 0.08) 0.5px, transparent 0.5px),
+    linear-gradient(90deg, rgba(34, 78, 130, 0.08) 0.5px, transparent 0.5px);
+  background-size:
+    100px 100px,
+    100px 100px,
+    20px 20px,
+    20px 20px;
+}
+
+/* ─── Keyframe Animations ─── */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 8px 4px rgba(34, 211, 238, 0.1);
+  }
+}
+
+@keyframes grid-reveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ─── Animation Utilities ─── */
+.animate-fade-up {
+  animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-draw {
+  stroke-dasharray: 1000;
+  animation: draw-line 2s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-grid-reveal {
+  animation: grid-reveal 1.5s ease-out both;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.2s ease-out;
+}
+
+/* ─── Stagger Delays ─── */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-400 { animation-delay: 400ms; }
+.delay-500 { animation-delay: 500ms; }
+.delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-800 { animation-delay: 800ms; }
+
+/* ─── Blueprint Annotation Label ─── */
+.blueprint-annotation {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+}
+
+/* ─── React Flow Overrides ─── */
+.react-flow {
+  background-color: var(--bg-deep);
+}
+
+.react-flow__controls {
+  background: rgba(10, 15, 26, 0.85);
+  border: 1px solid #1e2d4a;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+}
+
+.react-flow__controls-button {
+  background: transparent;
+  border-bottom: 1px solid #1e2d4a;
+  fill: #64748b;
+}
+
+.react-flow__controls-button:hover {
+  background: #141d33;
+  fill: #e2e8f0;
+}
+
+.react-flow__minimap {
+  background: rgba(10, 15, 26, 0.85) !important;
+  border: 1px solid #1e2d4a;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+}
+
+.react-flow__minimap-node {
+  fill: #22d3ee;
+  stroke: #1e2d4a;
+  stroke-width: 1;
+}
+
+.react-flow__minimap-mask {
+  fill: rgba(10, 15, 26, 0.7);
+}
+
+.react-flow__edge-text {
+  font-family: var(--font-mono);
+}
+
+@keyframes rf-edge-dash {
+  from { stroke-dashoffset: 20; }
+  to { stroke-dashoffset: 0; }
+}
+
+.react-flow__edge-path--animated {
+  stroke-dasharray: 5 5;
+  animation: rf-edge-dash 0.8s linear infinite;
+}
+
+/* ─── Markdown Prose (node detail panel) ─── */
+.prose-markdown {
+  font-family: var(--font-sans);
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.prose-markdown > * + * {
+  margin-top: 12px;
+}
+
+.prose-markdown h1,
+.prose-markdown h2,
+.prose-markdown h3,
+.prose-markdown h4 {
+  font-family: var(--font-sans);
+  color: var(--text-primary);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin-top: 16px;
+}
+
+.prose-markdown h1 {
+  font-size: 18px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.prose-markdown h2 {
+  font-size: 16px;
+}
+
+.prose-markdown h3 {
+  font-size: 15px;
+  color: var(--text-primary);
+}
+
+.prose-markdown h4 {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-mono);
+  font-weight: 500;
+}
+
+.prose-markdown p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.prose-markdown strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.prose-markdown em {
+  color: var(--text-secondary);
+}
+
+.prose-markdown a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(34, 211, 238, 0.3);
+  transition: border-color 150ms ease;
+}
+
+.prose-markdown a:hover {
+  border-bottom-color: var(--accent-cyan);
+}
+
+.prose-markdown ul,
+.prose-markdown ol {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.prose-markdown ul {
+  list-style: none;
+}
+
+.prose-markdown ul > li {
+  position: relative;
+}
+
+.prose-markdown ul > li::before {
+  content: "·";
+  position: absolute;
+  left: -12px;
+  color: var(--accent-cyan);
+  font-weight: 700;
+}
+
+.prose-markdown ol > li::marker {
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.prose-markdown li + li {
+  margin-top: 4px;
+}
+
+.prose-markdown li > p {
+  margin: 0;
+}
+
+.prose-markdown code {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--accent-cyan);
+  background: rgba(20, 29, 51, 0.6);
+  padding: 1px 5px;
+  border-radius: 0;
+}
+
+.prose-markdown pre {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-default);
+  overflow-x: auto;
+}
+
+.prose-markdown pre > code {
+  background: transparent;
+  color: var(--text-primary);
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.prose-markdown blockquote {
+  margin: 0;
+  padding-left: 12px;
+  border-left: 2px solid var(--accent-cyan);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.prose-markdown blockquote p {
+  color: var(--text-muted);
+}
+
+.prose-markdown hr {
+  border: none;
+  border-top: 1px solid var(--border-default);
+  margin: 16px 0;
+}
+
+.prose-markdown table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.prose-markdown th,
+.prose-markdown td {
+  border: 1px solid var(--border-default);
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.prose-markdown th {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+}
+
+.prose-markdown img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ─── Mermaid Block ─── */
+.mermaid-block {
+  margin: 12px 0;
+  padding: 10px;
+  background: rgba(10, 15, 26, 0.5);
+  border: 1px solid var(--border-default);
+}
+
+.mermaid-block .mermaid-svg svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.mermaid-enlarge:hover {
+  color: var(--text-primary) !important;
+  border-color: var(--accent-cyan) !important;
+}
+
+/* Lightbox-sized SVG: fill the available modal space */
+.mermaid-lightbox-body svg {
+  display: block;
+  margin: 0 auto;
+  width: auto;
+  height: auto;
+  min-width: min(1100px, 88vw);
+  max-width: 88vw;
+  max-height: calc(90vh - 100px);
+}

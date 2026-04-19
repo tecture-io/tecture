@@ -1,0 +1,20 @@
+{
+  "name": "API Server — Components",
+  "level": 3,
+  "meta": { "direction": "LR" },
+  "nodes": [
+    { "id": "cli-entry",            "label": "CLI Entry",            "meta": { "type": "service" } },
+    { "id": "express-app",          "label": "Express App",          "meta": { "type": "service" } },
+    { "id": "health-route",         "label": "Health Route",         "meta": { "type": "service" } },
+    { "id": "architecture-router",  "label": "Architecture Router",  "meta": { "type": "service" } },
+    { "id": "architecture-loader",  "label": "Architecture Loader",  "meta": { "type": "service" } },
+    { "id": "static-handler",       "label": "Static + SPA Handler", "meta": { "type": "service" } }
+  ],
+  "edges": [
+    { "id": "e-cli-express",       "source": "cli-entry",           "target": "express-app",         "label": "createApp()",           "meta": { "type": "calls" } },
+    { "id": "e-express-health",    "source": "express-app",         "target": "health-route",        "label": "mounts /api/health",    "meta": { "type": "calls" } },
+    { "id": "e-express-arch",      "source": "express-app",         "target": "architecture-router", "label": "mounts /api/architecture", "meta": { "type": "calls" } },
+    { "id": "e-express-static",    "source": "express-app",         "target": "static-handler",      "label": "mounts /",              "meta": { "type": "calls" } },
+    { "id": "e-arch-loader",       "source": "architecture-router", "target": "architecture-loader", "label": "reads via",             "meta": { "type": "reads" } }
+  ]
+}

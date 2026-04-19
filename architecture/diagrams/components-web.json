@@ -1,0 +1,20 @@
+{
+  "name": "Web UI — Components",
+  "level": 3,
+  "meta": { "direction": "TB" },
+  "nodes": [
+    { "id": "app-shell",          "label": "App Shell",          "meta": { "type": "frontend" } },
+    { "id": "architecture-view",  "label": "Architecture View",  "meta": { "type": "frontend" } },
+    { "id": "diagram-canvas",     "label": "Diagram Canvas",     "meta": { "type": "frontend" } },
+    { "id": "sidebar-panel",      "label": "Sidebar + Top Bar",  "meta": { "type": "frontend" } },
+    { "id": "node-detail-panel",  "label": "Node Detail Panel",  "meta": { "type": "frontend" } },
+    { "id": "markdown-renderer",  "label": "Markdown + Mermaid Renderer", "meta": { "type": "frontend" } }
+  ],
+  "edges": [
+    { "id": "e-app-view",     "source": "app-shell",         "target": "architecture-view", "label": "renders",          "meta": { "type": "calls" } },
+    { "id": "e-view-canvas",  "source": "architecture-view", "target": "diagram-canvas",    "label": "renders diagram",  "meta": { "type": "calls" } },
+    { "id": "e-view-sidebar", "source": "architecture-view", "target": "sidebar-panel",     "label": "renders nav",      "meta": { "type": "calls" } },
+    { "id": "e-view-detail",  "source": "architecture-view", "target": "node-detail-panel", "label": "renders selection","meta": { "type": "calls" } },
+    { "id": "e-detail-md",    "source": "node-detail-panel", "target": "markdown-renderer", "label": "renders description", "meta": { "type": "calls" } }
+  ]
+}

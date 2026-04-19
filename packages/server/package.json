@@ -1,0 +1,29 @@
+{
+  "name": "@tecture/io",
+  "version": "0.0.1",
+  "description": "React UI + Express API served together via a single npx command.",
+  "type": "module",
+  "bin": "./dist/cli.js",
+  "files": ["dist"],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "tsx watch src/cli.ts --port 3001",
+    "build": "tsup && node scripts/copy-web-assets.mjs",
+    "start": "node dist/cli.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "@tecture/shared": "workspace:*",
+    "@tecture/web": "workspace:*",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.6",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}

@@ -1,0 +1,40 @@
+The Tecture IO system itself — a single npm package (`@tecture/io`) that bundles a Node.js CLI, an Express REST API, and a React + Vite UI. The CLI launches an HTTP server that serves both the API and the pre-built UI on the same port, so there is nothing to configure and nothing to deploy.
+
+## Responsibilities
+- Accept a path to an `architecture/` directory (default `./architecture`).
+- Expose a read-only REST API that surfaces the manifest, each diagram, and per-node descriptions.
+- Serve the built React SPA that fetches those endpoints and renders interactive, drill-downable C4 diagrams.
+
+## Tech Stack
+- `nodedotjs` ≥ 20 runtime
+- `express` 4 for HTTP
+- `react` 18 + `vite` for the UI, bundled into the server at build time via `tsup`
+- Published as a single ESM executable with a `#!/usr/bin/env node` shebang
+
+## Runtime Flow
+
+```mermaid
+sequenceDiagram
+  participant Dev as Developer
+  participant CLI as CLI
+  participant API as Express API
+  participant FS as architecture/
+  participant UI as React UI (browser)
+  Dev->>CLI: npx @tecture/io --architecture-path ./arch
+  CLI->>API: createApp({ architecturePath })
+  API-->>CLI: listening on :3000
+  Dev->>UI: open http://localhost:3000
+  API-->>UI: index.html + JS bundle
+  UI->>API: GET /api/architecture
+  API->>FS: read manifest.json + diagrams/*.json
+  FS-->>API: parsed JSON
+  API-->>UI: ApiArchitectureSummary
+  UI->>API: GET /api/architecture/diagrams/:id
+  API->>FS: read diagrams/<id>.json
+  FS-->>API: parsed diagram
+  API-->>UI: nodes + edges
+  UI->>API: GET /api/architecture/nodes/:id
+  API->>FS: read descriptions/<id>.md
+  FS-->>API: markdown
+  API-->>UI: node + description
+```

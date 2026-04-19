@@ -1,0 +1,20 @@
+{
+  "name": "tecture-io",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.0.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel --filter=!@tecture/shared dev",
+    "build": "pnpm --filter @tecture/web build && pnpm --filter @tecture/io build",
+    "start": "node packages/server/dist/cli.js",
+    "typecheck": "pnpm -r typecheck",
+    "clean": "pnpm -r exec rm -rf dist"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
+  }
+}
