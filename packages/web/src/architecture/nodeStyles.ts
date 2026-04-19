@@ -33,6 +33,20 @@ const styles: Record<string, NodeStyle> = {
     ],
     accentGlow: "rgba(148,163,184,0.08)",
   },
+  person: {
+    label: "Person",
+    bg: "#0f1419",
+    bgHover: "#151c24",
+    border: "#334155",
+    accent: "#cbd5e1",
+    text: "#f1f5f9",
+    iconPaths: [
+      { d: "M12 12a4 4 0 100-8 4 4 0 000 8z", fill: "#cbd5e1", opacity: 0.1 },
+      { d: "M12 12a4 4 0 100-8 4 4 0 000 8z", stroke: "#cbd5e1", strokeWidth: 1.5 },
+      { d: "M4 21a8 8 0 0116 0", stroke: "#cbd5e1", strokeWidth: 1.5 },
+    ],
+    accentGlow: "rgba(203,213,225,0.08)",
+  },
   service: {
     label: "Service",
     bg: "#0d1025",

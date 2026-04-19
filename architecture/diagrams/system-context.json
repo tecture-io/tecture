@@ -3,7 +3,7 @@
   "level": 1,
   "meta": { "direction": "TB" },
   "nodes": [
-    { "id": "developer",           "label": "Developer",          "meta": { "type": "external" } },
+    { "id": "developer",           "label": "Developer",          "meta": { "type": "person" } },
     { "id": "tecture-io",          "label": "Tecture IO",         "subDiagramId": "containers", "meta": { "type": "system" } },
     { "id": "architecture-source", "label": "Architecture Files", "meta": { "type": "external", "technology": "json" } },
     { "id": "npm-registry",        "label": "npm Registry",       "meta": { "type": "external", "technology": "npm" } }

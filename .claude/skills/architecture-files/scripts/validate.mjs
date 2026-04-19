@@ -10,7 +10,7 @@ import { join, basename, extname, resolve } from "node:path";
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
 const NODE_TYPES = new Set([
-  "system", "service", "database", "queue",
+  "system", "person", "service", "database", "queue",
   "gateway", "frontend", "cache", "storage", "external",
 ]);
 const EDGE_TYPES = new Set([

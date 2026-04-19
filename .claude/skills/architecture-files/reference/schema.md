@@ -57,7 +57,7 @@ Draft 2020-12 JSON Schema: [../schemas/diagram.schema.json](../schemas/diagram.s
 | `label` | string | yes | Display name. |
 | `parentId` | slug \| null | no | Another node's `id` **in the same diagram**. That parent must have `meta.isContainer = true`. |
 | `subDiagramId` | slug \| null | no | Another diagram's slug (drill-down target). Must exist under `diagrams/`. Self-reference is forbidden. |
-| `meta.type` | enum | no | One of `system`, `service`, `database`, `queue`, `gateway`, `frontend`, `cache`, `storage`, `external`. |
+| `meta.type` | enum | no | One of `system`, `person`, `service`, `database`, `queue`, `gateway`, `frontend`, `cache`, `storage`, `external`. |
 | `meta.technology` | slug | no | Free-form tech identity, ideally a [Simple Icons](https://simpleicons.org) slug (`postgresql`, `react`, `aws-s3`). |
 | `meta.isContainer` | boolean | no | If `true`, this node groups child nodes (those that set `parentId` to this id). |
 

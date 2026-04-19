@@ -9,6 +9,7 @@ export type DiagramLevel = 1 | 2 | 3;
 
 export type NodeMetaType =
   | "system"
+  | "person"
   | "service"
   | "database"
   | "queue"

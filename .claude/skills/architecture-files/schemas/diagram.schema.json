@@ -60,7 +60,7 @@
           "properties": {
             "type": {
               "enum": [
-                "system", "service", "database", "queue",
+                "system", "person", "service", "database", "queue",
                 "gateway", "frontend", "cache", "storage", "external"
               ]
             },
