@@ -4,10 +4,6 @@ Thanks for considering a contribution. Tecture IO is early-stage and every issue
 
 This doc covers the dev loop, conventions, and publishing flow. If something here is unclear, that's a bug — please open an issue.
 
-## Code of Conduct
-
-All participation is governed by the [Contributor Covenant](CODE_OF_CONDUCT.md). Be kind. Assume good faith. Escalate to [shanikacj@gmail.com](mailto:shanikacj@gmail.com) if you need to.
-
 ## Ways to contribute
 
 - **Bug reports** — [open an issue](https://github.com/tecture-io/tecture/issues/new/choose) using the bug template. Small reproductions go a long way.

@@ -154,8 +154,6 @@ Contributions are very welcome — Tecture IO is early-stage and shaped by the p
 
 Interested in being a design partner or have feedback on the file format? Email [shanikacj@gmail.com](mailto:shanikacj@gmail.com) or open a thread in [Discussions](https://github.com/tecture-io/tecture/discussions).
 
-All participation is governed by the [Code of Conduct](CODE_OF_CONDUCT.md).
-
 ## License
 
 [MIT](LICENSE) © Shanika Wijerathna
