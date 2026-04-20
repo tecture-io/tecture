@@ -1,7 +1,28 @@
 {
   "name": "@tecture/core",
   "version": "0.0.1",
-  "description": "React UI + Express API served together via a single npx command.",
+  "description": "Zero-config viewer for file-based C4 architecture diagrams. Author JSON + Markdown, explore in your browser.",
+  "keywords": [
+    "c4",
+    "architecture",
+    "diagram",
+    "documentation",
+    "visualization",
+    "reactflow",
+    "agents",
+    "llm"
+  ],
+  "license": "MIT",
+  "author": "Shanika Wijerathna <shanikacj@gmail.com>",
+  "homepage": "https://github.com/tecture-io/tecture#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tecture-io/tecture.git",
+    "directory": "packages/server"
+  },
+  "bugs": {
+    "url": "https://github.com/tecture-io/tecture/issues"
+  },
   "type": "module",
   "bin": "./dist/cli.js",
   "files": ["dist"],
