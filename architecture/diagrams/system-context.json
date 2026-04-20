@@ -9,7 +9,7 @@
     { "id": "npm-registry",        "label": "npm Registry",       "meta": { "type": "external", "technology": "npm" } }
   ],
   "edges": [
-    { "id": "e-npm-developer",       "source": "npm-registry",    "target": "developer",           "label": "npx @tecture/io", "meta": { "type": "data-flow" } },
+    { "id": "e-npm-developer",       "source": "npm-registry",    "target": "developer",           "label": "npx @tecture/core", "meta": { "type": "data-flow" } },
     { "id": "e-developer-tecture",   "source": "developer",       "target": "tecture-io",          "label": "runs & views",    "meta": { "type": "calls" } },
     { "id": "e-tecture-source",      "source": "tecture-io",      "target": "architecture-source", "label": "reads manifest, diagrams, descriptions", "meta": { "type": "reads" } }
   ]

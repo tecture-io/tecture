@@ -1,4 +1,4 @@
-The Tecture IO system itself — a single npm package (`@tecture/io`) that bundles a Node.js CLI, an Express REST API, and a React + Vite UI. The CLI launches an HTTP server that serves both the API and the pre-built UI on the same port, so there is nothing to configure and nothing to deploy.
+The Tecture IO system itself — a single npm package (`@tecture/core`) that bundles a Node.js CLI, an Express REST API, and a React + Vite UI. The CLI launches an HTTP server that serves both the API and the pre-built UI on the same port, so there is nothing to configure and nothing to deploy.
 
 ## Responsibilities
 - Accept a path to an `architecture/` directory (default `./architecture`).
@@ -20,7 +20,7 @@ sequenceDiagram
   participant API as Express API
   participant FS as architecture/
   participant UI as React UI (browser)
-  Dev->>CLI: npx @tecture/io --architecture-path ./arch
+  Dev->>CLI: npx @tecture/core --architecture-path ./arch
   CLI->>API: createApp({ architecturePath })
   API-->>CLI: listening on :3000
   Dev->>UI: open http://localhost:3000

@@ -2,7 +2,7 @@ The single user persona for Tecture IO — a software engineer or architect who 
 
 ## Responsibilities
 - Author `manifest.json`, diagram JSON files, and per-node markdown descriptions in a local `architecture/` directory.
-- Install and run the CLI from the npm registry: `npx @tecture/io` (optionally `--port` / `--architecture-path`).
+- Install and run the CLI from the npm registry: `npx @tecture/core` (optionally `--port` / `--architecture-path`).
 - Open the local URL in a browser to pan, drill into sub-diagrams, and read node descriptions.
 
 ## Tech Stack

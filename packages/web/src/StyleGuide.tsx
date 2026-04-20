@@ -685,7 +685,7 @@ export function StyleGuide() {
                   style={{ backgroundColor: "#0a0f1a", borderColor: "#1e2d4a", color: "#e2e8f0" }}
                 >
                   <code>
-                    <span style={{ color: "rgba(34, 211, 238, 0.5)" }}>$</span> npx @tecture/io --port 3001
+                    <span style={{ color: "rgba(34, 211, 238, 0.5)" }}>$</span> npx @tecture/core --port 3001
                   </code>
                 </pre>
               </div>

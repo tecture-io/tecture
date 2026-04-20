@@ -1,4 +1,4 @@
-The `@tecture/io` bin entrypoint. A thin Node.js script that parses CLI flags, resolves the architecture directory to an absolute path, constructs the Express app, and starts listening.
+The `@tecture/core` bin entrypoint. A thin Node.js script that parses CLI flags, resolves the architecture directory to an absolute path, constructs the Express app, and starts listening.
 
 ## Responsibilities
 - Parse `--port` / `-p` (default `PORT` env or `3000`, validated as a 1–65535 integer) and `--architecture-path` / `-a` (default `./architecture`).
