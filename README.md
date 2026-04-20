@@ -38,13 +38,22 @@ Tecture IO is designed for the agent-authored workflow: architecture lives *in t
 
 ## Quickstart
 
+**1. Install the Tecture skill for Claude Code** (one-time)
+
 ```bash
-# In any repo that has an ./architecture/ folder
-npx @tecture/core
-# → Tecture IO running at http://localhost:3000
+git clone https://github.com/tecture-io/tecture-skill.git ~/.claude/skills/tecture
 ```
 
-Don't have an `./architecture/` folder yet? Copy [this repo's own one](architecture/) as a starting point — Tecture IO documents itself with Tecture IO.
+**2. Generate the architecture.** In Claude Code, from your project root:
+
+> Document this codebase as a Tecture architecture.
+
+**3. Render it.**
+
+```bash
+npx @tecture/core
+# → http://localhost:3000
+```
 
 ## Features
 
@@ -85,9 +94,9 @@ See [architecture/](architecture/) in this repo for a complete working example.
 
 ## For coding agents
 
-Tecture IO is built for the agent-authored workflow, not retrofitted for it. The file format is **flat JSON graphs and Markdown** — no proprietary DSL, no binary formats, no vendor lock-in — so a coding agent can read the current architecture with `fs.readFile`, extend or refactor it with `fs.writeFile`, and ship the update in the same PR as the code change that motivated it. Humans review the diff; the browser UI renders the result.
+**Claude Code:** install the skill (Quickstart step 1) — it teaches the agent the file format and validation command.
 
-Any agent that can edit files in your repo (Claude Code, Cursor, Copilot Workspace, Aider, custom SDK agents, CI bots) can already author your architecture today. A bundled MCP server and an `architecture-files` authoring skill are [on the roadmap](#roadmap) for teams that want a more structured authoring surface.
+**Any other agent that can edit files** (Cursor, Copilot Workspace, Aider, CI bots): point it at the file format reference below and at [architecture/](architecture/) as a working example. No plugin required.
 
 ## Roadmap
 
