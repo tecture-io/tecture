@@ -119,10 +119,10 @@ Write the complete file each time — do not try to patch JSON by hand with part
 Run the bundled validator from the project root:
 
 ```
-node .claude/skills/architecture-files/scripts/validate.mjs
+node .claude/skills/tecture/scripts/validate.mjs
 ```
 
-By default it checks `./architecture`. Pass a path to validate a different location: `node …/validate.mjs path/to/other-arch`.
+By default it checks `./architecture`. Pass a path to validate a different location: `node .claude/skills/tecture/scripts/validate.mjs path/to/other-arch`.
 
 The validator checks:
 
