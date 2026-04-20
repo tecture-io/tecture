@@ -1,9 +1,11 @@
 ---
 name: tecture
-description: Author or update a file-based C4 architecture under ./architecture — manifest.json + one JSON file per diagram + one markdown description per node. Use when the user asks to create, update, split, or document an architecture as local JSON/Markdown files (not via the Tecture MCP server). Always ends by running the bundled validator.
+description: Author or update a file-based C4 architecture under ./architecture (manifest.json + one JSON file per C4 level + one markdown description per node) by first discovering the repo's tech stack, deployables, and external dependencies, then mapping them onto C4 diagrams. Use when the user asks to document, draw, create, update, or split the architecture of a codebase as local JSON/Markdown files (not via the Tecture MCP server). Always ends by running the bundled validator.
 ---
 
 Maintain a file-based C4 architecture at `./architecture/` (relative to the project root). The on-disk layout mirrors the Tecture data model but replaces UUIDs with slugs and moves long-form node descriptions into standalone markdown files.
+
+A good architecture is **grounded in the repo** (every node, edge, and technology corresponds to something concrete in the code), **right-sized per level** (L1 hides internals; L3 only appears when there is genuine internal complexity), and **comprehensible in 60 seconds** to a new engineer reading only the L1 diagram. The full quality bar is in the [Quality checklist](#quality-checklist) below — apply it before validation.
 
 ## Directory layout
 
@@ -96,15 +98,58 @@ Machine-readable schemas (JSON Schema Draft 2020-12): [schemas/manifest.schema.j
 
 ## Workflow
 
-Follow C4 hierarchy: L1 (System Context) → L2 (Container) → L3 (Component, optional).
+Three phases — **Discover → Map → Author**. Do not skip Phase A and dive straight into JSON; the most common failure mode is a generic, template-shaped architecture that names the right C4 levels but misses what makes *this* repo distinctive.
 
-1. **Plan the levels.** What external actors interact with the system (L1)? What containers live inside (L2)? Which containers need internal detail (L3)?
-2. **Create the deepest diagrams first** so their slugs exist before parents reference them via `subDiagramId`.
-3. **For each diagram:** write `diagrams/<slug>.json` following the schema, then create a `descriptions/<node-id>.md` for **every** node.
-4. **Write `manifest.json`** with `name`, `description`, `diagrams` (all slugs), and `topDiagram` set to the L1 slug.
+Stack-specific recipes, an external-system catalog, and a worked example live in [reference/discovery.md](reference/discovery.md). Read it once before authoring an architecture for an unfamiliar repo shape.
+
+### Phase A — Discover (read-only)
+
+Before writing any JSON, gather evidence for these seven artifacts. **Do not guess** — find the file or dependency that proves it.
+
+1. **Repo shape** — single app, monorepo (one or many deployables), microservices, library/SDK, CLI, mobile, data pipeline. Detect from workspace files (`pnpm-workspace.yaml`, `lerna.json`, `turbo.json`, `go.work`, Cargo workspaces), top-level directories (`packages/`, `services/`, `apps/`, `cmd/`), and the count of `Dockerfile`s.
+2. **Primary stack** — read every `package.json`, `pyproject.toml`, `requirements*.txt`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `Gemfile`, `composer.json`, `mix.exs`. Note the *frameworks* (Next.js, FastAPI, Django, NestJS, Spring Boot, gin, axum), not just the language.
+3. **Deployables** — anything that runs as a long-lived process: `Dockerfile`s, `docker-compose.yml` services, `Procfile`, `serverless.yml`, k8s manifests, GitHub Actions deploy jobs, `bin/` entry points, `scripts.start`/`scripts.dev`.
+4. **Datastores & infra** — env vars matching `*_URL`/`*_DSN`/`*_HOST`/`*_BUCKET`; ORM configs (`prisma/schema.prisma`, Django `DATABASES`, `alembic.ini`); IaC under `terraform/`/`cdk/`/`pulumi/`.
+5. **External SDKs / SaaS** — provider SDK imports (`stripe`, `@sendgrid/*`, `@aws-sdk/*`, `boto3`, `openai`, `@anthropic-ai/sdk`, `@clerk/*`, `@sentry/*`); webhook routes; OAuth providers. Each match is usually an external node.
+6. **Actors / personas** — distinct frontends (admin vs end-user), auth roles, public API consumers, CLI users, cron/CI callers. Different behaviors → different person nodes.
+7. **Purpose** — top-level README + the `description` field in the package manifest + the primary entry point. This seeds `manifest.description` and the top-system description.
+
+### Phase B — Map discovery → C4
+
+Translate evidence using the patterns in [reference/discovery.md](reference/discovery.md). Universal rules:
+
+- **L1 (System Context)** — one node for the system + person actors + every external SaaS/datastore that lives outside *your* deployable boundary. **3–5 nodes total. Never name internal services here.**
+- **L2 (Containers)** — one node per deployable from A3 + one node per managed datastore/broker from A4 + each external from A5. **4–8 nodes**, edges with concrete labels (`REST`, `gRPC`, `order.created`, `reads/writes`).
+- **L3 (Components)** — *optional*. Add only when an L2 container has 3+ separable internal parts that genuinely help a reader (e.g. an API split into auth/catalog/orders controllers + repos). **3–6 nodes**, never just a renamed re-arrangement of L2.
+
+Stack idioms differ — a Next.js + Postgres app, a Django monolith, a FastAPI + Celery service, a microservice mesh, a CLI, a data pipeline each get a different L2 shape. Use the matching recipe in [reference/discovery.md](reference/discovery.md) as a starting prior, then adjust to what is actually in the repo.
+
+### Phase C — Author & self-evaluate
+
+1. **Write child diagrams first** (L3 → L2 → L1) so slugs exist before parents reference them via `subDiagramId`.
+2. **For each diagram**, write `diagrams/<slug>.json`, then create `descriptions/<node-id>.md` for **every** node. Lead each description with one sentence of *responsibility* — what this node owns, not a rephrasing of its label.
+3. **Write `manifest.json`** with `name`, `description` (2–4 plain-text paragraphs), `topDiagram` set to the L1 slug, and `diagrams` listing every slug.
+4. **Run the [Quality checklist](#quality-checklist)** against the draft. Fix anything that fails.
 5. **Validate** (see below). Fix every error before reporting success.
 
-Keep diagrams small — 3–5 nodes for L1, 4–8 for L2, 3–6 for L3. If a diagram grows beyond that, split it into a deeper level.
+## Quality checklist
+
+The validator checks *shape*. This checklist checks *meaning* — apply it before running the validator. Aim for ≥10/12 on a fresh architecture; treat any miss as a real defect, not a stylistic preference.
+
+1. **60-second comprehension** — Read only the L1 diagram + the top-system description. Can a new engineer answer "what does this system do, who uses it, what does it depend on"?
+2. **Evidence-grounded** — For each node, name the file or dependency that proves it exists (a `Dockerfile`, a `package.json` entry, an env var, an SDK import). No node should be "I think there's probably one of these."
+3. **Right abstraction per level** — L1 hides internals; L2 shows deployables and managed infra; L3 appears only when an L2 container has 3+ meaningfully separable parts.
+4. **Boundaries match real seams** — Each node corresponds to a deployable, process, package, or module with its own contract. Could you imagine each node being deployed, replaced, or owned independently?
+5. **Edges express runtime relationships** — Every edge label is a verb or protocol (`REST`, `gRPC`, `order.created`, `reads/writes`, `webhook`). No `uses` / `depends on` / `interacts with`.
+6. **Technology authenticity** — Every `meta.technology` matches a real entry in a manifest, lockfile, or Dockerfile. Use [Simple Icons](https://simpleicons.org) slugs.
+7. **Drill-down adds information** — Each `subDiagramId` exposes structure not visible at the parent level. If removing the sub-diagram costs no understanding, delete it.
+8. **Descriptions explain why, not what** — Strip the heading from any `descriptions/*.md`; you should still be able to tell which node it describes from the responsibilities. If not, the description is too generic.
+9. **Coverage of externals** — Grep for `*_URL`, `*_KEY`, and common SDK imports (`stripe`, `boto3`, `@aws-sdk/*`, `openai`, `@anthropic-ai/sdk`). Every match maps to a node.
+10. **Diagrams fit on one screen** — L1: 3–5 nodes; L2: 4–8; L3: 3–6. Anything bigger means split into a deeper level.
+11. **Stable, code-derived names** — Labels match what the code calls things (directory names, package names, service names). Don't invent synonyms.
+12. **Reusable on update** — When code changes (e.g. "we added a Redis cache"), a focused 1–2 file diff should be enough. If a small change forces a rewrite, the boundaries are wrong.
+
+Common anti-patterns to watch for: "Business Logic" / "Service Layer" nodes; L1 diagrams that name internal services; L3 diagrams that just rename L2; edges labeled `uses`; technologies you didn't grep for. See [reference/discovery.md](reference/discovery.md#anti-patterns-do-not-do-these) for the full list.
 
 ## Updating an existing architecture
 

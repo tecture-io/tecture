@@ -3,14 +3,49 @@
   "level": 1,
   "meta": { "direction": "TB" },
   "nodes": [
-    { "id": "developer",           "label": "Developer",          "meta": { "type": "person" } },
-    { "id": "tecture-io",          "label": "Tecture IO",         "subDiagramId": "containers", "meta": { "type": "system" } },
-    { "id": "architecture-source", "label": "Architecture Files", "meta": { "type": "external", "technology": "json" } },
-    { "id": "npm-registry",        "label": "npm Registry",       "meta": { "type": "external", "technology": "npm" } }
+    {
+      "id": "coding-agent",
+      "label": "Coding Agent",
+      "meta": { "type": "person" }
+    },
+    {
+      "id": "developer",
+      "label": "Developer",
+      "meta": { "type": "person" }
+    },
+    {
+      "id": "tecture-io",
+      "label": "Tecture IO",
+      "subDiagramId": "containers",
+      "meta": { "type": "system" }
+    },
+    {
+      "id": "architecture-files",
+      "label": "Architecture Files",
+      "meta": { "type": "storage", "technology": "markdown" }
+    }
   ],
   "edges": [
-    { "id": "e-npm-developer",       "source": "npm-registry",    "target": "developer",           "label": "npx @tecture/core", "meta": { "type": "data-flow" } },
-    { "id": "e-developer-tecture",   "source": "developer",       "target": "tecture-io",          "label": "runs & views",    "meta": { "type": "calls" } },
-    { "id": "e-tecture-source",      "source": "tecture-io",      "target": "architecture-source", "label": "reads manifest, diagrams, descriptions", "meta": { "type": "reads" } }
+    {
+      "id": "e-coding-agent-architecture-files",
+      "source": "coding-agent",
+      "target": "architecture-files",
+      "label": "writes JSON + Markdown via fs.writeFile",
+      "meta": { "type": "writes" }
+    },
+    {
+      "id": "e-developer-tecture-io",
+      "source": "developer",
+      "target": "tecture-io",
+      "label": "runs `npx @tecture/core`, browses diagrams",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-tecture-io-architecture-files",
+      "source": "tecture-io",
+      "target": "architecture-files",
+      "label": "reads from ./architecture on disk",
+      "meta": { "type": "reads" }
+    }
   ]
 }

@@ -1,10 +1,10 @@
-`packages/server/src/server.ts` — the `createApp()` factory that wires the Express instance, middleware, and routers together. Returning the app (instead of listening inside the factory) keeps the CLI and any future tests in control of the HTTP lifecycle.
+The Express application factory at [packages/server/src/server.ts](packages/server/src/server.ts) — wires together the JSON body parser, the two API routers, the architecture error handler, and the static + SPA-fallback handler. Exported as `createApp(options)` so tests and alternate entry points can construct an app without binding a port.
 
 ## Responsibilities
-- Install `express.json()` body parsing.
-- Mount `healthRouter` at `/api/health` and the architecture router at `/api/architecture` (with its error handler).
-- If the `dist/public/` directory exists next to the executable, mount `express.static` for it and add an SPA fallback that serves `index.html` for any non-`/api/*` path.
+- Register `express.json()` and mount `/api/health` and `/api/architecture` routers.
+- Install the architecture-specific error handler *after* the architecture router so errors surface as structured `ApiArchitectureError` JSON.
+- Detect whether `dist/public/` exists (i.e. the UI has been bundled) and, if so, register static serving + an SPA fallback that skips `/api/*` paths.
 
 ## Tech Stack
-- `express` 4.
-- `node:fs.existsSync` and `node:url.fileURLToPath` to locate the bundled `public/` beside the ESM entry.
+- Express 4
+- `node:fs` (existsSync), `node:url` (fileURLToPath)

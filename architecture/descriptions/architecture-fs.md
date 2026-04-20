@@ -1,11 +1,9 @@
-The directory on the developer's local disk that the CLI points at. It is the only persistent state Tecture IO touches — there is no database, no remote storage, and no write path.
+The concrete on-disk view of the architecture root — the directory the CLI's `--architecture-path` flag resolves to (default: `./architecture` under the current working directory). Same data as the `architecture-files` node at the system-context level, shown here as the physical storage that `cli-server` reads at request time.
 
 ## Responsibilities
-- Provide `manifest.json` at the root, listing the top diagram slug and all other diagram slugs.
-- Provide `diagrams/<slug>.json` files, each conforming to the C4 diagram schema (nodes + edges + optional layout meta).
-- Provide `descriptions/<node-id>.md` files — one per unique node id — with free-form Markdown that may embed Mermaid blocks.
+- Hold `manifest.json`, `diagrams/*.json`, and `descriptions/*.md` so the loader can serve them verbatim.
+- Anchor the `safeJoin` path guard — every loader call resolves paths relative to this root and rejects anything that escapes it.
 
 ## Tech Stack
-- Plain `json` + `markdown` files on the local filesystem.
-- Accessed via `node:fs/promises` inside the API server; all paths go through a `safeJoin()` guard that rejects traversal attempts outside the configured root.
-- Slug pattern `^[a-z0-9]+(-[a-z0-9]+)*$` is enforced before any file lookup, so malformed ids short-circuit to a 404.
+- POSIX filesystem
+- UTF-8 JSON + Markdown, no indexing or caching layer

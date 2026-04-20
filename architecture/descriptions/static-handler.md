@@ -1,9 +1,9 @@
-The pair of handlers registered in `createApp()` that turn the Express process into a full web server for the bundled React UI. Only active when `dist/public/` exists next to the executable — in development, Vite serves the UI separately on port 5173 and proxies `/api/*` to this process.
+The static + SPA-fallback handler set up conditionally in [packages/server/src/server.ts](packages/server/src/server.ts). Active only in the published/built CLI (where `dist/public/` exists) — omitted during `pnpm dev`, when Vite serves the UI on port 5173 and proxies `/api/*` back to Express.
 
 ## Responsibilities
-- Serve hashed Vite assets (JS, CSS, fonts, icons, SVG sprites) from `dist/public/` via `express.static`.
-- For any unmatched `GET` that does not start with `/api/`, return `dist/public/index.html` so the client-side hash router can take over — this is what makes deep links like `#/diagram/containers` work on a page refresh.
+- `express.static(publicDir)` — serve the bundled React UI's hashed JS/CSS assets.
+- Catch-all `GET *` that falls through to `index.html` for any non-`/api/*` path, so hash-based client routes (`#/diagram/<slug>`) resolve on refresh/deep-link.
 
 ## Tech Stack
-- `express.static` and a catch-all `app.get("*", ...)` handler.
-- `node:url.fileURLToPath` and `node:fs.existsSync` to locate the `public/` directory next to the bundled ESM entry.
+- Express built-in `express.static`
+- `node:fs` (existsSync), `node:url` (fileURLToPath)

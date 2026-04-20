@@ -1,11 +1,11 @@
-`packages/web/src/architecture/NodeDetailPanel.tsx` — the right-side drawer that appears whenever a node is selected in the canvas.
+The right-hand Markdown side panel at [packages/web/src/architecture/NodeDetailPanel.tsx](packages/web/src/architecture/NodeDetailPanel.tsx), paired with [MarkdownContent.tsx](packages/web/src/architecture/MarkdownContent.tsx) and [MermaidBlock.tsx](packages/web/src/architecture/MermaidBlock.tsx). Opens when a node is selected and renders the node's `descriptions/<id>.md` — including any fenced ```mermaid sub-diagrams — as HTML.
 
 ## Responsibilities
-- When `selectedNodeId` changes, `GET /api/architecture/nodes/:id` and store the `ApiNodeDetail` in local state.
-- Render the node's label, a coloured type badge (driven by `nodeStyles.ts`), its `meta.technology` tag, and the Markdown description via the shared markdown renderer.
-- Provide a close button that clears the selection in `ArchitectureView`; escape-key handling is wired from the keyboard-hint layer.
-- Show a lightweight skeleton / empty state while the fetch is in flight or when no node is selected.
+- Fetch `/api/architecture/nodes/:id` whenever the selected node changes; show loading/error states on failure.
+- Render the node's label, technology tag, and Markdown body using `markdown-to-jsx`.
+- Intercept ```` ```mermaid ```` fenced blocks and render them inline via `MermaidBlock`, with a click-to-expand full-screen lightbox.
 
 ## Tech Stack
-- `react` hooks; no caching layer — descriptions are small, and a repeat click re-hits the API.
-- `tailwindcss` utility classes for layout and motion (slide-in transition).
+- React 18
+- markdown-to-jsx 9
+- mermaid 11

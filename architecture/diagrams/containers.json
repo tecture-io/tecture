@@ -3,15 +3,45 @@
   "level": 2,
   "meta": { "direction": "TB" },
   "nodes": [
-    { "id": "cli",              "label": "CLI",          "meta": { "type": "service",  "technology": "nodedotjs" } },
-    { "id": "api-server",       "label": "API Server",   "subDiagramId": "components-api", "meta": { "type": "service",  "technology": "express" } },
-    { "id": "web-ui",           "label": "Web UI",       "subDiagramId": "components-web", "meta": { "type": "frontend", "technology": "react" } },
-    { "id": "architecture-fs",  "label": "Architecture Directory", "meta": { "type": "storage",  "technology": "json" } }
+    {
+      "id": "web-ui",
+      "label": "Web UI",
+      "subDiagramId": "components-web",
+      "meta": { "type": "frontend", "technology": "react" }
+    },
+    {
+      "id": "cli-server",
+      "label": "CLI Server",
+      "subDiagramId": "components-api",
+      "meta": { "type": "service", "technology": "express" }
+    },
+    {
+      "id": "architecture-fs",
+      "label": "Architecture Directory",
+      "meta": { "type": "storage", "technology": "markdown" }
+    }
   ],
   "edges": [
-    { "id": "e-cli-api",         "source": "cli",        "target": "api-server",      "label": "createApp() + listen", "meta": { "type": "calls" } },
-    { "id": "e-web-api",         "source": "web-ui",     "target": "api-server",      "label": "fetch /api/*",         "meta": { "type": "calls" } },
-    { "id": "e-api-bundle",      "source": "api-server", "target": "web-ui",          "label": "serves static bundle", "meta": { "type": "data-flow" } },
-    { "id": "e-api-fs",          "source": "api-server", "target": "architecture-fs", "label": "reads JSON + Markdown","meta": { "type": "reads" } }
+    {
+      "id": "e-web-ui-cli-server",
+      "source": "web-ui",
+      "target": "cli-server",
+      "label": "GET /api/architecture/*",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-cli-server-web-ui",
+      "source": "cli-server",
+      "target": "web-ui",
+      "label": "serves bundled SPA",
+      "meta": { "type": "data-flow" }
+    },
+    {
+      "id": "e-cli-server-architecture-fs",
+      "source": "cli-server",
+      "target": "architecture-fs",
+      "label": "reads manifest.json, diagrams/*.json, descriptions/*.md",
+      "meta": { "type": "reads" }
+    }
   ]
 }

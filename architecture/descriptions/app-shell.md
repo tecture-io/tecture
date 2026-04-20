@@ -1,9 +1,10 @@
-`packages/web/src/App.tsx` — the tiny top-level component that owns client-side routing. Listens to `window.hashchange`, parses the hash, and swaps between the two top-level views.
+The tiny root component pair at [packages/web/src/main.tsx](packages/web/src/main.tsx) and [packages/web/src/App.tsx](packages/web/src/App.tsx) — mounts React into `#root` and chooses between the Architecture view and the internal Style Guide based on the URL hash.
 
 ## Responsibilities
-- Maintain a `useHashRoute` state that resubscribes on each mount.
-- Parse the hash into one of two routes: `#/style-guide` → the internal design-system page, or `#/diagram/:diagramId` (or empty) → the main `ArchitectureView`.
-- Pass the parsed `diagramId` (or `null` when absent) down to `ArchitectureView` so it can fall back to `topDiagram`.
+- Subscribe to `hashchange` and parse `#/diagram/<slug>` and `#/style-guide` into a view + diagramId pair.
+- Render `<ArchitectureView diagramId={...}/>` for normal traffic; `<StyleGuide/>` for the design-review route.
+- Import global styles (ReactFlow stylesheet + Tailwind theme).
 
 ## Tech Stack
-- `react` 18 with hooks — no router dependency, hash routing keeps static hosting trivial (the Express SPA fallback only has to serve one `index.html`).
+- React 18, `react-dom/client`
+- `window.location.hash` (no router library — the app has only two top-level views)

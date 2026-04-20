@@ -1,11 +1,9 @@
-The single user persona for Tecture IO — a software engineer or architect who authors a C4 architecture as local files and wants to explore it visually without deploying anything.
+Human engineer who installs `@tecture/core`, runs the CLI from their project root, and explores the rendered architecture in the browser. The primary reader of the diagrams — the people writing the code (or reviewing PRs) that the architecture documents.
 
 ## Responsibilities
-- Author `manifest.json`, diagram JSON files, and per-node markdown descriptions in a local `architecture/` directory.
-- Install and run the CLI from the npm registry: `npx @tecture/core` (optionally `--port` / `--architecture-path`).
-- Open the local URL in a browser to pan, drill into sub-diagrams, and read node descriptions.
+- Run `npx @tecture/core` (or `pnpm start`) from a project that contains an `architecture/` directory.
+- Open `http://localhost:3000`, navigate between diagrams, click nodes to read their Markdown descriptions, double-click containers to drill down.
+- Review the JSON + Markdown diff in pull requests authored by coding agents.
 
 ## Tech Stack
-- Any editor or IDE to produce JSON + Markdown.
-- Node.js ≥ 20 to execute the bundled CLI.
-- A modern browser to run the React UI.
+- Browser of choice; no plugins or accounts.

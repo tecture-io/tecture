@@ -1,6 +1,11 @@
 {
   "name": "Tecture IO",
-  "description": "Tecture IO is a zero-configuration viewer for file-based architecture diagrams authored by coding agents. A developer runs `npx @tecture/core` in any directory that contains an `architecture/` folder (manifest.json + diagrams + node descriptions) and gets an interactive, browser-based exploration tool at http://localhost:3000. The diagrams themselves are typically written and maintained by coding agents (Claude Code, Cursor, Aider, custom SDK agents) alongside the code they describe.\n\nThe published npm package is a self-contained Node.js executable that serves both a REST API and the built React UI from the same port. The server is a small Express app that reads the local architecture directory on demand; the browser client is a React + Vite SPA that renders each diagram as an interactive graph using ReactFlow with an ELK-driven layered layout.\n\nThere is no database, no authentication, and no deployment surface — the only durable state lives on the user's local filesystem, in the architecture directory that the CLI points at.",
+  "description": "Tecture IO is a zero-configuration viewer for file-based architecture diagrams authored by coding agents. The entire product ships as one npm package — @tecture/core — that boots a single Express process on port 3000 and serves both a REST API over the user's local ./architecture directory and a bundled React UI that renders the graph.\n\nThe repo is a pnpm monorepo with three packages: @tecture/server (the CLI + HTTP API, the only published deployable), @tecture/web (the React + Vite + ReactFlow UI, bundled into the server at build time), and @tecture/shared (TypeScript types that define the file format and the API contract between server and UI).\n\nThere are no datastores, no authentication, no deployment surface, and no external services called from the CLI — the only durable state is the flat tree of JSON + Markdown files in the developer's own repository. Coding agents author that tree with ordinary fs.writeFile calls; the viewer is read-only.",
   "topDiagram": "system-context",
-  "diagrams": ["system-context", "containers", "components-api", "components-web"]
+  "diagrams": [
+    "system-context",
+    "containers",
+    "components-api",
+    "components-web"
+  ]
 }

@@ -1,14 +1,11 @@
-`packages/web/src/architecture/DiagramCanvas.tsx` — the interactive graph renderer. Fetches one diagram by slug, hands it through a layout pipeline, and renders it with ReactFlow plus a custom node type and floating-edge type.
+The interactive graph surface at [packages/web/src/architecture/DiagramCanvas.tsx](packages/web/src/architecture/DiagramCanvas.tsx). Given a `diagramId`, it fetches the diagram, runs ELK layout, and hands the positioned nodes + edges to @xyflow/react for rendering, zoom, pan, and minimap.
 
 ## Responsibilities
-- Fetch `/api/architecture/diagrams/:diagramId` whenever the selected slug changes.
-- Run the response through `diagramToFlow()` (in `transform.ts`) to produce ReactFlow nodes and edges with the right custom types.
-- Run those through `layoutNodes()` (in `layout.ts`), which calls out to **ELK** for a layered hierarchical layout that respects the diagram's `TB` / `LR` direction.
-- Expose pan/zoom, a mini-map, and custom node/edge renderers.
-- Fire `onNodeSelect(id)` on a single click and, if a node has a `subDiagramId`, navigate the hash router to that sub-diagram on double click (the drill-down interaction).
-- Show a loading overlay while the fetch + layout are in flight and an error overlay on failure.
+- Fetch `/api/architecture/diagrams/:id`, transform the Tecture node/edge shape into ReactFlow's `Node`/`Edge` types (`diagramToFlow`), and drop edges whose source or target is missing.
+- Await `layoutDiagram()` — an ELK layered, orthogonal-routing pass — before making the canvas visible (fade-in once positions are resolved).
+- Handle click → `onSelectNode(id)` and double-click → `onDrillIn(subDiagramId)` to drive selection and drill-down in the parent view.
 
 ## Tech Stack
-- `@xyflow/react` (ReactFlow 12) for the interactive graph.
-- `elkjs` via web-worker-free in-process layered algorithm (`layered`, orthogonal routing).
-- `nodeStyles.ts` maps each `meta.type` (`service`, `database`, `frontend`, …) to a colour, border, and SVG icon; `edgeStyles.ts` maps each edge `meta.type` (`calls`, `reads`, `publishes`, …) to a colour and dashed/animated flag.
+- @xyflow/react 12 (ReactFlow)
+- elkjs 0.11 (`layered`, `ORTHOGONAL` edge routing)
+- Custom `ArchitectureNode` node type and `FloatingEdge` edge type
