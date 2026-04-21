@@ -10,7 +10,17 @@ Tags:
 - `[LLM]` — an LLM judge (Claude Sonnet 4.6 for F3/H1; Claude Opus 4.7 for J), `temperature=0`, the prompt shown inline. Deterministic per (inputs, prompt, model).
 - `[VISION]` — computed from a screenshot of the rendered diagram captured via the `chrome-devtools` MCP against a running Tecture viewer.
 
-Throughout: `N_L1`, `N_L2`, `N_L3` are node counts of the respective diagrams. `manifest.topDiagram` is assumed to be the L1. "Target repo" = the repo whose architecture is under test; "architecture" = the `./architecture/` directory inside it.
+Throughout: "Target repo" = the repo whose architecture is under test; "architecture" = the `./architecture/` directory inside it.
+
+**Level derivation** (used by Section C and by any criterion that refers to "L1", "L2", "L3"). The diagram schema's `level` field is optional, so we do not rely on it. Instead, levels are computed from the drill-down graph:
+
+- `level(manifest.topDiagram) = 1` (by skill convention — the top diagram is the System Context).
+- For any other diagram `D`, `level(D) = 1 + min{ level(D') : there exists a node in D' whose subDiagramId = D }`.
+- Diagrams not reachable from `topDiagram` via `subDiagramId` edges are treated as orphan and excluded from Section C (they produce a warning in the report).
+
+`N_L1`, `N_L2`, `N_L3` are node counts of the diagram(s) at the respective derived level. When multiple diagrams share a level, the section-C criteria are applied per diagram and averaged.
+
+**Coverage-set convention** (used by Section B). When an evidence set `E` is empty (`|E| = 0`), the criterion's score is **1.0 vacuously** — there is nothing to cover, so there is nothing to miss.
 
 ---
 
@@ -32,15 +42,19 @@ The harness scans the target repo once to build evidence sets. Each criterion is
 
 ### B1. Deployable coverage — `[AUTO]`
 `E_deploy` = union of: every directory containing a `Dockerfile`; every service in `docker-compose.yml`; every `cmd/<name>` in Go; every workspace package with a `bin` or `start` npm script; every `serverless.yml` function; every k8s `Deployment`/`StatefulSet`/`CronJob`.
-- **Score:** `|E_deploy ∩ L2_nodes_with_type_in_{service,frontend,gateway,queue}| / |E_deploy|`.
+
+Target node set = L2 nodes whose `meta.type` is in `{service, frontend, gateway, queue, database, cache, storage}` — i.e. anything that could legitimately represent a runnable process or a container an operator stands up. Infrastructure-type containers (e.g. a `postgres` service in `docker-compose.yml` modeled at L2 as a `database` node) count as covered.
+- **Score:** `|E_deploy ∩ target_nodes| / |E_deploy|`. Match is slug-normalized substring equality between evidence name and node id/label.
 
 ### B2. Managed-datastore coverage — `[AUTO]`
 `E_db` = distinct datastores from env vars matching `(DB|DATABASE|POSTGRES|MYSQL|MONGO|REDIS|KAFKA|RABBIT|SQS|S3|GCS|ELASTIC|MEILI)_(URL|DSN|HOST|BUCKET|QUEUE|BROKER)` in `.env*`/`docker-compose.yml`/k8s manifests, plus `aws_db_instance` / equivalents in terraform.
 - **Score:** `|E_db ∩ nodes_with_type_in_{database,cache,queue,storage}| / |E_db|`.
 
 ### B3. External-SDK coverage — `[AUTO]`
-`E_ext` = dependencies in any package manifest whose name matches an entry in [catalogs/sdk-providers.json](catalogs/sdk-providers.json) (the standalone catalog maintained alongside this rubric — independent of any skill internals).
-- **Score:** `|distinct providers in E_ext ∩ external_nodes| / |distinct providers in E_ext|`.
+`E_ext` = distinct providers (not raw package names) inferred from dependencies in any package manifest that match entries in [catalogs/sdk-providers.json](catalogs/sdk-providers.json).
+
+Target node set = nodes whose `meta.type` is in `{external, database, cache, queue, storage}`. A managed SaaS may legitimately be modeled under any of those types — e.g. `@aws-sdk/client-s3` → a `storage` node, a managed Postgres → a `database` node, Stripe → an `external` node.
+- **Score:** `|E_ext ∩ target_nodes| / |E_ext|`. Match is by provider slug against node id/label/`meta.technology`.
 
 ### B4. Description evidence — `[AUTO]`
 Every node id has a `descriptions/<id>.md` of **≥ 40 words** whose body contains **≥ 1 evidence marker**: a file path that resolves inside the target repo, a dependency name from a manifest, an env var name, or a CLI-flag token (`--foo`). Each marker is verified by filesystem check or manifest lookup.
@@ -72,21 +86,19 @@ Case-insensitive regex over `edge.label`:
 `^(uses|use|depends on|depends|interacts with|talks to|communicates with|integrates with|works with|connects to|accesses)\.?$`
 - **Score:** `max(0, 1 - matches / total_edges)`.
 
-### D2. Verb-or-protocol presence — `[AUTO]`
-Each `edge.label` must contain at least one of: an HTTP method (`GET|POST|PUT|PATCH|DELETE`), a protocol (`REST|gRPC|WebSocket|SSE|GraphQL|SQL|JDBC|SMTP|AMQP|MQTT|S3`), a concrete verb (`reads|writes|publishes|subscribes|serves|renders|mounts|proxies|fetches|emits|invokes|starts|authenticates`), or a dotted event name (`[a-z0-9]+\.[a-z0-9_]+`).
-- **Score:** fraction of edges matching.
+### D2. Every edge has a label — `[AUTO]`
+`edge.label` is optional in the schema. Unlabeled edges convey no information about the relationship; the direction alone is ambiguous.
+- **Score:** fraction of edges whose `label.trim()` is non-empty and has length ≥ 3 characters.
 
 ---
 
 ## E. Technology authenticity (weight 0.05)
 
-### E1. Every `meta.technology` has evidence — `[AUTO]`
-For each unique `meta.technology` slug, confirm a match (as a dependency name, partial match, or explicit tag) in at least one of: a package manifest, a `Dockerfile` `FROM` line, or a `docker-compose.yml` `image:` line.
-- **Score:** fraction of unique slugs with ≥ 1 match.
+`meta.technology` is a free-form label shown as a subtitle under the node; it does not drive rendering (the node's icon and colour come from `meta.type`, which is enum-constrained by the schema). The only meaningful quality check is that a declared technology corresponds to something real in the target repo — a guard against hallucinated tech.
 
-### E2. Simple Icons slug — `[AUTO]`
-Every `meta.technology` slug must exist in [catalogs/simple-icons-slugs.json](catalogs/simple-icons-slugs.json) (bundled offline copy).
-- **Score:** fraction present.
+### E1. Every `meta.technology` has evidence — `[AUTO]`
+For each unique `meta.technology` slug, confirm a match (as a dependency name, substring match, or explicit tag) in at least one of: a package manifest, a `Dockerfile` `FROM` line, or a `docker-compose.yml` `image:` line.
+- **Score:** fraction of unique slugs with ≥ 1 match.
 
 ---
 
@@ -126,8 +138,10 @@ Let `internal = L2_labels \ L1_labels`. If any L1 label (other than the designat
 - **Score:** `1.0` iff no leak; else `0`.
 
 ### G3. Drill-down adds information — `[AUTO]`
-For each node with `subDiagramId`, the child diagram must have ≥ 2 more nodes than the parent exposes for that container, **and** no child label may be a superset (substring-match, case-insensitive) of the parent label.
-- **Score:** fraction of drill-downs satisfying.
+For each node `N` whose `subDiagramId` resolves to a diagram `D`:
+- `D` must contain at least **3 nodes** (a drill-down to a 1–2 node diagram adds nothing over a single node at the parent level).
+- No node in `D` may have a label that is exactly equal to `N.label` (case-insensitive, whitespace-normalized) — a child labeled the same as the parent is a rename, not a decomposition.
+- **Score:** fraction of drill-downs satisfying both.
 
 ---
 

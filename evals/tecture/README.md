@@ -10,7 +10,6 @@ External quality rubric for architectures produced by the Tecture skill at [.cla
 |---|---|
 | [criteria.md](criteria.md) | The authoritative rubric — 24 criteria across 10 sections, each emitting a deterministic `[0, 1]` score. |
 | [catalogs/sdk-providers.json](catalogs/sdk-providers.json) | Standalone map of dependency names to the external provider each one implies. Used by criterion B3. |
-| [catalogs/simple-icons-slugs.json](catalogs/simple-icons-slugs.json) | Bundled Simple Icons slug list (~3300 entries). Used by criterion E2. Regenerate from upstream when needed. |
 | `fixtures/<repo-slug>/reference.json` | Per-target-repo reference answers for criterion J (60-second comprehension). Optional; required only for release gating. |
 | `runs/<timestamp>.json` and `.md` | Output of the eval harness. Machine- and human-readable. |
 
@@ -39,15 +38,6 @@ Every criterion is tagged one of:
 - Aggregate score `≥ 0.90`, **and**
 - every `[AUTO]` criterion at `1.0`, **and**
 - no individual criterion `< 0.6`.
-
-## Refreshing the Simple Icons catalog
-
-```bash
-curl -fsSL "https://cdn.jsdelivr.net/npm/simple-icons@latest/_data/simple-icons.json" -o /tmp/simple-icons.json
-# then re-run the derivation that produced catalogs/simple-icons-slugs.json
-```
-
-The derivation must apply Simple Icons' slug rules: lowercase, apply the special-character map (`+` → `plus`, `.` → `dot`, `&` → `and`, etc.), Unicode-normalize to NFD and strip combining marks, then retain only `[a-z0-9]`.
 
 ## Contributing new criteria
 
