@@ -10,11 +10,9 @@
   <a href="https://github.com/tecture-io/tecture/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 </p>
 
-Coding agents can read an entire codebase and reason about its structure — they can describe a system more thoroughly than most humans have the time to. Tecture turns that capability into living architecture documentation.
+Coding agents can already read every file in a repo and reason about its structure. Tecture gives them a format to write what they find as living documentation: a structured graph of services, datastores, and their relationships, explained in plain Markdown, rendered as an interactive drill-down explorer in your browser.
 
-A useful architecture isn't a single diagram. It's a whole model: every service, datastore, and dependency, at multiple levels of zoom, with each component explained. Existing diagrams-as-code tooling was built for a person to hand-write one diagram in a DSL — the wrong shape for AI authoring, and the wrong shape for understanding a real system.
-
-Tecture defines that model as plain files in your repo: a structured graph as JSON, plus a Markdown description for every component. The [**Tecture Skill**](https://github.com/tecture-io/tecture-skill) teaches your coding agent the format; from there it authors and maintains the architecture the same way it edits source code. The CLI renders it as an interactive, drill-down explorer in your browser — so anyone on the team can see what was built without reading every file.
+The architecture lives in your repo as plain files. Your agent maintains it like any other code.
 
 <p align="center">
   <img src="docs/assets/rendering-tool.png" alt="Tecture IO — interactive architecture explorer with Markdown node descriptions" width="100%">
