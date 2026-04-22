@@ -20,6 +20,7 @@ import type {
   NodeLayoutEntry,
 } from "@tecture/shared";
 import { ArchitectureNode } from "./ArchitectureNode";
+import { Legend } from "./Legend";
 import { LayoutPersistenceContext } from "./LayoutPersistenceContext";
 import { FloatingEdge } from "./edges/FloatingEdge";
 import { diagramToFlow, type ArchNodeData } from "./transform";
@@ -213,6 +214,7 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
           color="rgba(34, 78, 130, 0.12)"
         />
         <Controls showInteractive={false} position="bottom-right" />
+        {state.status === "ready" && <Legend diagram={state.diagram} />}
         <MiniMap
           position="bottom-left"
           pannable
