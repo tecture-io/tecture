@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "diagramId": "components-web",
+  "updatedAt": "2026-04-22T09:05:34.144Z",
+  "nodes": {
+    "app-shell": {
+      "x": 83,
+      "y": 12
+    },
+    "architecture-view": {
+      "x": 83,
+      "y": 212
+    },
+    "view-panes": {
+      "x": -81,
+      "y": 417,
+      "width": 771,
+      "height": 377
+    },
+    "diagram-list": {
+      "x": 19.838317757009328,
+      "y": 232.99532710280369
+    },
+    "diagram-canvas": {
+      "x": 346.57383177570097,
+      "y": 191.14392523364484
+    },
+    "node-detail-panel": {
+      "x": 598.5629283489095,
+      "y": 62.47757009345787
+    }
+  }
+}
