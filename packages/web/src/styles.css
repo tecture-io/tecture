@@ -170,6 +170,13 @@ body {
   background-color: var(--bg-deep);
 }
 
+/* Keep edge labels above edges, even when an edge's own SVG is elevated
+   because its source/target node is selected or nested (parentId). The
+   elevation formula in @xyflow/system can push an edge SVG to ~z-index 1000. */
+.react-flow__edgelabel-renderer {
+  z-index: 1100;
+}
+
 .react-flow__controls {
   background: rgba(10, 15, 26, 0.85);
   border: 1px solid #1e2d4a;

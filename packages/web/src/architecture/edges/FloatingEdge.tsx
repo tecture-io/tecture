@@ -57,8 +57,7 @@ export function FloatingEdge({
               pointerEvents: "all",
               ...(labelBgStyle
                 ? {
-                    background: (labelBgStyle as Record<string, unknown>).fill as string,
-                    opacity: (labelBgStyle as Record<string, unknown>).fillOpacity as number,
+                    background: resolveLabelBg(labelBgStyle),
                     borderRadius: labelBgBorderRadius ?? 4,
                     padding: labelBgPadding
                       ? `${(labelBgPadding as [number, number])[1]}px ${(labelBgPadding as [number, number])[0]}px`
@@ -73,4 +72,18 @@ export function FloatingEdge({
       )}
     </>
   );
+}
+
+function resolveLabelBg(labelBgStyle: unknown): string {
+  const s = labelBgStyle as { fill?: string; fillOpacity?: number };
+  const fill = s.fill ?? "#0a0f1a";
+  const alpha = s.fillOpacity ?? 1;
+  if (alpha >= 1) return fill;
+  const hex = fill.replace("#", "");
+  if (hex.length !== 3 && hex.length !== 6) return fill;
+  const full = hex.length === 3 ? hex.split("").map((c) => c + c).join("") : hex;
+  const r = parseInt(full.slice(0, 2), 16);
+  const g = parseInt(full.slice(2, 4), 16);
+  const b = parseInt(full.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
