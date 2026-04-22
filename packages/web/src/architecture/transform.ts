@@ -8,6 +8,8 @@ export interface ArchNodeData extends Record<string, unknown> {
   technology?: string;
   hasSubDiagram: boolean;
   subDiagramId?: string;
+  isContainer: boolean;
+  hasChildren: boolean;
 }
 
 export function diagramToFlow(diagram: ApiDiagram): {
@@ -15,21 +17,30 @@ export function diagramToFlow(diagram: ApiDiagram): {
   edges: Edge[];
 } {
   const nodeIds = new Set(diagram.nodes.map((n) => n.id));
+  const childCounts = new Map<string, number>();
+  for (const n of diagram.nodes) {
+    if (n.parentId && nodeIds.has(n.parentId)) {
+      childCounts.set(n.parentId, (childCounts.get(n.parentId) ?? 0) + 1);
+    }
+  }
   return {
-    nodes: diagram.nodes.map(toFlowNode),
+    nodes: diagram.nodes.map((n) => toFlowNode(n, childCounts.has(n.id))),
     edges: diagram.edges
       .filter((e) => nodeIds.has(e.source) && nodeIds.has(e.target))
       .map(toFlowEdge),
   };
 }
 
-function toFlowNode(n: ArchitectureNode): Node<ArchNodeData> {
+function toFlowNode(n: ArchitectureNode, hasChildren: boolean): Node<ArchNodeData> {
+  const isContainer = Boolean(n.meta?.isContainer) || hasChildren;
   const data: ArchNodeData = {
     label: n.label,
     nodeType: n.meta?.type,
     technology: typeof n.meta?.technology === "string" ? n.meta.technology : undefined,
     hasSubDiagram: Boolean(n.subDiagramId),
     subDiagramId: n.subDiagramId ?? undefined,
+    isContainer,
+    hasChildren,
   };
   const node: Node<ArchNodeData> = {
     id: n.id,
