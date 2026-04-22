@@ -3,6 +3,8 @@ import type {
   ApiArchitectureError,
   ApiDiagram,
   ApiDiagramEdges,
+  ApiDiagramLayout,
+  ApiDiagramLayoutUpdate,
   ApiDiagramNodes,
   ApiDiagramSummary,
   ApiNodeDetail,
@@ -19,9 +21,18 @@ import {
   loadDiagram,
   loadManifest,
 } from "../architecture/loader.js";
+import {
+  LayoutInvalidError,
+  loadLayout,
+  saveLayout,
+} from "../architecture/layout.js";
 
 function send404(res: Response, body: ApiArchitectureError): void {
   res.status(404).json(body);
+}
+
+function send400(res: Response, body: ApiArchitectureError): void {
+  res.status(400).json(body);
 }
 
 export function createArchitectureRouter(root: string): Router {
@@ -108,6 +119,44 @@ export function createArchitectureRouter(root: string): Router {
     } catch (err) {
       if (err instanceof DiagramNotFoundError) {
         return send404(res, { error: "diagram_not_found", slug: err.slug });
+      }
+      next(err);
+    }
+  });
+
+  router.get("/diagrams/:diagramId/layout", async (req, res, next) => {
+    const { diagramId } = req.params;
+    if (!SLUG_RE.test(diagramId)) {
+      return send404(res, { error: "diagram_not_found", slug: diagramId });
+    }
+    try {
+      await loadDiagram(root, diagramId);
+      const layout: ApiDiagramLayout = await loadLayout(root, diagramId);
+      res.json(layout);
+    } catch (err) {
+      if (err instanceof DiagramNotFoundError) {
+        return send404(res, { error: "diagram_not_found", slug: err.slug });
+      }
+      next(err);
+    }
+  });
+
+  router.put("/diagrams/:diagramId/layout", async (req, res, next) => {
+    const { diagramId } = req.params;
+    if (!SLUG_RE.test(diagramId)) {
+      return send404(res, { error: "diagram_not_found", slug: diagramId });
+    }
+    try {
+      await loadDiagram(root, diagramId);
+      const update = req.body as ApiDiagramLayoutUpdate;
+      const saved = await saveLayout(root, diagramId, update);
+      res.json(saved);
+    } catch (err) {
+      if (err instanceof DiagramNotFoundError) {
+        return send404(res, { error: "diagram_not_found", slug: err.slug });
+      }
+      if (err instanceof LayoutInvalidError) {
+        return send400(res, { error: "layout_invalid", message: err.message });
       }
       next(err);
     }

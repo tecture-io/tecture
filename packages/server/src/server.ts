@@ -14,7 +14,7 @@ export interface CreateAppOptions {
 export function createApp(options: CreateAppOptions): Express {
   const app = express();
 
-  app.use(express.json());
+  app.use(express.json({ limit: "256kb" }));
   app.use("/api/health", healthRouter);
   app.use("/api/architecture", createArchitectureRouter(options.architecturePath));
   app.use("/api/architecture", architectureErrorHandler);

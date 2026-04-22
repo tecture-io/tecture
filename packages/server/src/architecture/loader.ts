@@ -31,11 +31,11 @@ export class DescriptionNotFoundError extends Error {
   }
 }
 
-function isNodeErrnoError(err: unknown): err is NodeJS.ErrnoException {
+export function isNodeErrnoError(err: unknown): err is NodeJS.ErrnoException {
   return err instanceof Error && "code" in err;
 }
 
-function safeJoin(root: string, ...segments: string[]): string {
+export function safeJoin(root: string, ...segments: string[]): string {
   const absRoot = resolve(root);
   const candidate = resolve(join(absRoot, ...segments));
   const guard = absRoot.endsWith(sep) ? absRoot : absRoot + sep;

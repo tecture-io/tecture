@@ -1,6 +1,6 @@
 import ELK, { type ElkNode } from "elkjs/lib/elk.bundled.js";
 import type { Edge, Node } from "@xyflow/react";
-import type { DiagramDirection } from "@tecture/shared";
+import type { DiagramDirection, DiagramLayoutFile } from "@tecture/shared";
 
 const elk = new ELK();
 
@@ -17,6 +17,7 @@ export async function layoutDiagram(
   nodes: Node[],
   edges: Edge[],
   direction: DiagramDirection | undefined,
+  overlay?: DiagramLayoutFile,
 ): Promise<Node[]> {
   if (nodes.length === 0) return nodes;
 
@@ -85,13 +86,16 @@ export async function layoutDiagram(
   const emit = (n: Node) => {
     if (visited.has(n.id)) return;
     visited.add(n.id);
-    const size = sizes.get(n.id);
-    const out: Node = {
-      ...n,
-      position: positions.get(n.id) ?? { x: 0, y: 0 },
-    };
-    if (size) {
-      out.style = { ...(n.style ?? {}), width: size.width, height: size.height };
+    const saved = overlay?.nodes[n.id];
+    const position = saved
+      ? { x: saved.x, y: saved.y }
+      : positions.get(n.id) ?? { x: 0, y: 0 };
+    const out: Node = { ...n, position };
+    const elkSize = sizes.get(n.id);
+    const width = saved?.width ?? elkSize?.width;
+    const height = saved?.height ?? elkSize?.height;
+    if (width !== undefined && height !== undefined) {
+      out.style = { ...(n.style ?? {}), width, height };
     }
     ordered.push(out);
     for (const c of childrenByParent.get(n.id) ?? []) emit(c);

@@ -108,11 +108,32 @@ export interface ApiNodeDetail extends ArchitectureNode {
   description: string;
 }
 
+export interface NodeLayoutEntry {
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+}
+
+export interface DiagramLayoutFile {
+  version: 1;
+  diagramId: string;
+  updatedAt: string;
+  nodes: Record<string, NodeLayoutEntry>;
+}
+
+export interface ApiDiagramLayout extends DiagramLayoutFile {}
+
+export interface ApiDiagramLayoutUpdate {
+  nodes: Record<string, NodeLayoutEntry>;
+}
+
 export type ApiArchitectureErrorCode =
   | "diagram_not_found"
   | "node_not_found"
   | "description_not_found"
-  | "architecture_unreadable";
+  | "architecture_unreadable"
+  | "layout_invalid";
 
 export interface ApiArchitectureError {
   error: ApiArchitectureErrorCode;

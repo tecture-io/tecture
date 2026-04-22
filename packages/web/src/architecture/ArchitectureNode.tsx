@@ -1,4 +1,4 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useContext } from "react";
 import {
   Handle,
   NodeResizer,
@@ -11,6 +11,7 @@ import {
 import { getNodeStyle, type NodeStyle } from "./nodeStyles";
 import type { ArchNodeData } from "./transform";
 import { useActiveHandleSides } from "./hooks/useActiveHandleSides";
+import { LayoutPersistenceContext } from "./LayoutPersistenceContext";
 
 const HANDLE_SIDES = [
   { position: Position.Top, prefix: "top" },
@@ -146,6 +147,10 @@ const CONTAINER_HEADER = 48;
 
 function ContainerNode({ d, style, selected, activeSides, onDrillDown }: ContainerNodeProps) {
   const nodeId = useNodeId();
+  const persistence = useContext(LayoutPersistenceContext);
+  const onResizeEnd = useCallback(() => {
+    persistence?.notifyLayoutChanged();
+  }, [persistence]);
   const minSize = useStore(
     useCallback(
       (state: ReactFlowState) => {
@@ -185,6 +190,7 @@ function ContainerNode({ d, style, selected, activeSides, onDrillDown }: Contain
         isVisible={selected}
         minWidth={minSize.minWidth}
         minHeight={minSize.minHeight}
+        onResizeEnd={onResizeEnd}
         lineStyle={{
           borderColor: `${style.accent}55`,
           borderWidth: 1,

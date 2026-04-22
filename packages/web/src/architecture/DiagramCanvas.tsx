@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Background,
   BackgroundVariant,
@@ -8,12 +8,19 @@ import {
   ReactFlowProvider,
   useEdgesState,
   useNodesState,
+  useReactFlow,
   type Edge,
   type Node,
   type NodeMouseHandler,
 } from "@xyflow/react";
-import type { ApiDiagram } from "@tecture/shared";
+import type {
+  ApiDiagram,
+  ApiDiagramLayoutUpdate,
+  DiagramLayoutFile,
+  NodeLayoutEntry,
+} from "@tecture/shared";
 import { ArchitectureNode } from "./ArchitectureNode";
+import { LayoutPersistenceContext } from "./LayoutPersistenceContext";
 import { FloatingEdge } from "./edges/FloatingEdge";
 import { diagramToFlow, type ArchNodeData } from "./transform";
 import { layoutDiagram } from "./layout";
@@ -40,11 +47,40 @@ export function DiagramCanvas(props: Props) {
   );
 }
 
+const emptyLayout = (slug: string): DiagramLayoutFile => ({
+  version: 1,
+  diagramId: slug,
+  updatedAt: "",
+  nodes: {},
+});
+
+function collectLayoutEntries(
+  nodes: Node[],
+): Record<string, NodeLayoutEntry> {
+  const out: Record<string, NodeLayoutEntry> = {};
+  for (const n of nodes) {
+    const entry: NodeLayoutEntry = {
+      x: n.position?.x ?? 0,
+      y: n.position?.y ?? 0,
+    };
+    const w = n.width ?? (n.style?.width as number | undefined);
+    const h = n.height ?? (n.style?.height as number | undefined);
+    if (typeof w === "number" && Number.isFinite(w)) entry.width = w;
+    if (typeof h === "number" && Number.isFinite(h)) entry.height = h;
+    out[n.id] = entry;
+  }
+  return out;
+}
+
 function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
   const [state, setState] = useState<State>({ status: "loading" });
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<ArchNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [ready, setReady] = useState(false);
+  const { getNodes } = useReactFlow();
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentDiagramIdRef = useRef(diagramId);
+  currentDiagramIdRef.current = diagramId;
 
   useEffect(() => {
     let cancelled = false;
@@ -54,23 +90,33 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
     setEdges([]);
     onSelectNode(null);
 
-    fetch(`/api/architecture/diagrams/${encodeURIComponent(diagramId)}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          const body = (await res.json().catch(() => null)) as
-            | { message?: string }
-            | null;
-          throw new Error(body?.message ?? `HTTP ${res.status}`);
-        }
-        return res.json() as Promise<ApiDiagram>;
-      })
-      .then(async (diagram) => {
+    Promise.all([
+      fetch(`/api/architecture/diagrams/${encodeURIComponent(diagramId)}`).then(
+        async (res) => {
+          if (!res.ok) {
+            const body = (await res.json().catch(() => null)) as
+              | { message?: string }
+              | null;
+            throw new Error(body?.message ?? `HTTP ${res.status}`);
+          }
+          return res.json() as Promise<ApiDiagram>;
+        },
+      ),
+      fetch(
+        `/api/architecture/diagrams/${encodeURIComponent(diagramId)}/layout`,
+      ).then(async (res) => {
+        if (!res.ok) return emptyLayout(diagramId);
+        return (await res.json()) as DiagramLayoutFile;
+      }),
+    ])
+      .then(async ([diagram, layout]) => {
         if (cancelled) return;
         const { nodes: rfNodes, edges: rfEdges } = diagramToFlow(diagram);
         const positioned = await layoutDiagram(
           rfNodes,
           rfEdges,
           diagram.meta?.direction,
+          layout,
         );
         if (cancelled) return;
         setNodes(positioned as Node<ArchNodeData>[]);
@@ -84,8 +130,41 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
 
     return () => {
       cancelled = true;
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
     };
   }, [diagramId, onSelectNode, setEdges, setNodes]);
+
+  const persistLayout = useCallback(() => {
+    const slug = currentDiagramIdRef.current;
+    const update: ApiDiagramLayoutUpdate = { nodes: collectLayoutEntries(getNodes()) };
+    fetch(`/api/architecture/diagrams/${encodeURIComponent(slug)}/layout`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(update),
+    }).catch((err) => {
+      console.warn("[tecture] failed to persist layout", err);
+    });
+  }, [getNodes]);
+
+  const notifyLayoutChanged = useCallback(() => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveTimeoutRef.current = null;
+      persistLayout();
+    }, 150);
+  }, [persistLayout]);
+
+  const persistenceValue = useMemo(
+    () => ({ notifyLayoutChanged }),
+    [notifyLayoutChanged],
+  );
+
+  const onNodeDragStop = useCallback<NodeMouseHandler>(() => {
+    notifyLayoutChanged();
+  }, [notifyLayoutChanged]);
 
   const onNodeClick = useMemo<NodeMouseHandler>(
     () => (_event, node) => {
@@ -103,6 +182,7 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
   );
 
   return (
+    <LayoutPersistenceContext.Provider value={persistenceValue}>
     <div className="relative h-full w-full">
       <ReactFlow
         nodes={nodes}
@@ -113,6 +193,7 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
         onEdgesChange={onEdgesChange}
         onNodeClick={onNodeClick}
         onNodeDoubleClick={onNodeDoubleClick}
+        onNodeDragStop={onNodeDragStop}
         onPaneClick={() => onSelectNode(null)}
         fitView
         fitViewOptions={{ padding: 0.2 }}
@@ -149,6 +230,7 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
         <CanvasOverlay label={`Error: ${state.message}`} />
       )}
     </div>
+    </LayoutPersistenceContext.Provider>
   );
 }
 
