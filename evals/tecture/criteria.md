@@ -143,6 +143,22 @@ For each node `N` whose `subDiagramId` resolves to a diagram `D`:
 - No node in `D` may have a label that is exactly equal to `N.label` (case-insensitive, whitespace-normalized) — a child labeled the same as the parent is a rename, not a decomposition.
 - **Score:** fraction of drill-downs satisfying both.
 
+### G4. Nesting is used appropriately — `[LLM]` (Claude Sonnet 4.6, temp 0)
+Grouping within a diagram via `parentId` + `meta.isContainer: true` should appear when 2–4 sibling nodes share a runtime boundary on the same level, and should be absent when the boundary isn't load-bearing (grouping adds a box the reader has to decode for no payoff). For each diagram, the judge receives the diagram JSON and the descriptions of every node in it, then answers:
+
+> For each container (node with `meta.isContainer: true`) **and** for each candidate grouping you see in the diagram that was NOT used, classify it:
+> - `GOOD_USE` — container groups 2–4 siblings that share an obvious runtime boundary (e.g. three controllers under a router, workers under a pool) and reads better grouped than flat.
+> - `OVER_NEST` — container wraps nodes that don't share a boundary (e.g. grouping unrelated services just to reduce clutter), OR wraps only one child, OR would be clearer as its own drill-down diagram.
+> - `MISSED` — 2–4 nodes in the flat layout clearly share a boundary you would expect to see grouped, and leaving them flat makes the diagram harder to scan.
+>
+> Reply with a JSON array `[{ "label": "<container-or-group-label>", "verdict": "GOOD_USE|OVER_NEST|MISSED" }, ...]`. If nothing applies, reply `[]`.
+
+- **Scoring per diagram:**
+  - `1.0` if verdicts are empty OR all `GOOD_USE`.
+  - `0.5` if there is exactly one `MISSED` or one `OVER_NEST` and the rest are `GOOD_USE`.
+  - `0.0` if there are ≥ 2 `MISSED`/`OVER_NEST`, or any `OVER_NEST` that stacks grouping on top of an already-decomposed drill-down.
+- **Criterion score:** mean across all diagrams with level ≥ 2 (L1 is exempt — grouping rarely applies to system context).
+
 ---
 
 ## H. Agent-consumer usability (weight 0.10)

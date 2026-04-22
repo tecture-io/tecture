@@ -106,6 +106,14 @@ If the README is a wall of badges and boilerplate, fall back to: name of the dep
 - **L2 = containers.** One node per deployable (A3) + one node per managed datastore (A4) + edges with concrete labels (`REST`, `gRPC`, `order.created`, `reads/writes`). 4–8 nodes.
 - **L3 = components.** Optional. Add only when an L2 container has 3+ separable internal parts that a reader genuinely needs to see (controllers/services/repos in a layered API; producers/consumers/state machines in a worker; pages/server-actions/middlewares in a Next.js app). 3–6 nodes.
 
+### Grouping vs. drill-down
+
+Inside any level you can also group 2–4 siblings under a labeled container using `parentId` + `meta.isContainer: true`. The rule:
+
+- **Group (`parentId`) when**: 2–4 nodes share an obvious runtime boundary on the **same level** (three controllers under one router, four workers under a pool), and the grouping reads better than leaving them flat. Edges into/out of the group still work; one level of nesting only.
+- **Drill down (`subDiagramId`) when**: the inner structure earns its own page — 3+ nodes with edges that matter only at the deeper level (an API service → its controllers/services/repos as L3).
+- **Default**: flat. Don't nest if the boundary isn't load-bearing; the reader pays for every box.
+
 ### Stack recipes
 
 Concrete templates. Adjust to the actual code — these are priors, not prescriptions.

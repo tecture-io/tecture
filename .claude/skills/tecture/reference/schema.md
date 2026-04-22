@@ -55,8 +55,8 @@ Draft 2020-12 JSON Schema: [../schemas/diagram.schema.json](../schemas/diagram.s
 |---|---|---|---|
 | `id` | slug | yes | **Globally unique** across every diagram in the architecture. Matches the filename under `descriptions/`. |
 | `label` | string | yes | Display name. |
-| `parentId` | slug \| null | no | Another node's `id` **in the same diagram**. That parent must have `meta.isContainer = true`. |
-| `subDiagramId` | slug \| null | no | Another diagram's slug (drill-down target). Must exist under `diagrams/`. Self-reference is forbidden. |
+| `parentId` | slug \| null | no | Another node's `id` **in the same diagram** whose `meta.isContainer = true`. Groups 2–4 sibling nodes under a labeled container. One level of nesting only — grandchildren are rejected; use `subDiagramId` for deeper decomposition. See [How diagrams relate](#how-diagrams-relate). |
+| `subDiagramId` | slug \| null | no | Another diagram's slug (drill-down target). Must exist under `diagrams/`. Self-reference is forbidden. See [How diagrams relate](#how-diagrams-relate). |
 | `meta.type` | enum | no | One of `system`, `person`, `service`, `database`, `queue`, `gateway`, `frontend`, `cache`, `storage`, `external`. |
 | `meta.technology` | slug | no | Free-form tech identity, ideally a [Simple Icons](https://simpleicons.org) slug (`postgresql`, `react`, `aws-s3`). |
 | `meta.isContainer` | boolean | no | If `true`, this node groups child nodes (those that set `parentId` to this id). |
@@ -122,12 +122,19 @@ stateDiagram-v2
 
 ## How diagrams relate
 
-Two orthogonal mechanisms:
+Three mechanisms, each with a distinct job:
 
-1. **Grouping** — `manifest.diagrams[]` lists sibling diagrams in one architecture. `manifest.topDiagram` identifies the entry point.
-2. **Drill-down** — a node's `subDiagramId` points to another diagram's slug. Clicking that node in the viewer navigates into the referenced diagram. The drill-down graph must be acyclic.
+1. **Manifest grouping** — `manifest.diagrams[]` lists sibling diagrams in one architecture. `manifest.topDiagram` identifies the entry point.
+2. **Nesting within a diagram (`parentId`)** — a node groups 2–4 sibling nodes under a container (`meta.isContainer: true`). The viewer renders the parent as a labeled boundary with its children laid out inside. One level deep only. Use when the grouping is a runtime boundary (controllers under a router, workers under a pool) but doesn't earn its own page.
+3. **Cross-diagram drill-down (`subDiagramId`)** — a node points at another diagram's slug. Clicking it navigates into that diagram. Use when the inner structure is complex enough (3+ nodes with their own edges) to deserve its own page. The drill-down graph must be acyclic.
 
-A third, purely visual mechanism (not cross-diagram): `parentId` + `meta.isContainer` nests child nodes inside a parent container **within the same diagram**.
+**Decision rule.**
+
+- 2–4 things share an obvious runtime boundary, on the same level? → `parentId`.
+- 3+ things warrant their own page, with edges only the reader at that level should see? → `subDiagramId`.
+- Default: flat. Don't nest or drill down unless the grouping is load-bearing.
+
+A parent in `parentId` is **not** a substitute for a container node in a C4 level — it's a visual grouping of siblings on the same level. The parent itself still needs a `descriptions/<id>.md`.
 
 ## Canonical authoring order
 
@@ -144,7 +151,7 @@ Create children before parents, because parents reference child slugs:
 - Every JSON file parses and matches its JSON Schema (shape, enums, slugs, no unknown fields).
 - `manifest.topDiagram` is present in `manifest.diagrams`.
 - Every slug in `manifest.diagrams` has a file; every file on disk is listed (unlisted files → warning).
-- Every `node.parentId` resolves to a same-diagram node with `meta.isContainer = true`.
+- Every `node.parentId` resolves to a same-diagram node with `meta.isContainer = true`; the `parentId` chain is acyclic and at most one level deep (grandchildren rejected).
 - Every `node.subDiagramId` resolves to an existing diagram and is not self-referential.
 - Every `edge.source` / `edge.target` resolves to a same-diagram node.
 - Node ids are globally unique across all diagrams.

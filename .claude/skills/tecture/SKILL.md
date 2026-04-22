@@ -64,6 +64,30 @@ architecture/
 
 Nodes omit the `description` field entirely — prose lives in `descriptions/<node.id>.md`.
 
+### Nesting within a diagram
+
+A node can group 2–4 sibling nodes that share a runtime boundary by using `parentId` and setting `meta.isContainer: true` on the parent. The viewer renders the parent as a labeled container with its children laid out inside.
+
+```jsonc
+{
+  "nodes": [
+    { "id": "controllers", "label": "HTTP Controllers", "meta": { "type": "gateway", "isContainer": true } },
+    { "id": "auth-controller",    "label": "Auth Controller",    "parentId": "controllers", "meta": { "type": "service" } },
+    { "id": "catalog-controller", "label": "Catalog Controller", "parentId": "controllers", "meta": { "type": "service" } },
+    { "id": "order-controller",   "label": "Order Controller",   "parentId": "controllers", "meta": { "type": "service" } },
+    { "id": "order-service",      "label": "Order Service",      "meta": { "type": "service" } }
+  ]
+}
+```
+
+Constraints: children must live in the **same diagram** as the parent; the parent must set `meta.isContainer: true`; nesting is **one level deep** (no grandchildren — the validator rejects a grandchild and points you to `subDiagramId` instead).
+
+**Grouping vs. drill-down.** Two mechanisms, one decision:
+
+- **2–4 things share an obvious runtime boundary and belong on the same level?** Use `parentId` (same diagram). Edges into/out of the group still work.
+- **3+ things warrant their own page, with edges only the reader at that level should see?** Use `subDiagramId` (separate diagram, next C4 level).
+- **Default**: flat. Don't nest if the grouping isn't load-bearing.
+
 ### `descriptions/<node-id>.md`
 
 Free-form GitHub-flavored markdown. Convention: 1–2 sentence summary, then `## Responsibilities` and `## Tech Stack` sections.
@@ -142,7 +166,7 @@ The validator checks *shape*. This checklist checks *meaning* — apply it befor
 4. **Boundaries match real seams** — Each node corresponds to a deployable, process, package, or module with its own contract. Could you imagine each node being deployed, replaced, or owned independently?
 5. **Edges express runtime relationships** — Every edge label is a verb or protocol (`REST`, `gRPC`, `order.created`, `reads/writes`, `webhook`). No `uses` / `depends on` / `interacts with`.
 6. **Technology authenticity** — Every `meta.technology` matches a real entry in a manifest, lockfile, or Dockerfile. Use [Simple Icons](https://simpleicons.org) slugs.
-7. **Drill-down adds information** — Each `subDiagramId` exposes structure not visible at the parent level. If removing the sub-diagram costs no understanding, delete it.
+7. **Drill-down adds information** — Each `subDiagramId` exposes structure not visible at the parent level. If removing the sub-diagram costs no understanding, delete it. Use `parentId` grouping when 2–4 nodes share a boundary on the same level; reach for `subDiagramId` only when the inner structure earns its own page.
 8. **Descriptions explain why, not what** — Strip the heading from any `descriptions/*.md`; you should still be able to tell which node it describes from the responsibilities. If not, the description is too generic.
 9. **Coverage of externals** — Grep for `*_URL`, `*_KEY`, and common SDK imports (`stripe`, `boto3`, `@aws-sdk/*`, `openai`, `@anthropic-ai/sdk`). Every match maps to a node.
 10. **Diagrams fit on one screen** — L1: 3–5 nodes; L2: 4–8; L3: 3–6. Anything bigger means split into a deeper level.
@@ -173,7 +197,7 @@ The validator checks:
 
 - **Shape** — every file matches the JSON Schema (field presence, types, enum values, slug patterns, no unknown fields).
 - **Manifest consistency** — `topDiagram` is listed in `diagrams[]`; every listed slug has a matching `diagrams/<slug>.json`; files on disk that aren't listed produce a warning.
-- **Node references** — `parentId` points to a same-diagram node whose `meta.isContainer` is true; `subDiagramId` points to an existing diagram slug and is not self-referential.
+- **Node references** — `parentId` points to a same-diagram node whose `meta.isContainer` is true, the `parentId` chain has no cycles, and nesting is at most one level deep (grandchildren are rejected — promote to a child diagram via `subDiagramId`). `subDiagramId` points to an existing diagram slug and is not self-referential.
 - **Edge references** — `source` and `target` resolve to nodes in the same diagram.
 - **Global node-id uniqueness** — node ids don't collide across diagrams (required because descriptions are keyed by node id).
 - **Descriptions** — every node id has a matching `descriptions/<id>.md`; orphan description files produce a warning.

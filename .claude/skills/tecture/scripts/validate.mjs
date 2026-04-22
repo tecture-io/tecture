@@ -207,11 +207,58 @@ function validateDiagramReferences(slug, d, report, allSlugs, descriptionsAvaila
     }
   }
 
+  validateNestingDepthAndCycles(slug, nodes, nodesById, report);
+
   for (const [i, e] of edges.entries()) {
     const ew = `${where}#edges[${i}]`;
     if (!isStr(e?.source) || !isStr(e?.target)) continue;
     if (!nodesById.has(e.source)) report.err(ew, `edge source "${e.source}" does not match any node in this diagram`);
     if (!nodesById.has(e.target)) report.err(ew, `edge target "${e.target}" does not match any node in this diagram`);
+  }
+}
+
+// Enforces: parentId chain is acyclic and nests at most one level deep.
+// Depth 0 = top-level, depth 1 = child of a container. Depth >= 2 (grandchild) is an error.
+// Deeper decomposition should use subDiagramId (a separate child diagram).
+const MAX_NESTING_DEPTH = 1;
+
+function validateNestingDepthAndCycles(slug, nodes, nodesById, report) {
+  const where = `diagrams/${slug}.json`;
+  const depthCache = new Map();
+  const cycleReported = new Set();
+
+  function depthOf(id, visiting) {
+    if (depthCache.has(id)) return depthCache.get(id);
+    if (visiting.has(id)) {
+      if (!cycleReported.has(id)) {
+        const cycle = [...visiting, id];
+        const start = cycle.indexOf(id);
+        report.err(where, `parentId cycle: ${cycle.slice(start).join(" → ")}`);
+        for (const c of cycle.slice(start)) cycleReported.add(c);
+      }
+      return Infinity;
+    }
+    const n = nodesById.get(id);
+    if (!n?.parentId) { depthCache.set(id, 0); return 0; }
+    if (!nodesById.has(n.parentId)) { depthCache.set(id, 0); return 0; }
+    visiting.add(id);
+    const parentDepth = depthOf(n.parentId, visiting);
+    visiting.delete(id);
+    const d = parentDepth === Infinity ? Infinity : parentDepth + 1;
+    depthCache.set(id, d);
+    return d;
+  }
+
+  for (const [i, n] of nodes.entries()) {
+    if (!isStr(n?.id)) continue;
+    const d = depthOf(n.id, new Set());
+    if (d !== Infinity && d > MAX_NESTING_DEPTH) {
+      const nw = `${where}#nodes[${i}]`;
+      report.err(
+        nw,
+        `nesting too deep (${d} levels via parentId chain; max ${MAX_NESTING_DEPTH}) — use subDiagramId to push deeper decomposition into a child diagram`,
+      );
+    }
   }
 }
 
