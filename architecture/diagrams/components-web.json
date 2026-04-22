@@ -14,18 +14,26 @@
       "meta": { "type": "frontend", "technology": "react" }
     },
     {
-      "id": "diagram-canvas",
-      "label": "Diagram Canvas",
-      "meta": { "type": "frontend", "technology": "reactflow" }
+      "id": "view-panes",
+      "label": "View Panes",
+      "meta": { "type": "frontend", "isContainer": true }
     },
     {
       "id": "diagram-list",
       "label": "Diagram List",
+      "parentId": "view-panes",
       "meta": { "type": "frontend", "technology": "react" }
+    },
+    {
+      "id": "diagram-canvas",
+      "label": "Diagram Canvas",
+      "parentId": "view-panes",
+      "meta": { "type": "frontend", "technology": "reactflow" }
     },
     {
       "id": "node-detail-panel",
       "label": "Node Detail Panel",
+      "parentId": "view-panes",
       "meta": { "type": "frontend", "technology": "mermaid" }
     }
   ],

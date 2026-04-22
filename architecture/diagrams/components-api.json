@@ -14,24 +14,32 @@
       "meta": { "type": "service", "technology": "express" }
     },
     {
+      "id": "route-handlers",
+      "label": "Route Handlers",
+      "meta": { "type": "gateway", "isContainer": true }
+    },
+    {
       "id": "health-route",
       "label": "Health Route",
+      "parentId": "route-handlers",
       "meta": { "type": "service", "technology": "express" }
     },
     {
       "id": "architecture-routes",
       "label": "Architecture Routes",
+      "parentId": "route-handlers",
+      "meta": { "type": "service", "technology": "express" }
+    },
+    {
+      "id": "static-handler",
+      "label": "Static Handler",
+      "parentId": "route-handlers",
       "meta": { "type": "service", "technology": "express" }
     },
     {
       "id": "architecture-loader",
       "label": "Architecture Loader",
       "meta": { "type": "service", "technology": "nodedotjs" }
-    },
-    {
-      "id": "static-handler",
-      "label": "Static Handler",
-      "meta": { "type": "service", "technology": "express" }
     }
   ],
   "edges": [
