@@ -9,6 +9,7 @@ import {
 
 export interface CreateAppOptions {
   architecturePath: string;
+  tecturePath: string;
 }
 
 export function createApp(options: CreateAppOptions): Express {
@@ -16,7 +17,10 @@ export function createApp(options: CreateAppOptions): Express {
 
   app.use(express.json({ limit: "256kb" }));
   app.use("/api/health", healthRouter);
-  app.use("/api/architecture", createArchitectureRouter(options.architecturePath));
+  app.use(
+    "/api/architecture",
+    createArchitectureRouter(options.architecturePath, options.tecturePath),
+  );
   app.use("/api/architecture", architectureErrorHandler);
 
   const publicDir = fileURLToPath(new URL("./public", import.meta.url));

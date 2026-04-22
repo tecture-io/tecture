@@ -18,8 +18,8 @@ function emptyLayout(slug: string): DiagramLayoutFile {
   return { version: 1, diagramId: slug, updatedAt: "", nodes: {} };
 }
 
-function layoutPath(root: string, slug: string): string {
-  return safeJoin(root, ".tecture", "layouts", `${slug}.json`);
+function layoutPath(tectureRoot: string, slug: string): string {
+  return safeJoin(tectureRoot, "layouts", `${slug}.json`);
 }
 
 function isFiniteNumber(v: unknown): v is number {
@@ -36,11 +36,11 @@ function isValidEntry(v: unknown): v is NodeLayoutEntry {
 }
 
 export async function loadLayout(
-  root: string,
+  tectureRoot: string,
   slug: string,
 ): Promise<DiagramLayoutFile> {
   if (!SLUG_RE.test(slug)) return emptyLayout(slug);
-  const path = layoutPath(root, slug);
+  const path = layoutPath(tectureRoot, slug);
   let raw: string;
   try {
     raw = await readFile(path, "utf8");
@@ -80,7 +80,7 @@ export async function loadLayout(
 }
 
 export async function saveLayout(
-  root: string,
+  tectureRoot: string,
   slug: string,
   update: ApiDiagramLayoutUpdate,
 ): Promise<DiagramLayoutFile> {
@@ -112,7 +112,7 @@ export async function saveLayout(
     nodes,
   };
 
-  const path = layoutPath(root, slug);
+  const path = layoutPath(tectureRoot, slug);
   await mkdir(dirname(path), { recursive: true });
   const tmp = `${path}.tmp`;
   await writeFile(tmp, `${JSON.stringify(file, null, 2)}\n`, "utf8");

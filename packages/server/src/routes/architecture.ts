@@ -35,7 +35,10 @@ function send400(res: Response, body: ApiArchitectureError): void {
   res.status(400).json(body);
 }
 
-export function createArchitectureRouter(root: string): Router {
+export function createArchitectureRouter(
+  root: string,
+  tectureRoot: string,
+): Router {
   const router = Router();
 
   router.get("/", async (_req, res, next) => {
@@ -131,7 +134,7 @@ export function createArchitectureRouter(root: string): Router {
     }
     try {
       await loadDiagram(root, diagramId);
-      const layout: ApiDiagramLayout = await loadLayout(root, diagramId);
+      const layout: ApiDiagramLayout = await loadLayout(tectureRoot, diagramId);
       res.json(layout);
     } catch (err) {
       if (err instanceof DiagramNotFoundError) {
@@ -149,7 +152,7 @@ export function createArchitectureRouter(root: string): Router {
     try {
       await loadDiagram(root, diagramId);
       const update = req.body as ApiDiagramLayoutUpdate;
-      const saved = await saveLayout(root, diagramId, update);
+      const saved = await saveLayout(tectureRoot, diagramId, update);
       res.json(saved);
     } catch (err) {
       if (err instanceof DiagramNotFoundError) {

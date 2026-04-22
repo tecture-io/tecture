@@ -10,12 +10,13 @@ A good architecture is **grounded in the repo** (every node, edge, and technolog
 ## Directory layout
 
 ```
-architecture/
-├── manifest.json              # architecture metadata + diagram list
-├── diagrams/
-│   └── <diagram-slug>.json    # one file per diagram
-├── descriptions/
-│   └── <node-id>.md           # one file per unique node id
+<project-root>/
+├── architecture/
+│   ├── manifest.json          # architecture metadata + diagram list
+│   ├── diagrams/
+│   │   └── <diagram-slug>.json  # one file per diagram
+│   └── descriptions/
+│       └── <node-id>.md       # one file per unique node id
 └── .tecture/                  # viewer-managed state (optional, auto-created)
     └── layouts/<slug>.json    # per-diagram node positions/sizes
 ```
@@ -23,7 +24,7 @@ architecture/
 - Slugs are kebab-case (`[a-z0-9]+(-[a-z0-9]+)*`).
 - Node ids must be **globally unique across all diagrams** — the description filename is the node id.
 - Cross-diagram drill-down uses `subDiagramId = "<other-diagram-slug>"`, not a UUID.
-- `architecture/.tecture/` is written by the Tecture viewer when users drag or resize nodes. Authoring agents must not hand-edit it. Deleting it is always safe — ELK auto-layout recomputes positions on the next load, and future user edits will recreate entries as needed. Commit or ignore it based on whether your team wants shared canonical layouts.
+- `.tecture/` (at the project root, sibling to `architecture/`) is written by the Tecture viewer when users drag or resize nodes. Authoring agents must not hand-edit it. Deleting it is always safe — ELK auto-layout recomputes positions on the next load, and future user edits will recreate entries as needed. Commit or ignore it based on whether your team wants shared canonical layouts.
 
 ## File formats
 
