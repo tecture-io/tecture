@@ -1,64 +1,64 @@
-<h1 align="center">Tecture</h1>
+# Tecture
 
-<p align="center">
-  <strong>Architecture-as-code for the AI era.</strong><br/>
-  
-</p>
+**A drillable, plain-text model of any software system — authored by coding agents.**
 
-<p align="center">
-  <a href="https://www.npmjs.com/package/@tecture/core"><img alt="npm" src="https://img.shields.io/npm/v/@tecture/core.svg?color=22d3ee&label=npm"></a>
-  <a href="https://github.com/tecture-io/tecture/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-</p>
+[![npm](https://img.shields.io/npm/v/@tecture/core.svg?color=22d3ee&label=npm)](https://www.npmjs.com/package/@tecture/core)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-Coding agents can already read every file in a repo and reason about its structure. Tecture gives them a format to write what they find as living documentation: a structured graph of services, datastores, and their relationships, explained in plain Markdown, rendered as an interactive drill-down explorer in your browser.
+Tecture stores software architecture as JSON + Markdown in `./architecture/`, structured top-down so you can drill through it in your browser. Use it to brief an agent before it touches a codebase, document the system you have, sketch the one you want, or onboard a teammate.
 
-The architecture lives in your repo as plain files. Your agent maintains it like any other code.
+Any agent that reads [SKILL.md](https://agentskills.io) can author and update the model the same way it edits source code; you review the result like any other PR. Cloned a repo that already has `./architecture/`? Run `npx @tecture/core` and start drilling.
 
-<p align="center">
-  <img src="docs/assets/rendering-tool.png" alt="Tecture IO — interactive architecture explorer with Markdown node descriptions" width="100%">
-</p>
+The format follows the [C4 model](https://c4model.com) (system → container → component) without the DSL. Runs locally — no account, no SaaS.
+
+![Tecture interactive architecture explorer](./docs/assets/rendering-tool.png)
 
 ## Quickstart
 
-**1. Install the Tecture skill** (one-time)
-
 ```bash
+# 1. Install the skill (one-time)
 npx skills add tecture-io/tecture-skill
-```
 
-The [skills.sh](https://skills.sh) CLI auto-detects your installed agents (Claude Code, Copilot, Cursor, Cline, …) and wires the skill into the right directory. Prefer `git clone` or `gh skill install`? See the [mirror README](https://github.com/tecture-io/tecture-skill#install) for alternates.
+# 2. In your project, ask your agent:
+#    > Document this codebase architecture using tecture
 
-**2. Generate the architecture.** In Claude Code, from your project root:
-
-> Document this codebase architecture using tecture
-
-**3. Render it.**
-
-```bash
+# 3. Render it
 npx @tecture/core
 # → http://localhost:3000
 ```
 
-## What it generates
-
-A small folder of plain files your agent writes and updates with normal `fs.writeFile` calls. The [Tecture Skill](https://github.com/tecture-io/tecture-skill) packages the format and conventions as reusable instructions for Claude Code; other file-editing agents (Cursor, Copilot, Aider, …) can follow the same instructions directly — no plugin or DSL required.
+## What the agent writes
 
 ```
 architecture/
-├── manifest.json               # top-level diagram + list of diagrams
+├── manifest.json              # project name + list of diagrams
 ├── diagrams/
-│   ├── system-context.json     # nodes + edges for one diagram
+│   ├── system-context.json    # one diagram per zoom level
 │   └── containers.json
 └── descriptions/
-    └── api-server.md           # Markdown description for one node
+    └── api-server.md          # one Markdown page per node
 ```
 
-Each diagram is one level of a multi-level architecture view (system → containers → components); each node is a system/service/datastore/etc.; each edge is a relationship like `calls`, `reads`, or `publishes`. See [architecture/](architecture/) for a complete worked example — this repo documents itself.
+A diagram is a graph of nodes (`service`, `datastore`, `external`, `person`, …) and edges (`calls`, `reads`, `writes`, `publishes`, …):
 
-## Contributing
+```json
+{
+  "nodes": [
+    { "id": "api", "type": "service",   "label": "API Server" },
+    { "id": "db",  "type": "datastore", "label": "Postgres"   }
+  ],
+  "edges": [
+    { "from": "api", "to": "db", "type": "reads" }
+  ]
+}
+```
 
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the dev loop, repo layout, and scripts.
+No DSL to learn, any LLM can write it natively, and every change shows up in `git diff` next to the code that caused it.
 
-## License
+This repo documents itself — see [`./architecture`](./architecture) for a complete worked example.
 
-[MIT](LICENSE) © Tecture.io
+## Links
+
+- [tecture-io/tecture-skill](https://github.com/tecture-io/tecture-skill) — the SKILL.md your agent reads
+- [`@tecture/core`](https://www.npmjs.com/package/@tecture/core) — the viewer
+- [Contributing](./CONTRIBUTING.md) · [MIT License](./LICENSE)
