@@ -20,7 +20,7 @@ Existing diagrams-as-code tools were built for a person to hand-write one diagra
 **1. Install the Tecture skill for Claude Code** (one-time)
 
 ```bash
-git clone https://github.com/tecture-io/tecture-skill.git ~/.claude/skills/tecture
+npx skills add tecture-io/tecture-skill
 ```
 
 **2. Generate the architecture.** In Claude Code, from your project root:
