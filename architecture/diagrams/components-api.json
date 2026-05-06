@@ -1,0 +1,82 @@
+{
+  "name": "CLI Server — Components",
+  "level": 3,
+  "meta": { "direction": "TB" },
+  "nodes": [
+    {
+      "id": "cli-entry",
+      "label": "CLI Entry",
+      "meta": { "type": "service", "technology": "typescript" }
+    },
+    {
+      "id": "express-app",
+      "label": "Express App",
+      "meta": { "type": "service", "technology": "express" }
+    },
+    {
+      "id": "route-handlers",
+      "label": "Route Handlers",
+      "meta": { "type": "gateway", "isContainer": true }
+    },
+    {
+      "id": "health-route",
+      "label": "Health Route",
+      "parentId": "route-handlers",
+      "meta": { "type": "service", "technology": "express" }
+    },
+    {
+      "id": "architecture-routes",
+      "label": "Architecture Routes",
+      "parentId": "route-handlers",
+      "meta": { "type": "service", "technology": "express" }
+    },
+    {
+      "id": "static-handler",
+      "label": "Static Handler",
+      "parentId": "route-handlers",
+      "meta": { "type": "service", "technology": "express" }
+    },
+    {
+      "id": "architecture-loader",
+      "label": "Architecture Loader",
+      "meta": { "type": "service", "technology": "nodedotjs" }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-cli-entry-express-app",
+      "source": "cli-entry",
+      "target": "express-app",
+      "label": "createApp({ architecturePath })",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-express-app-health-route",
+      "source": "express-app",
+      "target": "health-route",
+      "label": "mount /api/health",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-express-app-architecture-routes",
+      "source": "express-app",
+      "target": "architecture-routes",
+      "label": "mount /api/architecture",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-express-app-static-handler",
+      "source": "express-app",
+      "target": "static-handler",
+      "label": "mount /* (SPA fallback)",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-architecture-routes-architecture-loader",
+      "source": "architecture-routes",
+      "target": "architecture-loader",
+      "label": "loadManifest, loadDiagram, loadDescription",
+      "meta": { "type": "calls" }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "diagramId": "system-context",
+  "updatedAt": "2026-04-22T10:13:02.275Z",
+  "nodes": {
+    "coding-agent": {
+      "x": 312,
+      "y": 212
+    },
+    "developer": {
+      "x": 12,
+      "y": 12
+    },
+    "tecture-io": {
+      "x": 12,
+      "y": 212
+    },
+    "architecture-files": {
+      "x": 13.166666666666657,
+      "y": 468
+    }
+  }
+}
