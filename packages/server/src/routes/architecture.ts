@@ -6,26 +6,38 @@ import type {
   ApiDiagramLayout,
   ApiDiagramLayoutUpdate,
   ApiDiagramNodes,
-  ApiDiagramSummary,
   ApiNodeDetail,
   ManifestFile,
 } from "@tecture/shared";
 import {
+  type ArchitectureDataSource,
   DescriptionNotFoundError,
   DiagramNotFoundError,
+  type LayoutStore,
+  LayoutInvalidError,
   NodeNotFoundError,
   SLUG_RE,
   buildArchitectureSummary,
+  emptyLayout,
   findNode,
-  loadDescription,
-  loadDiagram,
-  loadManifest,
-} from "../architecture/loader.js";
-import {
-  LayoutInvalidError,
-  loadLayout,
-  saveLayout,
-} from "../architecture/layout.js";
+} from "../source/types.js";
+
+export type SourceResolver = (
+  req: Request,
+) => ArchitectureDataSource | Promise<ArchitectureDataSource>;
+
+export type LayoutStoreResolver = (
+  req: Request,
+) => LayoutStore | null | Promise<LayoutStore | null>;
+
+export interface ArchitectureRouterOptions {
+  resolveSource: SourceResolver;
+  resolveLayoutStore?: LayoutStoreResolver;
+}
+
+function send501(res: Response, body: ApiArchitectureError): void {
+  res.status(501).json(body);
+}
 
 function send404(res: Response, body: ApiArchitectureError): void {
   res.status(404).json(body);
@@ -36,34 +48,36 @@ function send400(res: Response, body: ApiArchitectureError): void {
 }
 
 export function createArchitectureRouter(
-  root: string,
-  tectureRoot: string,
+  opts: ArchitectureRouterOptions,
 ): Router {
   const router = Router();
+  const { resolveSource, resolveLayoutStore } = opts;
 
-  router.get("/", async (_req, res, next) => {
+  router.get("/", async (req, res, next) => {
     try {
-      const summary = await buildArchitectureSummary(root);
+      const source = await resolveSource(req);
+      const summary = await buildArchitectureSummary(source);
       res.json(summary);
     } catch (err) {
       next(err);
     }
   });
 
-  router.get("/manifest", async (_req, res, next) => {
+  router.get("/manifest", async (req, res, next) => {
     try {
-      const manifest: ManifestFile = await loadManifest(root);
+      const source = await resolveSource(req);
+      const manifest: ManifestFile = await source.loadManifest();
       res.json(manifest);
     } catch (err) {
       next(err);
     }
   });
 
-  router.get("/diagrams", async (_req, res, next) => {
+  router.get("/diagrams", async (req, res, next) => {
     try {
-      const summary = await buildArchitectureSummary(root);
-      const diagrams: ApiDiagramSummary[] = summary.diagrams;
-      res.json(diagrams);
+      const source = await resolveSource(req);
+      const summary = await buildArchitectureSummary(source);
+      res.json(summary.diagrams);
     } catch (err) {
       next(err);
     }
@@ -75,7 +89,8 @@ export function createArchitectureRouter(
       return send404(res, { error: "diagram_not_found", slug: diagramId });
     }
     try {
-      const diagram = await loadDiagram(root, diagramId);
+      const source = await resolveSource(req);
+      const diagram = await source.loadDiagram(diagramId);
       const body: ApiDiagram = {
         slug: diagramId,
         name: diagram.name,
@@ -99,7 +114,8 @@ export function createArchitectureRouter(
       return send404(res, { error: "diagram_not_found", slug: diagramId });
     }
     try {
-      const diagram = await loadDiagram(root, diagramId);
+      const source = await resolveSource(req);
+      const diagram = await source.loadDiagram(diagramId);
       const body: ApiDiagramNodes = { diagramId, nodes: diagram.nodes };
       res.json(body);
     } catch (err) {
@@ -116,7 +132,8 @@ export function createArchitectureRouter(
       return send404(res, { error: "diagram_not_found", slug: diagramId });
     }
     try {
-      const diagram = await loadDiagram(root, diagramId);
+      const source = await resolveSource(req);
+      const diagram = await source.loadDiagram(diagramId);
       const body: ApiDiagramEdges = { diagramId, edges: diagram.edges ?? [] };
       res.json(body);
     } catch (err) {
@@ -133,8 +150,12 @@ export function createArchitectureRouter(
       return send404(res, { error: "diagram_not_found", slug: diagramId });
     }
     try {
-      await loadDiagram(root, diagramId);
-      const layout: ApiDiagramLayout = await loadLayout(tectureRoot, diagramId);
+      const source = await resolveSource(req);
+      await source.loadDiagram(diagramId);
+      const store = resolveLayoutStore ? await resolveLayoutStore(req) : null;
+      const layout: ApiDiagramLayout = store
+        ? await store.loadLayout(diagramId)
+        : emptyLayout(diagramId);
       res.json(layout);
     } catch (err) {
       if (err instanceof DiagramNotFoundError) {
@@ -150,9 +171,17 @@ export function createArchitectureRouter(
       return send404(res, { error: "diagram_not_found", slug: diagramId });
     }
     try {
-      await loadDiagram(root, diagramId);
+      const source = await resolveSource(req);
+      await source.loadDiagram(diagramId);
+      const store = resolveLayoutStore ? await resolveLayoutStore(req) : null;
+      if (!store) {
+        return send501(res, {
+          error: "layout_not_supported",
+          message: "Layout persistence is not configured for this data source",
+        });
+      }
       const update = req.body as ApiDiagramLayoutUpdate;
-      const saved = await saveLayout(tectureRoot, diagramId, update);
+      const saved = await store.saveLayout(diagramId, update);
       res.json(saved);
     } catch (err) {
       if (err instanceof DiagramNotFoundError) {
@@ -171,8 +200,9 @@ export function createArchitectureRouter(
       return send404(res, { error: "node_not_found", id: nodeId });
     }
     try {
-      const { node, diagramId } = await findNode(root, nodeId);
-      const description = await loadDescription(root, nodeId);
+      const source = await resolveSource(req);
+      const { node, diagramId } = await findNode(source, nodeId);
+      const description = await source.loadDescription(nodeId);
       const body: ApiNodeDetail = { ...node, diagramId, description };
       res.json(body);
     } catch (err) {
@@ -192,8 +222,9 @@ export function createArchitectureRouter(
       return send404(res, { error: "description_not_found", id: nodeId });
     }
     try {
-      await findNode(root, nodeId);
-      const markdown = await loadDescription(root, nodeId);
+      const source = await resolveSource(req);
+      await findNode(source, nodeId);
+      const markdown = await source.loadDescription(nodeId);
       res.type("text/markdown; charset=utf-8").send(markdown);
     } catch (err) {
       if (err instanceof NodeNotFoundError) {

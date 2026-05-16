@@ -37,17 +37,29 @@
       "meta": { "type": "service", "technology": "express" }
     },
     {
-      "id": "architecture-loader",
-      "label": "Architecture Loader",
+      "id": "data-source-types",
+      "label": "Data Source Abstraction",
+      "meta": { "type": "service", "technology": "typescript" }
+    },
+    {
+      "id": "fs-data-source",
+      "label": "FS Data Source",
       "meta": { "type": "service", "technology": "nodedotjs" }
     }
   ],
   "edges": [
     {
+      "id": "e-cli-entry-fs-data-source",
+      "source": "cli-entry",
+      "target": "fs-data-source",
+      "label": "new FsArchitectureDataSource + FsLayoutStore",
+      "meta": { "type": "calls" }
+    },
+    {
       "id": "e-cli-entry-express-app",
       "source": "cli-entry",
       "target": "express-app",
-      "label": "createApp({ architecturePath })",
+      "label": "createApp({ source, layoutStore })",
       "meta": { "type": "calls" }
     },
     {
@@ -72,11 +84,18 @@
       "meta": { "type": "calls" }
     },
     {
-      "id": "e-architecture-routes-architecture-loader",
+      "id": "e-architecture-routes-data-source-types",
       "source": "architecture-routes",
-      "target": "architecture-loader",
-      "label": "loadManifest, loadDiagram, loadDescription",
+      "target": "data-source-types",
+      "label": "resolveSource(req).loadManifest / loadDiagram / loadDescription",
       "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-fs-data-source-data-source-types",
+      "source": "fs-data-source",
+      "target": "data-source-types",
+      "label": "implements ArchitectureDataSource + LayoutStore",
+      "meta": { "type": "data-flow" }
     }
   ]
 }

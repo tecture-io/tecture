@@ -133,7 +133,8 @@ export type ApiArchitectureErrorCode =
   | "node_not_found"
   | "description_not_found"
   | "architecture_unreadable"
-  | "layout_invalid";
+  | "layout_invalid"
+  | "layout_not_supported";
 
 export interface ApiArchitectureError {
   error: ApiArchitectureErrorCode;

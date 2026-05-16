@@ -1,5 +1,6 @@
 import { resolve } from "node:path";
 import { createApp } from "./server.js";
+import { FsArchitectureDataSource, FsLayoutStore } from "./source/fs.js";
 
 interface CliOptions {
   port: number;
@@ -47,7 +48,10 @@ function parseArgs(argv: string[]): CliOptions {
 }
 
 const { port, architecturePath, tecturePath } = parseArgs(process.argv.slice(2));
-const app = createApp({ architecturePath, tecturePath });
+const app = createApp({
+  source: new FsArchitectureDataSource(architecturePath),
+  layoutStore: new FsLayoutStore(tecturePath),
+});
 
 app.listen(port, () => {
   console.log(`Tecture IO running at http://localhost:${port}`);

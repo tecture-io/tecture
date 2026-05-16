@@ -1,15 +1,36 @@
 import { existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import express, { type Express } from "express";
+import express, { type Express, type Request } from "express";
 import { healthRouter } from "./routes/health.js";
 import {
   architectureErrorHandler,
   createArchitectureRouter,
+  type LayoutStoreResolver,
+  type SourceResolver,
 } from "./routes/architecture.js";
+import type {
+  ArchitectureDataSource,
+  LayoutStore,
+} from "./source/types.js";
 
 export interface CreateAppOptions {
-  architecturePath: string;
-  tecturePath: string;
+  source: ArchitectureDataSource | SourceResolver;
+  layoutStore?: LayoutStore | LayoutStoreResolver | null;
+}
+
+function toSourceResolver(
+  value: ArchitectureDataSource | SourceResolver,
+): SourceResolver {
+  if (typeof value === "function") return value as SourceResolver;
+  return () => value;
+}
+
+function toLayoutStoreResolver(
+  value: LayoutStore | LayoutStoreResolver | null | undefined,
+): LayoutStoreResolver | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "function") return value as LayoutStoreResolver;
+  return () => value;
 }
 
 export function createApp(options: CreateAppOptions): Express {
@@ -19,7 +40,10 @@ export function createApp(options: CreateAppOptions): Express {
   app.use("/api/health", healthRouter);
   app.use(
     "/api/architecture",
-    createArchitectureRouter(options.architecturePath, options.tecturePath),
+    createArchitectureRouter({
+      resolveSource: toSourceResolver(options.source),
+      resolveLayoutStore: toLayoutStoreResolver(options.layoutStore),
+    }),
   );
   app.use("/api/architecture", architectureErrorHandler);
 
@@ -27,7 +51,7 @@ export function createApp(options: CreateAppOptions): Express {
 
   if (existsSync(publicDir)) {
     app.use(express.static(publicDir));
-    app.get("*", (req, res, next) => {
+    app.get("*", (req: Request, res, next) => {
       if (req.path.startsWith("/api/")) return next();
       res.sendFile(fileURLToPath(new URL("./public/index.html", import.meta.url)));
     });

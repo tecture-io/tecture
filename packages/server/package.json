@@ -25,22 +25,31 @@
     "url": "https://github.com/tecture-io/tecture/issues"
   },
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cli": "./dist/cli.js"
+  },
   "bin": "./dist/cli.js",
   "files": ["dist"],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
-    "dev": "tsx watch src/cli.ts --port 3001",
+    "dev": "tsx watch src/cli.ts --port 3001 --architecture-path ../../architecture --tecture-path ../../.tecture",
     "build": "tsup && node scripts/copy-web-assets.mjs",
     "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tecture/shared": "workspace:*",
     "express": "^4.21.1"
   },
   "devDependencies": {
-    "@tecture/shared": "workspace:*",
     "@tecture/web": "workspace:*",
     "@types/express": "^4.17.21",
     "@types/node": "^20.17.6",
