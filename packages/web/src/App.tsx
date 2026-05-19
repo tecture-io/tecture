@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { StyleGuide } from "./StyleGuide";
 import { ArchitectureView } from "./architecture/ArchitectureView";
+import { ArchitectureBundleProvider } from "./architecture/ArchitectureBundleContext";
 
 function useHashRoute() {
   const [hash, setHash] = useState(() => window.location.hash);
@@ -23,5 +24,9 @@ export function App() {
   const hash = useHashRoute();
   const route = parseRoute(hash);
   if (route.view === "style-guide") return <StyleGuide />;
-  return <ArchitectureView diagramId={route.diagramId} />;
+  return (
+    <ArchitectureBundleProvider>
+      <ArchitectureView diagramId={route.diagramId} />
+    </ArchitectureBundleProvider>
+  );
 }

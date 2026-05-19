@@ -14,7 +14,6 @@ import {
   type NodeMouseHandler,
 } from "@xyflow/react";
 import type {
-  ApiDiagram,
   ApiDiagramLayoutUpdate,
   DiagramLayoutFile,
   NodeLayoutEntry,
@@ -25,6 +24,10 @@ import { LayoutPersistenceContext } from "./LayoutPersistenceContext";
 import { FloatingEdge } from "./edges/FloatingEdge";
 import { diagramToFlow, type ArchNodeData } from "./transform";
 import { layoutDiagram } from "./layout";
+import {
+  useArchitectureBundle,
+  useUpdateLayout,
+} from "./ArchitectureBundleContext";
 
 const nodeTypes = { architecture: ArchitectureNode };
 const edgeTypes = { floating: FloatingEdge };
@@ -34,11 +37,6 @@ interface Props {
   onSelectNode: (nodeId: string | null) => void;
   onDrillIn: (diagramId: string) => void;
 }
-
-type State =
-  | { status: "loading" }
-  | { status: "error"; message: string }
-  | { status: "ready"; diagram: ApiDiagram };
 
 export function DiagramCanvas(props: Props) {
   return (
@@ -74,59 +72,50 @@ function collectLayoutEntries(
 }
 
 function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
-  const [state, setState] = useState<State>({ status: "loading" });
+  const bundle = useArchitectureBundle();
+  const updateLayout = useUpdateLayout();
+  const diagram = bundle.diagrams[diagramId];
+
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<ArchNodeData>>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [ready, setReady] = useState(false);
+  const [layoutError, setLayoutError] = useState<string | null>(null);
   const { getNodes } = useReactFlow();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentDiagramIdRef = useRef(diagramId);
   currentDiagramIdRef.current = diagramId;
+  const bundleRef = useRef(bundle);
+  bundleRef.current = bundle;
 
   useEffect(() => {
     let cancelled = false;
-    setState({ status: "loading" });
     setReady(false);
-    setNodes([]);
-    setEdges([]);
+    setLayoutError(null);
     onSelectNode(null);
 
-    Promise.all([
-      fetch(`/api/architecture/diagrams/${encodeURIComponent(diagramId)}`).then(
-        async (res) => {
-          if (!res.ok) {
-            const body = (await res.json().catch(() => null)) as
-              | { message?: string }
-              | null;
-            throw new Error(body?.message ?? `HTTP ${res.status}`);
-          }
-          return res.json() as Promise<ApiDiagram>;
-        },
-      ),
-      fetch(
-        `/api/architecture/diagrams/${encodeURIComponent(diagramId)}/layout`,
-      ).then(async (res) => {
-        if (!res.ok) return emptyLayout(diagramId);
-        return (await res.json()) as DiagramLayoutFile;
-      }),
-    ])
-      .then(async ([diagram, layout]) => {
-        if (cancelled) return;
-        const { nodes: rfNodes, edges: rfEdges } = diagramToFlow(diagram);
-        const positioned = await layoutDiagram(
-          rfNodes,
-          rfEdges,
-          diagram.meta?.direction,
-          layout,
-        );
+    const currentBundle = bundleRef.current;
+    const currentDiagram = currentBundle.diagrams[diagramId];
+    if (!currentDiagram) {
+      setLayoutError(`Diagram "${diagramId}" was not loaded`);
+      setNodes([]);
+      setEdges([]);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const currentLayout =
+      currentBundle.layouts[diagramId] ?? emptyLayout(diagramId);
+    const { nodes: rfNodes, edges: rfEdges } = diagramToFlow(currentDiagram);
+    layoutDiagram(rfNodes, rfEdges, currentDiagram.meta?.direction, currentLayout)
+      .then((positioned) => {
         if (cancelled) return;
         setNodes(positioned as Node<ArchNodeData>[]);
         setEdges(rfEdges);
-        setState({ status: "ready", diagram });
         requestAnimationFrame(() => !cancelled && setReady(true));
       })
       .catch((err: Error) => {
-        if (!cancelled) setState({ status: "error", message: err.message });
+        if (!cancelled) setLayoutError(err.message);
       });
 
     return () => {
@@ -140,15 +129,25 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
 
   const persistLayout = useCallback(() => {
     const slug = currentDiagramIdRef.current;
-    const update: ApiDiagramLayoutUpdate = { nodes: collectLayoutEntries(getNodes()) };
+    const update: ApiDiagramLayoutUpdate = {
+      nodes: collectLayoutEntries(getNodes()),
+    };
     fetch(`/api/architecture/diagrams/${encodeURIComponent(slug)}/layout`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(update),
-    }).catch((err) => {
-      console.warn("[tecture] failed to persist layout", err);
-    });
-  }, [getNodes]);
+    })
+      .then(async (res) => {
+        if (!res.ok) return;
+        const saved = (await res.json().catch(() => null)) as
+          | DiagramLayoutFile
+          | null;
+        if (saved) updateLayout(slug, saved);
+      })
+      .catch((err) => {
+        console.warn("[tecture] failed to persist layout", err);
+      });
+  }, [getNodes, updateLayout]);
 
   const notifyLayoutChanged = useCallback(() => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
@@ -214,7 +213,7 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
           color="rgba(34, 78, 130, 0.12)"
         />
         <Controls showInteractive={false} position="bottom-right" />
-        {state.status === "ready" && <Legend diagram={state.diagram} />}
+        {diagram && <Legend diagram={diagram} />}
         <MiniMap
           position="bottom-left"
           pannable
@@ -225,11 +224,8 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
         />
       </ReactFlow>
 
-      {state.status === "loading" && (
-        <CanvasOverlay label="Loading diagram…" />
-      )}
-      {state.status === "error" && (
-        <CanvasOverlay label={`Error: ${state.message}`} />
+      {layoutError && (
+        <CanvasOverlay label={`Error: ${layoutError}`} />
       )}
     </div>
     </LayoutPersistenceContext.Provider>

@@ -1,46 +1,17 @@
-import { useEffect, useState } from "react";
-import type { ApiNodeDetail, NodeMetaType } from "@tecture/shared";
+import type { NodeMetaType } from "@tecture/shared";
 import { getNodeStyle } from "./nodeStyles";
 import { MarkdownContent } from "./MarkdownContent";
+import { useArchitectureBundle } from "./ArchitectureBundleContext";
 
 interface Props {
   nodeId: string;
   onClose: () => void;
 }
 
-type State =
-  | { status: "loading" }
-  | { status: "error"; message: string }
-  | { status: "ready"; detail: ApiNodeDetail };
-
 export function NodeDetailPanel({ nodeId, onClose }: Props) {
-  const [state, setState] = useState<State>({ status: "loading" });
-
-  useEffect(() => {
-    let cancelled = false;
-    setState({ status: "loading" });
-    fetch(`/api/architecture/nodes/${encodeURIComponent(nodeId)}`)
-      .then(async (res) => {
-        if (!res.ok) {
-          const body = (await res.json().catch(() => null)) as
-            | { message?: string }
-            | null;
-          throw new Error(body?.message ?? `HTTP ${res.status}`);
-        }
-        return res.json() as Promise<ApiNodeDetail>;
-      })
-      .then((detail) => {
-        if (!cancelled) setState({ status: "ready", detail });
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setState({ status: "error", message: err.message });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [nodeId]);
-
-  const detail = state.status === "ready" ? state.detail : null;
+  const bundle = useArchitectureBundle();
+  const detail = bundle.nodes[nodeId];
+  const missingDescription = bundle.missingDescriptions.has(nodeId);
   const style = getNodeStyle(detail?.meta?.type as NodeMetaType | undefined);
 
   return (
@@ -107,22 +78,19 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
-        {state.status === "loading" && (
-          <div
-            className="text-xs"
-            style={{ color: "var(--text-muted)" }}
-          >
-            Loading…
-          </div>
-        )}
-        {state.status === "error" && (
+        {!detail && (
           <div className="text-xs" style={{ color: "var(--text-muted)" }}>
-            No details available ({state.message}).
+            No details available for this node.
           </div>
         )}
-        {state.status === "ready" &&
-          (state.detail.description ? (
-            <MarkdownContent source={state.detail.description} />
+        {detail && missingDescription && (
+          <div className="text-xs" style={{ color: "var(--text-muted)" }}>
+            Description not available.
+          </div>
+        )}
+        {detail && !missingDescription &&
+          (detail.description ? (
+            <MarkdownContent source={detail.description} />
           ) : (
             <div className="text-xs" style={{ color: "var(--text-muted)" }}>
               No description provided.

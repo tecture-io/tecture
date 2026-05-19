@@ -1,41 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
-import type { ApiArchitectureSummary } from "@tecture/shared";
 import { DiagramCanvas } from "./DiagramCanvas";
 import { DiagramList } from "./DiagramList";
 import { NodeDetailPanel } from "./NodeDetailPanel";
 import { KeyboardHint } from "./KeyboardHint";
+import { useArchitectureBundle } from "./ArchitectureBundleContext";
 
 interface Props {
   diagramId: string | null;
 }
 
 export function ArchitectureView({ diagramId }: Props) {
-  const [summary, setSummary] = useState<ApiArchitectureSummary | null>(null);
-  const [summaryError, setSummaryError] = useState<string | null>(null);
+  const bundle = useArchitectureBundle();
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
-    fetch("/api/architecture")
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<ApiArchitectureSummary>;
-      })
-      .then((data) => {
-        if (!cancelled) setSummary(data);
-      })
-      .catch((err: Error) => {
-        if (!cancelled) setSummaryError(err.message);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (diagramId || !summary) return;
-    window.location.hash = `#/diagram/${summary.topDiagram}`;
-  }, [diagramId, summary]);
+    if (diagramId) return;
+    window.location.hash = `#/diagram/${bundle.summary.topDiagram}`;
+  }, [diagramId, bundle.summary.topDiagram]);
 
   const selectDiagram = useCallback((slug: string) => {
     setSelectedNodeId(null);
@@ -55,24 +36,14 @@ export function ArchitectureView({ diagramId }: Props) {
           onDrillIn={selectDiagram}
         />
       ) : (
-        <CanvasPlaceholder
-          message={
-            summaryError
-              ? `Error: ${summaryError}`
-              : summary
-                ? "Opening top diagram…"
-                : "Loading architecture…"
-          }
-        />
+        <CanvasPlaceholder message="Opening top diagram…" />
       )}
 
       <DiagramList
-        summary={summary}
+        summary={bundle.summary}
         currentDiagramId={diagramId}
         onSelect={selectDiagram}
-        onGoHome={() => {
-          if (summary) selectDiagram(summary.topDiagram);
-        }}
+        onGoHome={() => selectDiagram(bundle.summary.topDiagram)}
       />
       <KeyboardHint />
       {selectedNodeId && (
