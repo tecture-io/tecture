@@ -26,3 +26,6 @@ pnpm-debug.log*
 # test / coverage
 coverage/
 .nyc_output/
+
+# playwright MCP scratch
+.playwright-mcp/
