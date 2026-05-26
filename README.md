@@ -1,6 +1,7 @@
 # Tecture
 
-**Understand any codebase. An AI coding agent maps it; you read the map.**
+**Architecture maps for complex codebases.**
+*Your AI coding agent generates the map; you navigate it to understand the system.*
 
 [![npm](https://img.shields.io/npm/v/@tecture/core.svg?color=22d3ee&label=npm)](https://www.npmjs.com/package/@tecture/core)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
@@ -10,19 +11,21 @@ Tecture is a code-comprehension tool. Point a coding agent (Claude Code, Cursor,
 
 The map is a folder of JSON and Markdown files that lives in the repo. As the code changes, the agent keeps the map current the same way it ships any other change. **You review the diff like any other PR.**
 
-Existing diagrams-as-code tools were built for a person to hand-write one diagram in a DSL — the wrong shape for AI authoring, and the wrong shape for understanding a real system. A useful architecture isn't a single picture; it's a navigable model.
-
 ![Tecture interactive architecture explorer](./docs/assets/rendering-tool.png)
 
 ## Quickstart
 
-**1. Install the Tecture skill for Claude Code** (one-time)
+**1. Install the Tecture skill** (one-time)
+
+For **Claude Code**:
 
 ```bash
 npx skills add tecture-io/tecture-skill
 ```
 
-**2. Generate the map.** In Claude Code, from your project root:
+For **Cursor, Copilot, Aider**, or any other file-editing agent, point it at the [tecture-io/tecture-skill](https://github.com/tecture-io/tecture-skill) instructions — the conventions are plain text, no plugin required.
+
+**2. Generate the map.** From your project root, ask your agent:
 
 > Map this codebase using Tecture
 
@@ -39,7 +42,7 @@ Click into any container or component to drill down. Read the Markdown descripti
 
 ## What gets generated
 
-A small folder of plain files your agent writes and updates with normal `fs.writeFile` calls. The [Tecture Skill](https://github.com/tecture-io/tecture-skill) packages the format and conventions as reusable instructions for Claude Code; other file-editing agents (Cursor, Copilot, Aider, …) can follow the same instructions directly — no plugin or DSL required.
+A small folder of plain files your agent writes and updates with normal `fs.writeFile` calls.
 
 ```
 architecture/
@@ -63,7 +66,6 @@ Each diagram is one level of a multi-level architecture view (system → contain
 
 - **VS Code plugin.** Render the map inside the IDE — no separate browser tab, no `npx` step.
 - **Sharper skills.** Specialized skills tuned for specific tech stacks, and skills that recognize and apply common reference architectures.
-- **ADRs as part of the model.** Architecture Decision Records authored and maintained by agents as Markdown, linked into the relevant nodes — so the *why* lives next to the *what*.
 
 A hosted, multi-repo edition for organisations with many services is in design separately.
 
