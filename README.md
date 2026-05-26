@@ -34,7 +34,7 @@ npx @tecture/core
 # → http://localhost:3000
 ```
 
-Click into any container or component to drill down. Read the Markdown descriptions for the *why* the code doesn't tell you on its own.
+Drill into complex containers and components to see what's inside. Click any component to read its Markdown description — embedded Mermaid diagrams included — for the *why* the code itself doesn't tell you.
 
 ## What gets generated
 
