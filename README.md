@@ -1,16 +1,14 @@
 # Tecture
 
-**Architecture-as-code for the AI era.**
+**Understand any codebase. An AI coding agent maps it; you read the map.**
 
 [![npm](https://img.shields.io/npm/v/@tecture/core.svg?color=22d3ee&label=npm)](https://www.npmjs.com/package/@tecture/core)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Discord](https://img.shields.io/badge/discord-join-5865F2?logo=discord&logoColor=white)](https://discord.gg/pHbmuBkbcp)
 
-Tecture's goal is to give humans and coding agents a common understanding of software architecture.
+Tecture is a code-comprehension tool. Point a coding agent (Claude Code, Cursor, Codex) at any repo, and the agent reads the code and writes a multi-level architectural map — system context → containers → components → the files that implement them. You navigate the result in the browser to learn how the system actually fits together, without paging a senior engineer to walk you through it.
 
-It's a new way to document hierarchical software architecture — JSON and Markdown files that live alongside your code, plus a visualization tool that renders them. Agents read and write the JSON and Markdown directly; humans drill through it as a multi-level diagram in the browser-based visualization tool. Same model, two readers.
-
-Because the model lives in your repo, your agent can keep it current as the system evolves. **You review changes like any other PR.**
+The map is a folder of JSON and Markdown files that lives in the repo. As the code changes, the agent keeps the map current the same way it ships any other change. **You review the diff like any other PR.**
 
 Existing diagrams-as-code tools were built for a person to hand-write one diagram in a DSL — the wrong shape for AI authoring, and the wrong shape for understanding a real system. A useful architecture isn't a single picture; it's a navigable model.
 
@@ -24,9 +22,11 @@ Existing diagrams-as-code tools were built for a person to hand-write one diagra
 npx skills add tecture-io/tecture-skill
 ```
 
-**2. Generate the architecture.** In Claude Code, from your project root:
+**2. Generate the map.** In Claude Code, from your project root:
 
-> Document this codebase architecture using tecture
+> Map this codebase using Tecture
+
+The agent reads your code and writes the architecture into a new `architecture/` folder. Expect a few minutes on a medium repo.
 
 **3. Render it.**
 
@@ -35,7 +35,9 @@ npx @tecture/core
 # → http://localhost:3000
 ```
 
-## What it generates
+Click into any container or component to drill down. Read the Markdown descriptions for the *why* the code doesn't tell you on its own.
+
+## What gets generated
 
 A small folder of plain files your agent writes and updates with normal `fs.writeFile` calls. The [Tecture Skill](https://github.com/tecture-io/tecture-skill) packages the format and conventions as reusable instructions for Claude Code; other file-editing agents (Cursor, Copilot, Aider, …) can follow the same instructions directly — no plugin or DSL required.
 
@@ -51,11 +53,19 @@ architecture/
 
 Each diagram is one level of a multi-level architecture view (system → containers → components); each node is a system, service, datastore, etc.; each edge is a relationship like `calls`, `reads`, or `publishes`. See [`./architecture`](./architecture) for a complete worked example — this repo documents itself.
 
+## How it's different
+
+- **Not a diagram DSL.** Mermaid, PlantUML, and Structurizr expect a human to author and maintain the diagram by hand — that's why they go stale. Tecture's diagram is authored by your agent; you read it, the agent keeps it current.
+- **Not an auto-generated wiki.** Snapshot wikis like DeepWiki produce a one-shot view you can't edit and that drifts the moment the code moves. Tecture's output is files in your repo — refineable, version-controlled, regenerable.
+- **Not a code-search tool.** Sourcegraph, Cody, and Greptile answer questions about individual files. Tecture produces a *structured, navigable map of the whole system* — the layer above per-file Q&A.
+
 ## Roadmap
 
+- **VS Code plugin.** Render the map inside the IDE — no separate browser tab, no `npx` step.
 - **Sharper skills.** Specialized skills tuned for specific tech stacks, and skills that recognize and apply common reference architectures.
 - **ADRs as part of the model.** Architecture Decision Records authored and maintained by agents as Markdown, linked into the relevant nodes — so the *why* lives next to the *what*.
-- **Org-wide architecture repos.** Aggregate Tecture models across many repositories into a single browsable view of an entire organization's systems.
+
+A hosted, multi-repo edition for organisations with many services is in design separately.
 
 ## Contributing
 
