@@ -15,15 +15,11 @@ The map is a folder of JSON and Markdown files that lives in the repo. As the co
 
 ## Quickstart
 
-**1. Install the Tecture skill** (one-time)
-
-For **Claude Code**:
+**1. Install the Tecture skill** (one-time — works with Claude Code, Cursor, Copilot, Aider, and other major coding agents)
 
 ```bash
 npx skills add tecture-io/tecture-skill
 ```
-
-For **Cursor, Copilot, Aider**, or any other file-editing agent, point it at the [tecture-io/tecture-skill](https://github.com/tecture-io/tecture-skill) instructions — the conventions are plain text, no plugin required.
 
 **2. Generate the map.** From your project root, ask your agent:
 
