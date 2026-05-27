@@ -1,0 +1,47 @@
+{
+  "name": "Containers",
+  "level": 2,
+  "meta": { "direction": "TB" },
+  "nodes": [
+    {
+      "id": "web-ui",
+      "label": "Web UI",
+      "subDiagramId": "components-web",
+      "meta": { "type": "frontend", "technology": "react" }
+    },
+    {
+      "id": "cli-server",
+      "label": "CLI Server",
+      "subDiagramId": "components-api",
+      "meta": { "type": "service", "technology": "express" }
+    },
+    {
+      "id": "architecture-fs",
+      "label": "Architecture Directory",
+      "meta": { "type": "storage", "technology": "markdown" }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-web-ui-cli-server",
+      "source": "web-ui",
+      "target": "cli-server",
+      "label": "GET /api/architecture/*",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-cli-server-web-ui",
+      "source": "cli-server",
+      "target": "web-ui",
+      "label": "serves bundled SPA",
+      "meta": { "type": "data-flow" }
+    },
+    {
+      "id": "e-cli-server-architecture-fs",
+      "source": "cli-server",
+      "target": "architecture-fs",
+      "label": "reads manifest.json, diagrams/*.json, descriptions/*.md",
+      "meta": { "type": "reads" }
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "name": "tecture-vscode",
+  "displayName": "Tecture",
+  "description": "Render file-based architecture diagrams (./architecture) inside VS Code.",
+  "version": "0.0.1",
+  "private": true,
+  "type": "commonjs",
+  "publisher": "tecture-io",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tecture-io/tecture.git",
+    "directory": "packages/vscode"
+  },
+  "engines": {
+    "vscode": "^1.90.0",
+    "node": ">=20"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "keywords": [
+    "architecture",
+    "diagram",
+    "c4",
+    "tecture",
+    "documentation"
+  ],
+  "main": "./dist/extension.js",
+  "icon": "media/icons/tecture-marketplace.png",
+  "activationEvents": [
+    "workspaceContains:architecture/manifest.json"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "tecture.open",
+        "title": "Tecture: Open Architecture",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "tecture.refresh",
+        "title": "Tecture: Reload Architecture",
+        "icon": "$(refresh)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "tecture",
+          "title": "Tecture",
+          "icon": "media/icons/tecture-activitybar.svg"
+        }
+      ]
+    },
+    "views": {
+      "tecture": [
+        {
+          "id": "tectureDiagrams",
+          "name": "Diagrams",
+          "contextualTitle": "Tecture"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "tecture.refresh",
+          "when": "view == tectureDiagrams",
+          "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "tecture.open",
+          "when": "view == tectureDiagrams && viewItem == diagram",
+          "group": "inline"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build:webview": "vite build --config vite.webview.config.mts",
+    "build:host": "tsup",
+    "build": "pnpm build:webview && pnpm build:host",
+    "typecheck": "tsc --noEmit",
+    "compile:tests": "tsup --config tsup.test.config.ts",
+    "test": "pnpm build && pnpm compile:tests && vscode-test",
+    "vscode:package": "vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "@tecture/shared": "workspace:*",
+    "@tecture/web": "workspace:*"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^20.17.6",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@types/vscode": "^1.90.0",
+    "@vitejs/plugin-react": "^4.3.3",
+    "@vscode/test-cli": "^0.0.10",
+    "@vscode/test-electron": "^2.4.1",
+    "@vscode/vsce": "^3.2.1",
+    "@xyflow/react": "^12.10.2",
+    "elkjs": "^0.11.1",
+    "markdown-to-jsx": "^9.7.16",
+    "mermaid": "^11.14.0",
+    "mocha": "^10.8.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^4",
+    "tsup": "^8.3.5",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}

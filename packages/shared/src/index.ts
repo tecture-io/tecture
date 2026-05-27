@@ -142,3 +142,25 @@ export interface ApiArchitectureError {
   slug?: string;
   id?: string;
 }
+
+export type TectureRequest =
+  | { id: string; type: "loadSummary" }
+  | { id: string; type: "loadDiagram"; slug: string }
+  | { id: string; type: "loadLayout"; slug: string }
+  | { id: string; type: "loadNodeDetail"; nodeId: string }
+  | {
+      id: string;
+      type: "saveLayout";
+      slug: string;
+      update: ApiDiagramLayoutUpdate;
+    };
+
+export type TectureResponse =
+  | { id: string; ok: true; data: unknown }
+  | { id: string; ok: false; error: string };
+
+export type TectureEvent =
+  | { type: "refresh" }
+  | { type: "selectDiagram"; slug: string };
+
+export * from "./validators";

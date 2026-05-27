@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "pnpm -r --parallel --filter=!@tecture/shared dev",
     "build": "pnpm --filter @tecture/web build && pnpm --filter @tecture/core build",
+    "build:vscode": "pnpm --filter @tecture/web build && pnpm --filter tecture-vscode build",
     "start": "node packages/server/dist/cli.js",
     "typecheck": "pnpm -r typecheck",
     "clean": "pnpm -r exec rm -rf dist"

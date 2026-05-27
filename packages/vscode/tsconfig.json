@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "types": ["node", "mocha", "vscode"]
+  },
+  "include": ["src/**/*", "test/**/*"],
+  "exclude": ["dist", "node_modules", "webview-entry"]
+}

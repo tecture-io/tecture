@@ -29,3 +29,9 @@ coverage/
 
 # playwright MCP scratch
 .playwright-mcp/
+
+# vscode extension build artifacts
+packages/vscode/media/webview/
+packages/vscode/dist-test/
+packages/vscode/.vscode-test/
+packages/vscode/*.vsix
