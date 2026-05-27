@@ -4,17 +4,18 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
 import type {
   ApiArchitectureSummary,
   ApiDiagram,
+  ApiDiagramLayoutUpdate,
   ApiNodeDetail,
   DiagramLayoutFile,
 } from "@tecture/shared";
 import { LoadingSplash } from "./LoadingSplash";
+import type { WebDataSource } from "./dataSource";
 
 export interface ArchitectureBundle {
   summary: ApiArchitectureSummary;
@@ -39,7 +40,7 @@ export type BundleState =
 
 interface ContextValue {
   bundle: ArchitectureBundle;
-  updateLayout: (slug: string, layout: DiagramLayoutFile) => void;
+  saveLayout: (slug: string, update: ApiDiagramLayoutUpdate) => Promise<void>;
 }
 
 const ArchitectureBundleContext = createContext<ContextValue | null>(null);
@@ -54,50 +55,31 @@ export function useArchitectureBundle(): ArchitectureBundle {
   return ctx.bundle;
 }
 
-export function useUpdateLayout(): (
+export function useSaveLayout(): (
   slug: string,
-  layout: DiagramLayoutFile,
-) => void {
+  update: ApiDiagramLayoutUpdate,
+) => Promise<void> {
   const ctx = useContext(ArchitectureBundleContext);
   if (!ctx) {
     throw new Error(
-      "useUpdateLayout must be used inside ArchitectureBundleProvider",
+      "useSaveLayout must be used inside ArchitectureBundleProvider",
     );
   }
-  return ctx.updateLayout;
+  return ctx.saveLayout;
 }
 
-const emptyLayout = (slug: string): DiagramLayoutFile => ({
-  version: 1,
-  diagramId: slug,
-  updatedAt: "",
-  nodes: {},
-});
-
-async function fetchJson<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (!res.ok) {
-    const body = (await res.json().catch(() => null)) as
-      | { message?: string }
-      | null;
-    throw new Error(body?.message ?? `HTTP ${res.status} on ${url}`);
-  }
-  return (await res.json()) as T;
-}
-
-async function fetchJsonOr<T>(url: string, fallback: T): Promise<T> {
-  try {
-    return await fetchJson<T>(url);
-  } catch {
-    return fallback;
-  }
+export interface ArchitectureBundleProviderProps {
+  dataSource: WebDataSource;
+  children: ReactNode;
+  /** Forces a reload when the value changes. */
+  reloadKey?: unknown;
 }
 
 export function ArchitectureBundleProvider({
+  dataSource,
   children,
-}: {
-  children: ReactNode;
-}) {
+  reloadKey,
+}: ArchitectureBundleProviderProps) {
   const [state, setState] = useState<BundleState>({
     status: "loading",
     phase: "summary",
@@ -107,7 +89,9 @@ export function ArchitectureBundleProvider({
 
   useEffect(() => {
     let cancelled = false;
+    setState({ status: "loading", phase: "summary", done: 0, total: 1 });
     void loadBundle({
+      dataSource,
       onState: (next) => {
         if (!cancelled) setState(next);
       },
@@ -116,29 +100,30 @@ export function ArchitectureBundleProvider({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [dataSource, reloadKey]);
 
-  const updateLayout = useCallback(
-    (slug: string, layout: DiagramLayoutFile) => {
+  const saveLayout = useCallback(
+    async (slug: string, update: ApiDiagramLayoutUpdate) => {
+      const saved = await dataSource.saveLayout(slug, update);
       setState((prev) => {
         if (prev.status !== "ready") return prev;
         return {
           status: "ready",
           bundle: {
             ...prev.bundle,
-            layouts: { ...prev.bundle.layouts, [slug]: layout },
+            layouts: { ...prev.bundle.layouts, [slug]: saved },
           },
         };
       });
     },
-    [],
+    [dataSource],
   );
 
   const bundle = state.status === "ready" ? state.bundle : null;
   const contextValue = useMemo<ContextValue | null>(() => {
     if (!bundle) return null;
-    return { bundle, updateLayout };
-  }, [bundle, updateLayout]);
+    return { bundle, saveLayout };
+  }, [bundle, saveLayout]);
 
   if (state.status !== "ready") {
     return <LoadingSplash state={state} />;
@@ -153,14 +138,19 @@ export function ArchitectureBundleProvider({
 }
 
 interface LoadCallbacks {
+  dataSource: WebDataSource;
   onState: (state: BundleState) => void;
   isCancelled: () => boolean;
 }
 
-async function loadBundle({ onState, isCancelled }: LoadCallbacks): Promise<void> {
+async function loadBundle({
+  dataSource,
+  onState,
+  isCancelled,
+}: LoadCallbacks): Promise<void> {
   try {
     onState({ status: "loading", phase: "summary", done: 0, total: 1 });
-    const summary = await fetchJson<ApiArchitectureSummary>("/api/architecture");
+    const summary = await dataSource.loadSummary();
     if (isCancelled()) return;
 
     const diagramSlugs = summary.diagrams.map((d) => d.slug);
@@ -187,16 +177,11 @@ async function loadBundle({ onState, isCancelled }: LoadCallbacks): Promise<void
 
     const diagramResults = await Promise.all(
       diagramSlugs.map(async (slug) => {
-        const diagramPromise = fetchJson<ApiDiagram>(
-          `/api/architecture/diagrams/${encodeURIComponent(slug)}`,
-        ).then((d) => {
+        const diagramPromise = dataSource.loadDiagram(slug).then((d) => {
           if (!isCancelled()) bumpDiagrams();
           return d;
         });
-        const layoutPromise = fetchJsonOr<DiagramLayoutFile>(
-          `/api/architecture/diagrams/${encodeURIComponent(slug)}/layout`,
-          emptyLayout(slug),
-        ).then((l) => {
+        const layoutPromise = dataSource.loadLayout(slug).then((l) => {
           if (!isCancelled()) bumpDiagrams();
           return l;
         });
@@ -244,9 +229,7 @@ async function loadBundle({ onState, isCancelled }: LoadCallbacks): Promise<void
     await Promise.all(
       nodeIdList.map(async (id) => {
         try {
-          const detail = await fetchJson<ApiNodeDetail>(
-            `/api/architecture/nodes/${encodeURIComponent(id)}`,
-          );
+          const detail = await dataSource.loadNodeDetail(id);
           nodes[id] = detail;
         } catch {
           missing.add(id);

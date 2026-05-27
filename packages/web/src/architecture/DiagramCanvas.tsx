@@ -26,7 +26,7 @@ import { diagramToFlow, type ArchNodeData } from "./transform";
 import { layoutDiagram } from "./layout";
 import {
   useArchitectureBundle,
-  useUpdateLayout,
+  useSaveLayout,
 } from "./ArchitectureBundleContext";
 
 const nodeTypes = { architecture: ArchitectureNode };
@@ -73,7 +73,7 @@ function collectLayoutEntries(
 
 function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
   const bundle = useArchitectureBundle();
-  const updateLayout = useUpdateLayout();
+  const saveLayout = useSaveLayout();
   const diagram = bundle.diagrams[diagramId];
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<ArchNodeData>>([]);
@@ -132,22 +132,10 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
     const update: ApiDiagramLayoutUpdate = {
       nodes: collectLayoutEntries(getNodes()),
     };
-    fetch(`/api/architecture/diagrams/${encodeURIComponent(slug)}/layout`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(update),
-    })
-      .then(async (res) => {
-        if (!res.ok) return;
-        const saved = (await res.json().catch(() => null)) as
-          | DiagramLayoutFile
-          | null;
-        if (saved) updateLayout(slug, saved);
-      })
-      .catch((err) => {
-        console.warn("[tecture] failed to persist layout", err);
-      });
-  }, [getNodes, updateLayout]);
+    saveLayout(slug, update).catch((err) => {
+      console.warn("[tecture] failed to persist layout", err);
+    });
+  }, [getNodes, saveLayout]);
 
   const notifyLayoutChanged = useCallback(() => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
