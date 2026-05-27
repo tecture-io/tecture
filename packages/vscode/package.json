@@ -28,6 +28,7 @@
     "documentation"
   ],
   "main": "./dist/extension.js",
+  "icon": "media/icons/tecture-marketplace.png",
   "activationEvents": [
     "workspaceContains:architecture/manifest.json"
   ],
@@ -49,7 +50,7 @@
         {
           "id": "tecture",
           "title": "Tecture",
-          "icon": "$(graph)"
+          "icon": "media/icons/tecture-activitybar.svg"
         }
       ]
     },
@@ -58,7 +59,6 @@
         {
           "id": "tectureDiagrams",
           "name": "Diagrams",
-          "icon": "$(graph)",
           "contextualTitle": "Tecture"
         }
       ]

@@ -17,3 +17,4 @@ vite.webview.config.mts
 **/*.tsx
 **/tsconfig.json
 **/*.vsix
+media/icons/*.html
