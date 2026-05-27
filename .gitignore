@@ -35,3 +35,6 @@ packages/vscode/media/webview/
 packages/vscode/dist-test/
 packages/vscode/.vscode-test/
 packages/vscode/*.vsix
+
+# playwright MCP screenshots accidentally captured at repo root
+/*.png

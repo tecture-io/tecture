@@ -4,7 +4,7 @@
   "description": "Render file-based architecture diagrams (./architecture) inside VS Code.",
   "version": "0.0.1",
   "type": "commonjs",
-  "publisher": "tecture",
+  "publisher": "Tecture",
   "license": "MIT",
   "pricing": "Free",
   "qna": "marketplace",
