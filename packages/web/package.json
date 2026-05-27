@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "exports": {
+    "./App": "./src/App.tsx",
+    "./styles.css": "./src/styles.css",
+    "./architecture/dataSource": "./src/architecture/dataSource.ts"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
