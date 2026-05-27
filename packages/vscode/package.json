@@ -85,7 +85,8 @@
     "build:host": "tsup",
     "build": "pnpm build:webview && pnpm build:host",
     "typecheck": "tsc --noEmit",
-    "test": "pnpm build && vscode-test",
+    "compile:tests": "tsup --config tsup.test.config.ts",
+    "test": "pnpm build && pnpm compile:tests && vscode-test",
     "vscode:package": "vsce package --no-dependencies"
   },
   "dependencies": {
