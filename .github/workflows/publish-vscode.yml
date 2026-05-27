@@ -1,0 +1,130 @@
+name: Publish VS Code extension
+
+on:
+  push:
+    tags:
+      - "vscode-v*"
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Build + package only, do not publish."
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      skip-marketplace:
+        description: "Skip VS Code Marketplace publish."
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+      skip-openvsx:
+        description: "Skip Open VSX publish."
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+concurrency:
+  group: publish-vscode-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, package, and publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Build extension
+        run: pnpm --filter tecture-vscode build
+
+      - name: Verify version matches tag
+        if: startsWith(github.ref, 'refs/tags/vscode-v')
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/vscode-v}"
+          PKG_VERSION="$(node -p "require('./packages/vscode/package.json').version")"
+          echo "tag=$TAG pkg=$PKG_VERSION"
+          if [ "$TAG" != "$PKG_VERSION" ]; then
+            echo "::error::Tag vscode-v$TAG does not match package version $PKG_VERSION"
+            exit 1
+          fi
+
+      - name: Package .vsix
+        working-directory: packages/vscode
+        run: pnpm vscode:package
+
+      - name: Upload .vsix artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tecture-vscode
+          path: packages/vscode/*.vsix
+          if-no-files-found: error
+
+      - name: Publish to VS Code Marketplace
+        if: |
+          inputs.dry-run != 'true' &&
+          inputs.skip-marketplace != 'true'
+        working-directory: packages/vscode
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          set -euo pipefail
+          if [ -z "${VSCE_PAT:-}" ]; then
+            echo "::error::VSCE_PAT secret is not set. Add it in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          pnpm exec vsce publish --no-dependencies --packagePath tecture-vscode-*.vsix
+
+      - name: Publish to Open VSX
+        if: |
+          inputs.dry-run != 'true' &&
+          inputs.skip-openvsx != 'true'
+        working-directory: packages/vscode
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          set -euo pipefail
+          if [ -z "${OVSX_PAT:-}" ]; then
+            echo "::error::OVSX_PAT secret is not set. Add it in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          pnpm exec ovsx publish tecture-vscode-*.vsix --no-dependencies -p "$OVSX_PAT"
+
+      - name: Create GitHub Release
+        if: |
+          startsWith(github.ref, 'refs/tags/vscode-v') &&
+          inputs.dry-run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#vscode-v}"
+          gh release create "$TAG" \
+            packages/vscode/tecture-vscode-*.vsix \
+            --title "Tecture VS Code $VERSION" \
+            --notes "See [CHANGELOG](https://github.com/${{ github.repository }}/blob/main/packages/vscode/CHANGELOG.md)."
