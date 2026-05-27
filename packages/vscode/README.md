@@ -33,8 +33,8 @@ pnpm --filter tecture-vscode build
 ```
 
 Open `packages/vscode` in VS Code and hit **F5** — this launches an Extension
-Development Host with the extension loaded. Open the `tecture-io` repo as the
-host's workspace folder and run **"Tecture: Open Architecture"**.
+Development Host with the extension loaded. Open this repo as the host's
+workspace folder and run **"Tecture: Open Architecture"**.
 
 ## Running integration tests
 
@@ -92,8 +92,10 @@ workflow at [.github/workflows/publish-vscode.yml](../../.github/workflows/publi
    - Sign in to <https://dev.azure.com/> with a Microsoft account and create
      a free organisation (any name — it's only used to host the PAT).
    - Visit <https://marketplace.visualstudio.com/manage> and click
-     **Create publisher**. Use ID `tecture-io` to match the `publisher`
+     **Create publisher**. Use ID `tecture` to match the `publisher`
      field in `package.json` (or change `package.json` to match your ID).
+     If `tecture` is taken, common fallbacks are `tecture-app` or
+     `shanika-tecture` — update `package.json` to whatever you claim.
    - Fill in display name, logo, and email.
 2. **Generate a Marketplace Personal Access Token**
    - In Azure DevOps: top-right user menu → **Personal access tokens** →
@@ -105,7 +107,7 @@ workflow at [.github/workflows/publish-vscode.yml](../../.github/workflows/publi
      it's only shown once.
 3. **Create an Open VSX namespace + token** (skip if you want Marketplace-only)
    - Sign in to <https://open-vsx.org/> with GitHub.
-   - Open your profile → **Namespaces** → claim `tecture-io` (must match
+   - Open your profile → **Namespaces** → claim `tecture` (must match
      the publisher in `package.json`).
    - Profile → **Access Tokens** → create a token. Copy it.
 4. **Add the tokens as GitHub secrets**
