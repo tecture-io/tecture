@@ -25,15 +25,20 @@ export interface AppProps {
   dataSource: WebDataSource;
   /** Forces the bundle provider to reload when the value changes. */
   reloadKey?: unknown;
+  /** Show the floating diagram list overlay. Defaults to true. */
+  showDiagramList?: boolean;
 }
 
-export function App({ dataSource, reloadKey }: AppProps) {
+export function App({ dataSource, reloadKey, showDiagramList = true }: AppProps) {
   const hash = useHashRoute();
   const route = parseRoute(hash);
   if (route.view === "style-guide") return <StyleGuide />;
   return (
     <ArchitectureBundleProvider dataSource={dataSource} reloadKey={reloadKey}>
-      <ArchitectureView diagramId={route.diagramId} />
+      <ArchitectureView
+        diagramId={route.diagramId}
+        showDiagramList={showDiagramList}
+      />
     </ArchitectureBundleProvider>
   );
 }

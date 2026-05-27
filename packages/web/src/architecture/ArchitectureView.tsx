@@ -7,9 +7,10 @@ import { useArchitectureBundle } from "./ArchitectureBundleContext";
 
 interface Props {
   diagramId: string | null;
+  showDiagramList?: boolean;
 }
 
-export function ArchitectureView({ diagramId }: Props) {
+export function ArchitectureView({ diagramId, showDiagramList = true }: Props) {
   const bundle = useArchitectureBundle();
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
@@ -39,12 +40,14 @@ export function ArchitectureView({ diagramId }: Props) {
         <CanvasPlaceholder message="Opening top diagram…" />
       )}
 
-      <DiagramList
-        summary={bundle.summary}
-        currentDiagramId={diagramId}
-        onSelect={selectDiagram}
-        onGoHome={() => selectDiagram(bundle.summary.topDiagram)}
-      />
+      {showDiagramList && (
+        <DiagramList
+          summary={bundle.summary}
+          currentDiagramId={diagramId}
+          onSelect={selectDiagram}
+          onGoHome={() => selectDiagram(bundle.summary.topDiagram)}
+        />
+      )}
       <KeyboardHint />
       {selectedNodeId && (
         <NodeDetailPanel

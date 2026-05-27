@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "@tecture/web/App";
-import "@tecture/web/styles.css";
+import "./styles.css";
 import "@xyflow/react/dist/style.css";
 import { createPostMessageDataSource, vscode } from "./postMessageDataSource";
 
@@ -28,7 +28,13 @@ function Shell() {
     return () => window.removeEventListener("message", onMessage);
   }, []);
 
-  return <App dataSource={dataSource} reloadKey={reloadKey} />;
+  return (
+    <App
+      dataSource={dataSource}
+      reloadKey={reloadKey}
+      showDiagramList={false}
+    />
+  );
 }
 
 createRoot(container).render(
