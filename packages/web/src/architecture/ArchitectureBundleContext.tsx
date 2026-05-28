@@ -41,6 +41,7 @@ export type BundleState =
 interface ContextValue {
   bundle: ArchitectureBundle;
   saveLayout: (slug: string, update: ApiDiagramLayoutUpdate) => Promise<void>;
+  openInEditor?: (path: string) => void;
 }
 
 const ArchitectureBundleContext = createContext<ContextValue | null>(null);
@@ -66,6 +67,17 @@ export function useSaveLayout(): (
     );
   }
   return ctx.saveLayout;
+}
+
+/** Returns the editor-open capability, or undefined when running in the browser. */
+export function useOpenInEditor(): ((path: string) => void) | undefined {
+  const ctx = useContext(ArchitectureBundleContext);
+  if (!ctx) {
+    throw new Error(
+      "useOpenInEditor must be used inside ArchitectureBundleProvider",
+    );
+  }
+  return ctx.openInEditor;
 }
 
 export interface ArchitectureBundleProviderProps {
@@ -119,11 +131,19 @@ export function ArchitectureBundleProvider({
     [dataSource],
   );
 
+  const openInEditor = useMemo(
+    () =>
+      dataSource.openInEditor
+        ? (path: string) => dataSource.openInEditor?.(path)
+        : undefined,
+    [dataSource],
+  );
+
   const bundle = state.status === "ready" ? state.bundle : null;
   const contextValue = useMemo<ContextValue | null>(() => {
     if (!bundle) return null;
-    return { bundle, saveLayout };
-  }, [bundle, saveLayout]);
+    return { bundle, saveLayout, openInEditor };
+  }, [bundle, saveLayout, openInEditor]);
 
   if (state.status !== "ready") {
     return <LoadingSplash state={state} />;

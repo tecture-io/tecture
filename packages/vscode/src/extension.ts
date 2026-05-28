@@ -12,10 +12,53 @@ import type { MessageDeps } from "./messaging";
 
 let activeDeps: MessageDeps | undefined;
 
+// Open a repo-root-relative file (or reveal a directory) inside the workspace, rejecting any path
+// that is absolute or escapes the workspace folder.
+async function openFileInWorkspace(
+  folder: vscode.WorkspaceFolder,
+  relPath: string,
+): Promise<void> {
+  const trimmed = relPath.replace(/\/+$/, "");
+  const segments = trimmed.split("/").filter((s) => s.length > 0);
+  if (
+    trimmed.length === 0 ||
+    relPath.startsWith("/") ||
+    /^[a-zA-Z]:/.test(trimmed) ||
+    segments.includes("..")
+  ) {
+    void vscode.window.showErrorMessage(
+      `Tecture: refusing to open unsafe path "${relPath}"`,
+    );
+    return;
+  }
+
+  const target = vscode.Uri.joinPath(folder.uri, ...segments);
+  const root = folder.uri.path.replace(/\/+$/, "");
+  if (target.path !== root && !target.path.startsWith(`${root}/`)) {
+    void vscode.window.showErrorMessage(
+      `Tecture: path "${relPath}" escapes the workspace`,
+    );
+    return;
+  }
+
+  try {
+    const stat = await vscode.workspace.fs.stat(target);
+    if (stat.type & vscode.FileType.Directory) {
+      await vscode.commands.executeCommand("revealInExplorer", target);
+    } else {
+      const doc = await vscode.workspace.openTextDocument(target);
+      await vscode.window.showTextDocument(doc, { preview: false });
+    }
+  } catch {
+    void vscode.window.showErrorMessage(`Tecture: could not open "${relPath}"`);
+  }
+}
+
 function buildDeps(folder: vscode.WorkspaceFolder): MessageDeps {
   return {
     source: new VscodeFsArchitectureDataSource(resolveArchitectureRoot(folder)),
     layouts: new VscodeFsLayoutStore(resolveLayoutsRoot(folder)),
+    openFile: (path) => openFileInWorkspace(folder, path),
   };
 }
 

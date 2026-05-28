@@ -54,6 +54,10 @@
           "type": ["string", "null"],
           "description": "Slug of another diagram file (drill-down target)."
         },
+        "path": {
+          "type": "string",
+          "description": "Repo-root-relative path to the single file or directory this node maps to. A trailing '/' denotes a directory. No leading '/', no '..'. Omit for nodes that are conceptual or span multiple files."
+        },
         "meta": {
           "type": "object",
           "additionalProperties": true,

@@ -16,6 +16,16 @@
       "type": "string",
       "description": "Plain-text description (2-4 paragraphs, separated by \\n\\n). No markdown."
     },
+    "source": {
+      "type": "string",
+      "format": "uri",
+      "description": "Canonical HTTPS URL of the source repository (no .git suffix), derived from `git remote get-url`. Lets the viewer link diagram nodes back to their files."
+    },
+    "sourceHost": {
+      "type": "string",
+      "enum": ["github", "gitlab", "bitbucket"],
+      "description": "Repo host provider, used to pick the correct file-view URL scheme. Auto-detected from the remote domain."
+    },
     "topDiagram": {
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",

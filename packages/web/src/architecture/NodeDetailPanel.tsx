@@ -1,7 +1,11 @@
 import type { NodeMetaType } from "@tecture/shared";
+import { buildSourceUrl } from "@tecture/shared";
 import { getNodeStyle } from "./nodeStyles";
 import { MarkdownContent } from "./MarkdownContent";
-import { useArchitectureBundle } from "./ArchitectureBundleContext";
+import {
+  useArchitectureBundle,
+  useOpenInEditor,
+} from "./ArchitectureBundleContext";
 
 interface Props {
   nodeId: string;
@@ -10,9 +14,16 @@ interface Props {
 
 export function NodeDetailPanel({ nodeId, onClose }: Props) {
   const bundle = useArchitectureBundle();
+  const openInEditor = useOpenInEditor();
   const detail = bundle.nodes[nodeId];
   const missingDescription = bundle.missingDescriptions.has(nodeId);
   const style = getNodeStyle(detail?.meta?.type as NodeMetaType | undefined);
+  const path = detail?.path;
+  const sourceUrl = openInEditor
+    ? undefined
+    : path
+      ? buildSourceUrl(bundle.summary.source, bundle.summary.sourceHost, path)
+      : undefined;
 
   return (
     <aside
@@ -48,6 +59,14 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
             >
               {String(detail.meta.technology)}
             </div>
+          ) : null}
+          {path ? (
+            <OpenSourceAction
+              path={path}
+              accent={style.accent}
+              onOpenInEditor={openInEditor ? () => openInEditor(path) : undefined}
+              sourceUrl={sourceUrl}
+            />
           ) : null}
         </div>
         <button
@@ -99,4 +118,62 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
       </div>
     </aside>
   );
+}
+
+function OpenSourceAction({
+  path,
+  accent,
+  onOpenInEditor,
+  sourceUrl,
+}: {
+  path: string;
+  accent: string;
+  onOpenInEditor?: () => void;
+  sourceUrl?: string;
+}) {
+  const isDir = path.endsWith("/");
+  const className =
+    "mt-1.5 inline-flex items-center gap-1.5 text-xs transition-opacity hover:opacity-80";
+  const style = {
+    color: accent,
+    fontFamily: "var(--font-mono)",
+    background: "transparent",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+  } as const;
+  const icon = (
+    <svg
+      width="11"
+      height="11"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+      <polyline points="15 3 21 3 21 9" />
+      <line x1="10" y1="14" x2="21" y2="3" />
+    </svg>
+  );
+
+  if (onOpenInEditor) {
+    return (
+      <button type="button" className={className} style={style} onClick={onOpenInEditor} title={path}>
+        {icon}
+        <span>{isDir ? "Open folder" : "Open file"}</span>
+      </button>
+    );
+  }
+  if (sourceUrl) {
+    return (
+      <a className={className} style={style} href={sourceUrl} target="_blank" rel="noreferrer" title={path}>
+        {icon}
+        <span>{isDir ? "View folder" : "View file"}</span>
+      </a>
+    );
+  }
+  return null;
 }

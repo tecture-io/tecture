@@ -74,6 +74,30 @@ suite("handleRequest", () => {
     assert.strictEqual(res.ok, false);
   });
 
+  test("openFile routes the path to deps.openFile", async () => {
+    const calls: string[] = [];
+    const d = {
+      ...deps(),
+      openFile: async (p: string) => {
+        calls.push(p);
+      },
+    };
+    const res = await handleRequest(
+      { id: "7", type: "openFile", path: "packages/web/src/App.tsx" },
+      d,
+    );
+    assert.strictEqual(res.ok, true);
+    assert.deepStrictEqual(calls, ["packages/web/src/App.tsx"]);
+  });
+
+  test("openFile without an openFile capability returns ok:false", async () => {
+    const res = await handleRequest(
+      { id: "8", type: "openFile", path: "packages/web/src/App.tsx" },
+      deps(),
+    );
+    assert.strictEqual(res.ok, false);
+  });
+
   test("saveLayout + loadLayout round-trips through messaging", async () => {
     const d = deps();
     const saveRes = await handleRequest(
