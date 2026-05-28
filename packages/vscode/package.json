@@ -1,7 +1,7 @@
 {
   "name": "tecture-vscode",
   "displayName": "Tecture",
-  "description": "Render file-based architecture diagrams (./architecture) inside VS Code.",
+  "description": "AI-generated architecture diagrams for complex codebases — rendered inside VS Code.",
   "version": "0.0.1",
   "type": "commonjs",
   "publisher": "Tecture",

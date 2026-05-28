@@ -1,153 +1,72 @@
-# Tecture for VS Code
+# Tecture
 
-Render file-based architecture diagrams (`./architecture`) inside VS Code.
+**Navigate your codebase's architecture — right inside VS Code.**
 
-This extension is the editor-integrated counterpart to the `npx @tecture/core`
-web app. It reuses the same React Flow + Mermaid renderer; the only difference
-is that diagram JSON/Markdown is read via `vscode.workspace.fs` and the panel
-lives inside an editor tab instead of a browser.
+[Tecture](https://github.com/tecture-io/tecture) is an architecture documentation format (structured JSON and Markdown) that AI coding agents know how to write and maintain using a skill. This extension renders those files as interactive, navigable diagrams in your editor.
 
-## Features (v1)
+If your repo already has an `architecture/` folder, the extension activates automatically. If not, the setup below takes a couple of minutes.
 
-- **Open Architecture** command renders the workspace's `architecture/` folder
-  in a webview panel.
-- **Tecture Activity Bar** lists every diagram in the manifest; clicking opens
-  the panel and selects that diagram.
-- **Layout persistence**: dragging a node writes positions to
-  `<workspace>/.tecture/layouts/<slug>.json` (version-controllable).
-- **Live refresh**: editing any file under `architecture/` or `.tecture/`
-  reloads the panel.
+![System Context diagram rendered in VS Code](https://raw.githubusercontent.com/tecture-io/tecture/main/packages/vscode/media/screenshots/system-context.png)
+
+## Getting started
+
+### 1. Install the Tecture skill into your coding agent
+
+The skill teaches your agent how to read a codebase and write architecture files in the Tecture format. Works with Claude Code, Cursor, Copilot, Aider, and other major coding agents.
+
+```bash
+npx skills add tecture-io/tecture-skill
+```
+
+### 2. Generate the architecture map
+
+From your project root, ask your agent:
+
+> Map this codebase using Tecture
+
+The agent reads the code and writes the architecture into an `architecture/` folder. Expect a few minutes on a medium repo.
+
+### 3. Open the diagrams
+
+Once the `architecture/` folder exists, the extension activates. Open the command palette (**Cmd+Shift+P** / **Ctrl+Shift+P**) and run **Tecture: Open Architecture**, or click any diagram in the **Tecture** sidebar.
+
+## Features
+
+### Multi-level diagram navigation
+
+Browse system context, container, and component diagrams from the Tecture Activity Bar. Double-click a node to drill into its sub-diagram.
+
+![Component-level diagram with drill-down](https://raw.githubusercontent.com/tecture-io/tecture/main/packages/vscode/media/screenshots/components.png)
+
+### Component descriptions
+
+Select any node to open a detail panel showing its Markdown description, responsibilities, and tech stack — including rendered Mermaid diagrams.
+
+![Component description panel](https://raw.githubusercontent.com/tecture-io/tecture/main/packages/vscode/media/screenshots/component-descriptions.png)
+
+### Persistent layout
+
+Drag nodes to rearrange the diagram. Positions are saved to `.tecture/layouts/` in your workspace — version-controllable and shared across the team.
+
+### Live refresh
+
+Edit any file under `architecture/` or `.tecture/` and the panel reloads automatically. When the agent updates the map, you see the changes instantly.
 
 ## Requirements
 
-- A workspace that contains `architecture/manifest.json`. The extension
-  activates only when that file is present, so it stays inert in unrelated
-  repos.
+- VS Code 1.90+ (or Cursor / Windsurf / VSCodium via [Open VSX](https://open-vsx.org/extension/tecture/tecture-vscode))
+- A workspace containing `architecture/manifest.json`
 
-## Local development
+The extension stays completely inert in repos without architecture files.
 
-Build the webview bundle, then the host:
+## Known limitations
 
-```bash
-pnpm --filter tecture-vscode build
-```
+- **Multi-root workspaces**: only the first workspace folder is used.
+- **Theme**: the panel uses a dark color scheme. Light theme support is planned.
 
-Open `packages/vscode` in VS Code and hit **F5** — this launches an Extension
-Development Host with the extension loaded. Open this repo as the host's
-workspace folder and run **"Tecture: Open Architecture"**.
+## Resources
 
-## Running integration tests
-
-```bash
-pnpm --filter tecture-vscode test
-```
-
-Uses [`@vscode/test-cli`](https://github.com/microsoft/vscode-test-cli). On
-first run, downloads VS Code Insiders (~220 MB) to `./.vscode-test/`. Tests
-cover `VscodeFsArchitectureDataSource`, `VscodeFsLayoutStore`, the message
-protocol handler, and command registration.
-
-## Packaging + manual install
-
-```bash
-pnpm --filter tecture-vscode vscode:package
-# produces packages/vscode/tecture-vscode-0.0.1.vsix
-
-code --install-extension packages/vscode/tecture-vscode-0.0.1.vsix
-```
-
-Then open any folder containing `architecture/manifest.json` and run
-**Cmd+Shift+P → "Tecture: Open Architecture"**.
-
-## Architecture
-
-```
-extension host (Node) ──┐
-                        ├──→ vscode.workspace.fs (architecture/, .tecture/)
-                        │
-                        │ postMessage(TectureRequest)
-                        ▼
-            webview (React + React Flow + Mermaid)
-                        │
-                        │ same @tecture/web components as the npx app —
-                        │ only the data source layer differs.
-```
-
-The message protocol (`TectureRequest`, `TectureResponse`, `TectureEvent`)
-lives in `@tecture/shared` so both sides share types.
-
-## Known limitations (v1)
-
-- Multi-root workspaces: only the first folder is used.
-- Theme: panel is dark-only. VS Code light theme support is planned.
-
-## Publishing
-
-The extension publishes to both registries from a single GitHub Actions
-workflow at [.github/workflows/publish-vscode.yml](../../.github/workflows/publish-vscode.yml).
-
-### One-time setup
-
-1. **Create the publisher account on the VS Code Marketplace**
-   - Sign in to <https://dev.azure.com/> with a Microsoft account and create
-     a free organisation (any name — it's only used to host the PAT).
-   - Visit <https://marketplace.visualstudio.com/manage> and click
-     **Create publisher**. Use ID `tecture` to match the `publisher`
-     field in `package.json` (or change `package.json` to match your ID).
-     If `tecture` is taken, common fallbacks are `tecture-app` or
-     `shanika-tecture` — update `package.json` to whatever you claim.
-   - Fill in display name, logo, and email.
-2. **Generate a Marketplace Personal Access Token**
-   - In Azure DevOps: top-right user menu → **Personal access tokens** →
-     **+ New Token**.
-   - **Organization**: *All accessible organizations* (required — Marketplace
-     is global, not tied to one Azure org).
-   - **Scopes**: *Custom defined* → expand **Marketplace** → check **Manage**.
-   - Set expiry to the maximum (1 year). Copy the token immediately;
-     it's only shown once.
-3. **Create an Open VSX namespace + token** (skip if you want Marketplace-only)
-   - Sign in to <https://open-vsx.org/> with GitHub.
-   - Open your profile → **Namespaces** → claim `tecture` (must match
-     the publisher in `package.json`).
-   - Profile → **Access Tokens** → create a token. Copy it.
-4. **Add the tokens as GitHub secrets**
-   - Repo → **Settings → Secrets and variables → Actions → New repository secret**.
-   - `VSCE_PAT` = the Azure DevOps token from step 2.
-   - `OVSX_PAT` = the Open VSX token from step 3.
-
-### Releasing a new version
-
-```bash
-# 1. bump the version in packages/vscode/package.json and add a CHANGELOG entry
-# 2. commit + push to main
-git tag vscode-v0.0.2
-git push origin vscode-v0.0.2
-```
-
-The workflow:
-
-- typechecks + builds the extension,
-- verifies the tag matches `package.json` version,
-- packages a `.vsix`,
-- publishes to **VS Code Marketplace** (uses `VSCE_PAT`),
-- publishes to **Open VSX** (uses `OVSX_PAT`),
-- creates a GitHub Release with the `.vsix` attached.
-
-### Manual run
-
-In the GitHub UI: **Actions → Publish VS Code extension → Run workflow**.
-Inputs:
-
-- `dry-run: true` — builds, packages, uploads the `.vsix` as an artifact,
-  publishes nothing. Use this to sanity-check before tagging.
-- `skip-marketplace: true` / `skip-openvsx: true` — single-registry runs.
-
-### Publishing manually from a local machine
-
-```bash
-cd packages/vscode
-pnpm build
-VSCE_PAT=… pnpm publish:marketplace
-OVSX_PAT=… pnpm publish:openvsx
-```
-
+- [Tecture project](https://github.com/tecture-io/tecture) — full documentation and browser-based viewer
+- [Report an issue](https://github.com/tecture-io/tecture/issues)
+- [Changelog](https://github.com/tecture-io/tecture/blob/main/packages/vscode/CHANGELOG.md)
+- [Discord community](https://discord.gg/pHbmuBkbcp)
