@@ -2,9 +2,9 @@
 
 **Navigate your codebase's architecture — right inside VS Code.**
 
-Tecture is an architecture documentation format (structured JSON and Markdown) that AI coding agents know how to write and maintain. This extension renders those files as interactive, navigable diagrams in your editor.
+[Tecture](https://github.com/tecture-io/tecture) is an architecture documentation format (structured JSON and Markdown) that AI coding agents know how to write and maintain using a skill. This extension renders those files as interactive, navigable diagrams in your editor.
 
-If your repo already has an `architecture/` folder, the extension activates automatically. If not, the setup below takes a couple of minutes. Learn more at the [Tecture open-source project](https://github.com/tecture-io/tecture).
+If your repo already has an `architecture/` folder, the extension activates automatically. If not, the setup below takes a couple of minutes.
 
 ![System Context diagram rendered in VS Code](https://raw.githubusercontent.com/tecture-io/tecture/main/packages/vscode/media/screenshots/system-context.png)
 
