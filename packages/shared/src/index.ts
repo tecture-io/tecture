@@ -6,6 +6,7 @@ export interface ApiHealthResponse {
 
 export type DiagramDirection = "TB" | "LR";
 export type DiagramLevel = 1 | 2 | 3;
+export type SourceHost = "github" | "gitlab" | "bitbucket";
 
 export type NodeMetaType =
   | "system"
@@ -44,6 +45,8 @@ export interface ArchitectureNode {
   label: string;
   parentId?: string | null;
   subDiagramId?: string | null;
+  /** Repo-root-relative path to the file or directory this node maps to. Trailing "/" = directory. */
+  path?: string;
   meta?: NodeMeta;
 }
 
@@ -69,6 +72,8 @@ export interface DiagramFile {
 export interface ManifestFile {
   name: string;
   description?: string;
+  source?: string;
+  sourceHost?: SourceHost;
   topDiagram: string;
   diagrams: string[];
 }
@@ -84,6 +89,8 @@ export interface ApiDiagramSummary {
 export interface ApiArchitectureSummary {
   name: string;
   description?: string;
+  source?: string;
+  sourceHost?: SourceHost;
   topDiagram: string;
   diagrams: ApiDiagramSummary[];
 }
@@ -148,6 +155,7 @@ export type TectureRequest =
   | { id: string; type: "loadDiagram"; slug: string }
   | { id: string; type: "loadLayout"; slug: string }
   | { id: string; type: "loadNodeDetail"; nodeId: string }
+  | { id: string; type: "openFile"; path: string }
   | {
       id: string;
       type: "saveLayout";

@@ -6,28 +6,33 @@
     {
       "id": "cli-entry",
       "label": "CLI Entry",
+      "path": "packages/server/src/cli.ts",
       "meta": { "type": "service", "technology": "typescript" }
     },
     {
       "id": "express-app",
       "label": "Express App",
+      "path": "packages/server/src/server.ts",
       "meta": { "type": "service", "technology": "express" }
     },
     {
       "id": "route-handlers",
       "label": "Route Handlers",
+      "path": "packages/server/src/routes/",
       "meta": { "type": "gateway", "isContainer": true }
     },
     {
       "id": "health-route",
       "label": "Health Route",
       "parentId": "route-handlers",
+      "path": "packages/server/src/routes/health.ts",
       "meta": { "type": "service", "technology": "express" }
     },
     {
       "id": "architecture-routes",
       "label": "Architecture Routes",
       "parentId": "route-handlers",
+      "path": "packages/server/src/routes/architecture.ts",
       "meta": { "type": "service", "technology": "express" }
     },
     {
@@ -39,11 +44,13 @@
     {
       "id": "data-source-types",
       "label": "Data Source Abstraction",
+      "path": "packages/server/src/source/types.ts",
       "meta": { "type": "service", "technology": "typescript" }
     },
     {
       "id": "fs-data-source",
       "label": "FS Data Source",
+      "path": "packages/server/src/source/fs.ts",
       "meta": { "type": "service", "technology": "nodedotjs" }
     }
   ],

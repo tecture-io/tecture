@@ -13,6 +13,8 @@ import {
 export interface MessageDeps {
   source: ArchitectureDataSource;
   layouts: LayoutStore;
+  /** Open a repo-root-relative file or directory in the editor. */
+  openFile?: (path: string) => Promise<void>;
 }
 
 export async function handleRequest(
@@ -56,6 +58,17 @@ export async function handleRequest(
       case "saveLayout": {
         const data = await deps.layouts.saveLayout(req.slug, req.update);
         return { id: req.id, ok: true, data };
+      }
+      case "openFile": {
+        if (!deps.openFile) {
+          return {
+            id: req.id,
+            ok: false,
+            error: "Opening files is not supported in this context",
+          };
+        }
+        await deps.openFile(req.path);
+        return { id: req.id, ok: true, data: null };
       }
     }
   } catch (err) {

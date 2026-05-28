@@ -62,5 +62,8 @@ export function createPostMessageDataSource(): WebDataSource {
       send<ApiNodeDetail>({ type: "loadNodeDetail", nodeId }),
     saveLayout: (slug, update: ApiDiagramLayoutUpdate) =>
       send<DiagramLayoutFile>({ type: "saveLayout", slug, update }),
+    openInEditor: (path) => {
+      void send<void>({ type: "openFile", path });
+    },
   };
 }

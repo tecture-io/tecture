@@ -34,10 +34,14 @@ A good architecture is **grounded in the repo** (every node, edge, and technolog
 {
   "name": "E-Commerce Platform",
   "description": "Plain-text, 2-4 paragraphs separated by \\n\\n. No markdown.",
+  "source": "https://github.com/acme/ecommerce",
+  "sourceHost": "github",
   "topDiagram": "system-context",
   "diagrams": ["system-context", "containers", "components-api"],
 }
 ```
+
+`source` and `sourceHost` are optional but recommended — they let the viewer link diagram nodes back to their files (see `path` below). Capture them in Phase A from git; omit both if the repo has no remote.
 
 ### `diagrams/<slug>.json`
 
@@ -67,6 +71,15 @@ A good architecture is **grounded in the repo** (every node, edge, and technolog
 ```
 
 Nodes omit the `description` field entirely — prose lives in `descriptions/<node.id>.md`.
+
+**Linking a node to its source (`path`).** When a node maps directly to a single file or directory, add a `path` — a repo-root-relative path that lets the viewer open the file in the editor (VS Code) or link to it on the repo host (web). A trailing `/` marks a directory:
+
+```jsonc
+{ "id": "order-service", "label": "Order Service", "path": "src/orders/service.ts", "meta": { "type": "service" } },
+{ "id": "controllers",   "label": "HTTP Controllers", "path": "src/controllers/", "meta": { "type": "gateway", "isContainer": true } }
+```
+
+Rules: relative to the repo root (the directory `manifest.source` points at), no leading `/`, no `..`. Set `path` **only** where a node is exactly one file or directory — omit it for conceptual nodes or anything that spans several files.
 
 ### Nesting within a diagram
 
@@ -141,6 +154,7 @@ Before writing any JSON, gather evidence for these seven artifacts. **Do not gue
 5. **External SDKs / SaaS** — provider SDK imports (`stripe`, `@sendgrid/*`, `@aws-sdk/*`, `boto3`, `openai`, `@anthropic-ai/sdk`, `@clerk/*`, `@sentry/*`); webhook routes; OAuth providers. Each match is usually an external node.
 6. **Actors / personas** — distinct frontends (admin vs end-user), auth roles, public API consumers, CLI users, cron/CI callers. Different behaviors → different person nodes.
 7. **Purpose** — top-level README + the `description` field in the package manifest + the primary entry point. This seeds `manifest.description` and the top-system description.
+8. **Source repository** — run `git remote get-url origin` (fall back to the first remote from `git remote -v`) and normalize the result for `manifest.source`: strip a trailing `.git`, and convert `git@host:org/repo` → `https://host/org/repo`. Derive `manifest.sourceHost` from the domain (`github.com`→`github`, `gitlab.com`→`gitlab`, `bitbucket.org`→`bitbucket`); for a self-hosted/unrecognized domain, set the closest known host only if the URL path shape makes it obvious, else omit `sourceHost`. Run `git rev-parse --show-toplevel` — node `path` values (next section) are relative to this repo root. If there is no remote, omit both `source` and `sourceHost`.
 
 ### Phase B — Map discovery → C4
 
@@ -155,14 +169,14 @@ Stack idioms differ — a Next.js + Postgres app, a Django monolith, a FastAPI +
 ### Phase C — Author & self-evaluate
 
 1. **Write child diagrams first** (L3 → L2 → L1) so slugs exist before parents reference them via `subDiagramId`.
-2. **For each diagram**, write `diagrams/<slug>.json`, then create `descriptions/<node-id>.md` for **every** node. Lead each description with one sentence of *responsibility* — what this node owns, not a rephrasing of its label.
-3. **Write `manifest.json`** with `name`, `description` (2–4 plain-text paragraphs), `topDiagram` set to the L1 slug, and `diagrams` listing every slug.
+2. **For each diagram**, write `diagrams/<slug>.json`, then create `descriptions/<node-id>.md` for **every** node. Lead each description with one sentence of *responsibility* — what this node owns, not a rephrasing of its label. Add a `path` to any node that maps to exactly one file or directory (repo-root-relative; trailing `/` for a directory).
+3. **Write `manifest.json`** with `name`, `description` (2–4 plain-text paragraphs), `source` + `sourceHost` from Phase A (if a remote exists), `topDiagram` set to the L1 slug, and `diagrams` listing every slug.
 4. **Run the [Quality checklist](#quality-checklist)** against the draft. Fix anything that fails.
 5. **Validate** (see below). Fix every error before reporting success.
 
 ## Quality checklist
 
-The validator checks *shape*. This checklist checks *meaning* — apply it before running the validator. Aim for ≥10/12 on a fresh architecture; treat any miss as a real defect, not a stylistic preference.
+The validator checks *shape*. This checklist checks *meaning* — apply it before running the validator. Aim for ≥11/13 on a fresh architecture; treat any miss as a real defect, not a stylistic preference.
 
 1. **60-second comprehension** — Read only the L1 diagram + the top-system description. Can a new engineer answer "what does this system do, who uses it, what does it depend on"?
 2. **Evidence-grounded** — For each node, name the file or dependency that proves it exists (a `Dockerfile`, a `package.json` entry, an env var, an SDK import). No node should be "I think there's probably one of these."
@@ -176,6 +190,7 @@ The validator checks *shape*. This checklist checks *meaning* — apply it befor
 10. **Diagrams fit on one screen** — L1: 3–5 nodes; L2: 4–8; L3: 3–6. Anything bigger means split into a deeper level.
 11. **Stable, code-derived names** — Labels match what the code calls things (directory names, package names, service names). Don't invent synonyms.
 12. **Reusable on update** — When code changes (e.g. "we added a Redis cache"), a focused 1–2 file diff should be enough. If a small change forces a rewrite, the boundaries are wrong.
+13. **Source links resolve** — `manifest.source` is the normalized repo URL, and every node `path` points at a real file or directory from the repo root (trailing `/` for directories). `path` appears only on nodes that are genuinely one file or folder, never on conceptual or multi-file nodes.
 
 Common anti-patterns to watch for: "Business Logic" / "Service Layer" nodes; L1 diagrams that name internal services; L3 diagrams that just rename L2; edges labeled `uses`; technologies you didn't grep for. See [reference/discovery.md](reference/discovery.md#anti-patterns-do-not-do-these) for the full list.
 

@@ -7,6 +7,7 @@ import type {
   DiagramLayoutFile,
   ManifestFile,
   NodeLayoutEntry,
+  SourceHost,
 } from "./index";
 
 export const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -127,9 +128,58 @@ export async function buildArchitectureSummary(
   return {
     name: manifest.name,
     description: manifest.description,
+    source: manifest.source,
+    sourceHost: manifest.sourceHost,
     topDiagram: manifest.topDiagram,
     diagrams,
   };
+}
+
+const HOST_DOMAINS: Array<{ host: SourceHost; match: RegExp }> = [
+  { host: "github", match: /(^|\.)github\.com$/i },
+  { host: "gitlab", match: /(^|\.)gitlab\.com$/i },
+  { host: "bitbucket", match: /(^|\.)bitbucket\.org$/i },
+];
+
+function inferSourceHost(source: string): SourceHost | undefined {
+  // Extract the hostname without relying on the URL global (kept lib-agnostic for shared):
+  // scheme://[userinfo@]host[:port]/...
+  const hostname = /^[a-z][a-z0-9+.-]*:\/\/(?:[^@/]*@)?([^:/?#]+)/i.exec(source)?.[1];
+  if (!hostname) return undefined;
+  return HOST_DOMAINS.find(({ match }) => match.test(hostname))?.host;
+}
+
+/**
+ * Build a web URL that views `path` (a repo-root-relative file or directory, trailing "/" = dir)
+ * on the source repo host. `HEAD` resolves to the default branch so links stay current. Falls back
+ * to the repo root when the host is unknown, and returns undefined when there is no source.
+ */
+export function buildSourceUrl(
+  source: string | undefined,
+  host: SourceHost | undefined,
+  path: string,
+): string | undefined {
+  if (!source) return undefined;
+  const base = source.replace(/\/+$/, "").replace(/\.git$/i, "");
+  const resolvedHost = host ?? inferSourceHost(base);
+  const isDir = path.endsWith("/");
+  const encoded = path
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "")
+    .split("/")
+    .map(encodeURIComponent)
+    .join("/");
+  if (!encoded) return base;
+  switch (resolvedHost) {
+    case "github":
+      return `${base}/${isDir ? "tree" : "blob"}/HEAD/${encoded}`;
+    case "gitlab":
+      return `${base}/-/${isDir ? "tree" : "blob"}/HEAD/${encoded}`;
+    case "bitbucket":
+      return `${base}/src/HEAD/${encoded}`;
+    default:
+      return base;
+  }
 }
 
 export async function findNode(

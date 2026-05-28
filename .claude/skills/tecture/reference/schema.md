@@ -29,10 +29,24 @@ Draft 2020-12 JSON Schema: [../schemas/manifest.schema.json](../schemas/manifest
 |---|---|---|---|
 | `name` | string | yes | Architecture name. |
 | `description` | string | no | Plain-text, 2–4 paragraphs separated by `\n\n`. No markdown. |
+| `source` | string (URI) | no | Canonical HTTPS URL of the source repository (no `.git` suffix), from `git remote get-url`. Enables node → source links in the viewer. |
+| `sourceHost` | `github` \| `gitlab` \| `bitbucket` | no | Repo host provider; selects the file-view URL scheme. Auto-detected from the `source` domain. Unknown values warn (not error). |
 | `topDiagram` | slug | yes | Slug of the entry-point diagram. Must appear in `diagrams[]`. |
 | `diagrams` | slug[] | yes | Every diagram slug that belongs to this architecture. Non-empty, unique. |
 
 Unknown top-level fields are rejected. Slugs match `^[a-z0-9]+(-[a-z0-9]+)*$`.
+
+### Source file-view URL schemes
+
+When a node has a `path` (see below), the web viewer builds a link using `source` + `sourceHost`. `HEAD` resolves to the repo's default branch, so links stay current:
+
+| `sourceHost` | File | Directory |
+|---|---|---|
+| `github` | `<source>/blob/HEAD/<path>` | `<source>/tree/HEAD/<path>` |
+| `gitlab` | `<source>/-/blob/HEAD/<path>` | `<source>/-/tree/HEAD/<path>` |
+| `bitbucket` | `<source>/src/HEAD/<path>` | `<source>/src/HEAD/<path>` |
+
+If `sourceHost` is absent the viewer infers it from the `source` domain; if that is also unknown it links to the repo root. Inside the VS Code extension the same `path` opens the file in an editor (or reveals the folder) instead of using a web URL.
 
 ## `diagrams/<slug>.json`
 
@@ -57,6 +71,7 @@ Draft 2020-12 JSON Schema: [../schemas/diagram.schema.json](../schemas/diagram.s
 | `label` | string | yes | Display name. |
 | `parentId` | slug \| null | no | Another node's `id` **in the same diagram** whose `meta.isContainer = true`. Groups 2–4 sibling nodes under a labeled container. One level of nesting only — grandchildren are rejected; use `subDiagramId` for deeper decomposition. See [How diagrams relate](#how-diagrams-relate). |
 | `subDiagramId` | slug \| null | no | Another diagram's slug (drill-down target). Must exist under `diagrams/`. Self-reference is forbidden. See [How diagrams relate](#how-diagrams-relate). |
+| `path` | string | no | Repo-root-relative path to the single file or directory this node maps to. Trailing `/` denotes a directory. No leading `/`, no `..`. Set only when the node is exactly one file or folder. The validator warns (never errors) if the path is missing on disk or its file/dir kind disagrees with the trailing slash. |
 | `meta.type` | enum | no | One of `system`, `person`, `service`, `database`, `queue`, `gateway`, `frontend`, `cache`, `storage`, `external`. |
 | `meta.technology` | slug | no | Free-form tech identity, ideally a [Simple Icons](https://simpleicons.org) slug (`postgresql`, `react`, `aws-s3`). |
 | `meta.isContainer` | boolean | no | If `true`, this node groups child nodes (those that set `parentId` to this id). |

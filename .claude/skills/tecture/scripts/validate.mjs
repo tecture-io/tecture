@@ -3,11 +3,13 @@
 // Usage: node validate.mjs [path/to/architecture]
 // Exits 0 on success, 1 on validation failure, 2 on internal error.
 
-import { readFile, readdir, access } from "node:fs/promises";
+import { readFile, readdir, access, stat } from "node:fs/promises";
 import { constants as FS } from "node:fs";
-import { join, basename, extname, resolve } from "node:path";
+import { join, basename, extname, resolve, dirname } from "node:path";
 
 const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+const SOURCE_HOSTS = new Set(["github", "gitlab", "bitbucket"]);
 
 const NODE_TYPES = new Set([
   "system", "person", "service", "database", "queue",
@@ -53,13 +55,25 @@ function validateManifest(m, report) {
   const where = "manifest.json";
   if (!isObj(m)) return report.err(where, "must be an object");
 
-  const allowed = new Set(["name", "description", "topDiagram", "diagrams"]);
+  const allowed = new Set(["name", "description", "source", "sourceHost", "topDiagram", "diagrams"]);
   for (const k of Object.keys(m)) {
     if (!allowed.has(k)) report.err(where, `unknown field "${k}"`);
   }
 
   if (!isStr(m.name) || m.name.length === 0) report.err(where, "missing or empty name");
   if ("description" in m && !isStr(m.description)) report.err(where, "description must be a string");
+  if ("source" in m) {
+    if (!isStr(m.source)) report.err(where, "source must be a string");
+    else if (!/^https?:\/\//.test(m.source)) {
+      report.warn(where, `source "${m.source}" does not look like an http(s) URL`);
+    }
+  }
+  if ("sourceHost" in m) {
+    if (!isStr(m.sourceHost)) report.err(where, "sourceHost must be a string");
+    else if (!SOURCE_HOSTS.has(m.sourceHost)) {
+      report.warn(where, `sourceHost "${m.sourceHost}" is not a recognized host (${[...SOURCE_HOSTS].join(", ")})`);
+    }
+  }
   if (!isStr(m.topDiagram) || !SLUG_RE.test(m.topDiagram)) {
     report.err(where, "topDiagram must be a kebab-case slug");
   }
@@ -114,7 +128,7 @@ function validateDiagramShape(slug, d, report) {
   for (const [i, n] of d.nodes.entries()) {
     const nw = `${where}#nodes[${i}]`;
     if (!isObj(n)) { report.err(nw, "must be an object"); continue; }
-    const nodeAllowed = new Set(["id", "label", "parentId", "subDiagramId", "meta"]);
+    const nodeAllowed = new Set(["id", "label", "parentId", "subDiagramId", "path", "meta"]);
     for (const k of Object.keys(n)) {
       if (!nodeAllowed.has(k)) report.err(nw, `unknown field "${k}"`);
     }
@@ -122,6 +136,12 @@ function validateDiagramShape(slug, d, report) {
     else if (nodeIds.has(n.id)) report.err(nw, `duplicate node id "${n.id}" within diagram`);
     else nodeIds.add(n.id);
     if (!isStr(n.label) || n.label.length === 0) report.err(nw, "missing or empty label");
+    if ("path" in n) {
+      if (!isStr(n.path) || n.path.length === 0) report.err(nw, "path must be a non-empty string");
+      else if (n.path.startsWith("/")) report.err(nw, "path must be relative (no leading '/')");
+      else if (n.path.includes("\\")) report.err(nw, "path must use '/' separators (no backslashes)");
+      else if (n.path.split("/").some((seg) => seg === "..")) report.err(nw, "path must not contain '..' segments");
+    }
     if ("parentId" in n && n.parentId !== null && !isStr(n.parentId)) {
       report.err(nw, "parentId must be a string or null");
     }
@@ -296,6 +316,33 @@ function detectDrillDownCycles(diagrams, report) {
   for (const s of children.keys()) if (color.get(s) === WHITE) dfs(s, []);
 }
 
+// Soft check: a node's `path` should resolve to a real file/dir relative to the project root
+// (the directory that contains architecture/). Warnings only — never blocks, since monorepo or
+// subdir layouts may place architecture/ away from the repo root.
+async function validatePathsOnDisk(diagrams, projectRoot, report) {
+  for (const [slug, d] of diagrams) {
+    const where = `diagrams/${slug}.json`;
+    for (const [i, n] of (d.nodes ?? []).entries()) {
+      if (!isStr(n?.path) || n.path.length === 0) continue;
+      const nw = `${where}#nodes[${i}]`;
+      const isDirConvention = n.path.endsWith("/");
+      const cleaned = isDirConvention ? n.path.slice(0, -1) : n.path;
+      let st;
+      try {
+        st = await stat(join(projectRoot, cleaned));
+      } catch {
+        report.warn(nw, `path "${n.path}" not found on disk (resolved from ${projectRoot})`);
+        continue;
+      }
+      if (isDirConvention && !st.isDirectory()) {
+        report.warn(nw, `path "${n.path}" ends with "/" but resolves to a file — drop the trailing slash`);
+      } else if (!isDirConvention && st.isDirectory()) {
+        report.warn(nw, `path "${n.path}" resolves to a directory — add a trailing "/" to mark it as one`);
+      }
+    }
+  }
+}
+
 async function main() {
   const root = resolve(process.argv[2] ?? "architecture");
   const report = new Report();
@@ -363,6 +410,8 @@ async function main() {
   for (const [slug, d] of diagrams) {
     validateDiagramReferences(slug, d, report, allSlugs, descriptionsAvailable, allNodeIds);
   }
+
+  await validatePathsOnDisk(diagrams, dirname(root), report);
 
   // Warn about orphan description files
   const usedDescriptionIds = new Set(allNodeIds.keys());

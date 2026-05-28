@@ -16,6 +16,12 @@ export interface WebDataSource {
     slug: string,
     update: ApiDiagramLayoutUpdate,
   ): Promise<DiagramLayoutFile>;
+  /**
+   * Open a repo-root-relative file or directory in the host editor. Only implemented when the
+   * viewer runs inside an editor (e.g. the VS Code extension); undefined in the browser, where the
+   * UI links to the repo host instead.
+   */
+  openInEditor?(path: string): void;
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
