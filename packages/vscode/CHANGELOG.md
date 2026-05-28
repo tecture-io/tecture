@@ -2,6 +2,16 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [0.0.2] — 2026-05-28
+
+### Changed
+
+- Marketplace README rewritten as a user-facing landing page with screenshots
+  showing system context diagrams, component drill-down, and description panels.
+- Developer and publishing documentation moved to `docs/` (excluded from .vsix).
+- Updated tagline: "AI-generated architecture diagrams for complex codebases."
+- Custom brand icon for Activity Bar and Marketplace listing.
+
 ## [0.0.1] — 2026-05-27
 
 ### Added
