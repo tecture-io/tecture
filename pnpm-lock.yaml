@@ -10,13 +10,13 @@ importers:
 
   packages/server:
     dependencies:
-      '@tecture/shared':
-        specifier: workspace:*
-        version: link:../shared
       express:
         specifier: ^4.21.1
         version: 4.22.1
     devDependencies:
+      '@tecture/shared':
+        specifier: workspace:*
+        version: link:../shared
       '@tecture/web':
         specifier: workspace:*
         version: link:../web
