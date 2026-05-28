@@ -84,6 +84,24 @@ jobs:
           path: packages/vscode/*.vsix
           if-no-files-found: error
 
+      - name: Verify VSCE PAT against publisher
+        if: |
+          inputs.dry-run != 'true' &&
+          inputs.skip-marketplace != 'true'
+        working-directory: packages/vscode
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          DEBUG: "vsce:*"
+        run: |
+          set -euo pipefail
+          if [ -z "${VSCE_PAT:-}" ]; then
+            echo "::error::VSCE_PAT secret is not set."
+            exit 1
+          fi
+          PUBLISHER="$(node -p "require('./package.json').publisher")"
+          echo "Verifying PAT against publisher: $PUBLISHER"
+          pnpm exec vsce verify-pat "$PUBLISHER"
+
       - name: Publish to VS Code Marketplace
         if: |
           inputs.dry-run != 'true' &&
@@ -91,6 +109,7 @@ jobs:
         working-directory: packages/vscode
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          DEBUG: "vsce:*"
         run: |
           set -euo pipefail
           if [ -z "${VSCE_PAT:-}" ]; then
