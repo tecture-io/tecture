@@ -121,14 +121,41 @@ export class VscodeFsLayoutStore implements LayoutStore {
   }
 }
 
+const DEFAULT_ARCHITECTURE_PATH = "architecture";
+
+/**
+ * Architecture folder path relative to the workspace folder root, read from the
+ * `tecture.architecturePath` setting (default `"architecture"`).
+ */
+export function getArchitecturePath(
+  workspaceFolder: vscode.WorkspaceFolder,
+): string {
+  const configured = vscode.workspace
+    .getConfiguration("tecture", workspaceFolder.uri)
+    .get<string>("architecturePath", DEFAULT_ARCHITECTURE_PATH);
+  const trimmed = (configured ?? "").trim();
+  return trimmed.length > 0 ? trimmed : DEFAULT_ARCHITECTURE_PATH;
+}
+
 export function resolveArchitectureRoot(
   workspaceFolder: vscode.WorkspaceFolder,
 ): vscode.Uri {
-  return vscode.Uri.joinPath(workspaceFolder.uri, "architecture");
+  const segments = getArchitecturePath(workspaceFolder)
+    .split("/")
+    .filter(Boolean);
+  return vscode.Uri.joinPath(workspaceFolder.uri, ...segments);
 }
 
 export function resolveLayoutsRoot(
   workspaceFolder: vscode.WorkspaceFolder,
 ): vscode.Uri {
-  return vscode.Uri.joinPath(workspaceFolder.uri, "architecture", ".tecture", "layouts");
+  const segments = getArchitecturePath(workspaceFolder)
+    .split("/")
+    .filter(Boolean);
+  return vscode.Uri.joinPath(
+    workspaceFolder.uri,
+    ...segments,
+    ".tecture",
+    "layouts",
+  );
 }
