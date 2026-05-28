@@ -40,7 +40,7 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "tsx watch src/cli.ts --port 3001 --architecture-path ../../architecture --tecture-path ../../.tecture",
+    "dev": "tsx watch src/cli.ts --port 3001 --architecture-path ../../architecture --tecture-path ../../architecture/.tecture",
     "build": "tsup && node scripts/copy-web-assets.mjs",
     "start": "node dist/cli.js",
     "typecheck": "tsc --noEmit"

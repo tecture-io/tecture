@@ -46,11 +46,11 @@ Select any node to open a detail panel showing its Markdown description, respons
 
 ### Persistent layout
 
-Drag nodes to rearrange the diagram. Positions are saved to `.tecture/layouts/` in your workspace — version-controllable and shared across the team.
+Drag nodes to rearrange the diagram. Positions are saved to `architecture/.tecture/layouts/` in your workspace — version-controllable and shared across the team.
 
 ### Live refresh
 
-Edit any file under `architecture/` or `.tecture/` and the panel reloads automatically. When the agent updates the map, you see the changes instantly.
+Edit any file under `architecture/` (including `architecture/.tecture/`) and the panel reloads automatically. When the agent updates the map, you see the changes instantly.
 
 ## Requirements
 

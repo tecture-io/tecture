@@ -85,7 +85,7 @@ code --install-extension packages/vscode/tecture-vscode-*.vsix
 ```
 Extension host (Node)
   │
-  ├── vscode.workspace.fs    reads architecture/, .tecture/
+  ├── vscode.workspace.fs    reads architecture/ (incl. architecture/.tecture/)
   │
   │   postMessage({ id, type, ... })
   ▼

@@ -63,7 +63,7 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   const watcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(folder, "{architecture,.tecture}/**"),
+    new vscode.RelativePattern(folder, "{architecture,architecture/.tecture}/**"),
   );
   const fireRefresh = () => {
     treeProvider.refresh();

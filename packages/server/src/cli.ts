@@ -43,7 +43,7 @@ function parseArgs(argv: string[]): CliOptions {
   return {
     port,
     architecturePath: resolve(architecturePath ?? "architecture"),
-    tecturePath: resolve(tecturePath ?? ".tecture"),
+    tecturePath: resolve(tecturePath ?? "architecture/.tecture"),
   };
 }
 

@@ -130,5 +130,5 @@ export function resolveArchitectureRoot(
 export function resolveLayoutsRoot(
   workspaceFolder: vscode.WorkspaceFolder,
 ): vscode.Uri {
-  return vscode.Uri.joinPath(workspaceFolder.uri, ".tecture", "layouts");
+  return vscode.Uri.joinPath(workspaceFolder.uri, "architecture", ".tecture", "layouts");
 }

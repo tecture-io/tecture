@@ -2,6 +2,14 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [Unreleased]
+
+### Changed
+
+- Layout files moved from `<workspace>/.tecture/layouts/` to
+  `<workspace>/architecture/.tecture/layouts/`, keeping all Tecture files under
+  the `architecture/` tree.
+
 ## [0.0.2] — 2026-05-28
 
 ### Changed
