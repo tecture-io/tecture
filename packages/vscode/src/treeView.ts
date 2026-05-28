@@ -31,6 +31,7 @@ export class TectureTreeDataProvider
   readonly onDidChangeTreeData = this.emitter.event;
 
   private cached: ApiArchitectureSummary | undefined;
+  private readonly items = new Map<string, DiagramTreeItem>();
 
   constructor(private source: ArchitectureDataSource) {}
 
@@ -41,6 +42,7 @@ export class TectureTreeDataProvider
 
   refresh(): void {
     this.cached = undefined;
+    this.items.clear();
     this.emitter.fire(undefined);
   }
 
@@ -48,12 +50,23 @@ export class TectureTreeDataProvider
     return element;
   }
 
+  // Required so VS Code can resolve elements for TreeView.reveal(). The tree is
+  // flat, so every item is a root and has no parent.
+  getParent(): vscode.ProviderResult<DiagramTreeItem> {
+    return undefined;
+  }
+
   async getChildren(): Promise<DiagramTreeItem[]> {
     try {
       if (!this.cached) {
         this.cached = await buildArchitectureSummary(this.source);
       }
-      return this.cached.diagrams.map((d) => new DiagramTreeItem(d));
+      this.items.clear();
+      return this.cached.diagrams.map((d) => {
+        const item = new DiagramTreeItem(d);
+        this.items.set(d.slug, item);
+        return item;
+      });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       const placeholder = new vscode.TreeItem(
@@ -63,5 +76,13 @@ export class TectureTreeDataProvider
       placeholder.iconPath = new vscode.ThemeIcon("warning");
       return [placeholder as DiagramTreeItem];
     }
+  }
+
+  getItem(slug: string): DiagramTreeItem | undefined {
+    return this.items.get(slug);
+  }
+
+  async ensureLoaded(): Promise<void> {
+    if (this.items.size === 0) await this.getChildren();
   }
 }

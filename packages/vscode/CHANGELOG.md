@@ -4,6 +4,15 @@ All notable changes to the Tecture VS Code extension are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- The Diagrams sidebar selection now follows the active diagram: drilling into a
+  sub-diagram inside the canvas (or navigating within the panel) highlights the
+  matching item in the tree. Syncs only when the sidebar is already open.
+- New `tecture.architecturePath` setting (workspace-scoped) to point at a custom
+  architecture folder; defaults to `architecture`. The layout store follows the
+  configured path (`<architecturePath>/.tecture/layouts/`).
+
 ### Changed
 
 - Layout files moved from `<workspace>/.tecture/layouts/` to

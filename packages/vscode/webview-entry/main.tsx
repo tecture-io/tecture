@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "@tecture/web/App";
 import "./styles.css";
@@ -10,8 +10,14 @@ if (!container) throw new Error("Root container missing in index.html");
 
 const dataSource = createPostMessageDataSource();
 
+function parseDiagramSlug(hash: string): string | null {
+  const match = hash.match(/^#\/diagram\/([^/?#]+)/);
+  return match ? decodeURIComponent(match[1]!) : null;
+}
+
 function Shell() {
   const [reloadKey, setReloadKey] = useState(0);
+  const lastReportedSlug = useRef<string | null>(null);
 
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
@@ -26,6 +32,21 @@ function Shell() {
     window.addEventListener("message", onMessage);
     vscode.postMessage({ type: "ready" });
     return () => window.removeEventListener("message", onMessage);
+  }, []);
+
+  // Notify the host whenever the active diagram changes so the sidebar tree
+  // can follow drill-ins and in-canvas navigation. Deduped so re-asserting the
+  // same slug never produces a redundant message (no circular events).
+  useEffect(() => {
+    const reportActiveDiagram = () => {
+      const slug = parseDiagramSlug(window.location.hash);
+      if (!slug || slug === lastReportedSlug.current) return;
+      lastReportedSlug.current = slug;
+      vscode.postMessage({ type: "diagramChanged", slug });
+    };
+    reportActiveDiagram();
+    window.addEventListener("hashchange", reportActiveDiagram);
+    return () => window.removeEventListener("hashchange", reportActiveDiagram);
   }, []);
 
   return (

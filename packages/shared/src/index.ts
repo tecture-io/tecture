@@ -163,4 +163,8 @@ export type TectureEvent =
   | { type: "refresh" }
   | { type: "selectDiagram"; slug: string };
 
+export type TectureNotification =
+  | { type: "ready" }
+  | { type: "diagramChanged"; slug: string };
+
 export * from "./validators";

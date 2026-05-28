@@ -2,7 +2,7 @@
   "name": "tecture-vscode",
   "displayName": "Tecture",
   "description": "AI-generated architecture diagrams for complex codebases — rendered inside VS Code.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "type": "commonjs",
   "publisher": "Tecture",
   "license": "MIT",
@@ -42,6 +42,17 @@
     "workspaceContains:architecture/manifest.json"
   ],
   "contributes": {
+    "configuration": {
+      "title": "Tecture",
+      "properties": {
+        "tecture.architecturePath": {
+          "type": "string",
+          "default": "architecture",
+          "scope": "resource",
+          "markdownDescription": "Path to the architecture folder (the one containing `manifest.json`), relative to the workspace folder root. Defaults to `architecture`."
+        }
+      }
+    },
     "commands": [
       {
         "command": "tecture.open",

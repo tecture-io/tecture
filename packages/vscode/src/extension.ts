@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import {
   VscodeFsArchitectureDataSource,
   VscodeFsLayoutStore,
+  getArchitecturePath,
   resolveArchitectureRoot,
   resolveLayoutsRoot,
 } from "./dataSource";
@@ -35,9 +36,26 @@ export function activate(context: vscode.ExtensionContext): void {
   activeDeps = buildDeps(folder);
 
   const treeProvider = new TectureTreeDataProvider(activeDeps.source);
-  context.subscriptions.push(
-    vscode.window.registerTreeDataProvider("tectureDiagrams", treeProvider),
-  );
+  const treeView = vscode.window.createTreeView("tectureDiagrams", {
+    treeDataProvider: treeProvider,
+  });
+  context.subscriptions.push(treeView);
+
+  const fireRefresh = () => {
+    treeProvider.refresh();
+    TecturePanel.current?.postEvent({ type: "refresh" });
+  };
+
+  // Follow the active diagram in the sidebar tree. Only sync when the view is
+  // already visible (never force it open), and no-op when the slug is already
+  // selected — together with the webview-side dedupe this prevents any loop.
+  const revealDiagram = async (slug: string) => {
+    if (!treeView.visible) return;
+    if (treeView.selection[0]?.id === slug) return;
+    await treeProvider.ensureLoaded();
+    const item = treeProvider.getItem(slug);
+    if (item) await treeView.reveal(item, { select: true, focus: false });
+  };
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -47,6 +65,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const panel = await TecturePanel.createOrShow(
           context.extensionUri,
           activeDeps,
+          (changedSlug) => void revealDiagram(changedSlug),
         );
         if (typeof slug === "string" && slug.length > 0) {
           panel.postEvent({ type: "selectDiagram", slug });
@@ -56,33 +75,59 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand("tecture.refresh", () => {
-      treeProvider.refresh();
-      TecturePanel.current?.postEvent({ type: "refresh" });
-    }),
+    vscode.commands.registerCommand("tecture.refresh", fireRefresh),
   );
 
-  const watcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(folder, "{architecture,architecture/.tecture}/**"),
-  );
-  const fireRefresh = () => {
-    treeProvider.refresh();
-    TecturePanel.current?.postEvent({ type: "refresh" });
+  // File watchers track the configured architecture folder plus its layout
+  // store (architecture/.tecture); rebuilt whenever the configured path changes.
+  let watchers: vscode.Disposable[] = [];
+  const disposeWatchers = () => {
+    for (const w of watchers) w.dispose();
+    watchers = [];
   };
-  watcher.onDidChange(fireRefresh);
-  watcher.onDidCreate(fireRefresh);
-  watcher.onDidDelete(fireRefresh);
-  context.subscriptions.push(watcher);
+  const createWatchers = (target: vscode.WorkspaceFolder) => {
+    const archPath = getArchitecturePath(target);
+    for (const glob of [`${archPath}/**`, `${archPath}/.tecture/**`]) {
+      const watcher = vscode.workspace.createFileSystemWatcher(
+        new vscode.RelativePattern(target, glob),
+      );
+      watcher.onDidChange(fireRefresh);
+      watcher.onDidCreate(fireRefresh);
+      watcher.onDidDelete(fireRefresh);
+      watchers.push(watcher);
+    }
+  };
+  createWatchers(folder);
+  context.subscriptions.push({ dispose: disposeWatchers });
+
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (!e.affectsConfiguration("tecture.architecturePath")) return;
+      const target = getWorkspaceFolder();
+      if (!target) return;
+      activeDeps = buildDeps(target);
+      treeProvider.setSource(activeDeps.source);
+      TecturePanel.current?.setDeps(activeDeps);
+      disposeWatchers();
+      createWatchers(target);
+      fireRefresh();
+    }),
+  );
 
   context.subscriptions.push(
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
       const next = getWorkspaceFolder();
       if (!next) {
         activeDeps = undefined;
+        disposeWatchers();
         return;
       }
       activeDeps = buildDeps(next);
       treeProvider.setSource(activeDeps.source);
+      TecturePanel.current?.setDeps(activeDeps);
+      disposeWatchers();
+      createWatchers(next);
+      fireRefresh();
     }),
   );
 }
