@@ -7,4 +7,4 @@ The user's local `architecture/` directory — the only durable state Tecture IO
 ## Tech Stack
 - JSON (shape validated against `.claude/skills/tecture/schemas/*.schema.json`)
 - GitHub-flavored Markdown with optional fenced Mermaid blocks
-- Read via `node:fs/promises` by the CLI server
+- Read by the CLI server (`node:fs/promises`) and the VS Code extension (`vscode.workspace.fs`)

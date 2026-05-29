@@ -1,0 +1,101 @@
+{
+  "name": "VS Code Extension — Components",
+  "level": 3,
+  "meta": { "direction": "TB" },
+  "nodes": [
+    {
+      "id": "extension-entry",
+      "label": "Extension Entry",
+      "path": "packages/vscode/src/extension.ts",
+      "meta": { "type": "service", "technology": "typescript" }
+    },
+    {
+      "id": "vscode-data-source",
+      "label": "VS Code FS Data Source",
+      "path": "packages/vscode/src/dataSource.ts",
+      "meta": { "type": "service", "technology": "typescript" }
+    },
+    {
+      "id": "tree-view",
+      "label": "Diagram Tree View",
+      "path": "packages/vscode/src/treeView.ts",
+      "meta": { "type": "frontend", "technology": "typescript" }
+    },
+    {
+      "id": "webview-panel",
+      "label": "Webview Panel",
+      "path": "packages/vscode/src/panel.ts",
+      "meta": { "type": "gateway", "technology": "typescript" }
+    },
+    {
+      "id": "message-handler",
+      "label": "Message Handler",
+      "path": "packages/vscode/src/messaging.ts",
+      "meta": { "type": "service", "technology": "typescript" }
+    },
+    {
+      "id": "webview-bundle",
+      "label": "Webview Bundle",
+      "path": "packages/vscode/webview-entry/",
+      "meta": { "type": "frontend", "technology": "react" }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-extension-entry-vscode-data-source",
+      "source": "extension-entry",
+      "target": "vscode-data-source",
+      "label": "new VscodeFsArchitectureDataSource + LayoutStore",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-extension-entry-tree-view",
+      "source": "extension-entry",
+      "target": "tree-view",
+      "label": "new TectureTreeDataProvider(source)",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-extension-entry-webview-panel",
+      "source": "extension-entry",
+      "target": "webview-panel",
+      "label": "TecturePanel.createOrShow(deps)",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-tree-view-vscode-data-source",
+      "source": "tree-view",
+      "target": "vscode-data-source",
+      "label": "buildArchitectureSummary(source)",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-webview-panel-message-handler",
+      "source": "webview-panel",
+      "target": "message-handler",
+      "label": "handleRequest(req, deps) on message",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-message-handler-vscode-data-source",
+      "source": "message-handler",
+      "target": "vscode-data-source",
+      "label": "loadDiagram / loadNodeDetail / saveLayout",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "e-webview-panel-webview-bundle",
+      "source": "webview-panel",
+      "target": "webview-bundle",
+      "label": "loads media/webview into webview",
+      "meta": { "type": "data-flow" }
+    },
+    {
+      "id": "e-webview-bundle-webview-panel",
+      "source": "webview-bundle",
+      "target": "webview-panel",
+      "label": "postMessage TectureRequest",
+      "meta": { "type": "calls" }
+    }
+  ]
+}
