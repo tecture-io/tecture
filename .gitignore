@@ -38,3 +38,6 @@ packages/vscode/*.vsix
 
 # playwright MCP screenshots accidentally captured at repo root
 /*.png
+
+# claude worktrees (local, never committed)
+.claude/worktrees/

@@ -37,7 +37,7 @@
       "id": "e-developer-tecture-io",
       "source": "developer",
       "target": "tecture-io",
-      "label": "runs `npx @tecture/core`, browses diagrams",
+      "label": "browses diagrams in VS Code or browser",
       "meta": { "type": "calls" }
     },
     {
