@@ -2,7 +2,16 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
-## [Unreleased]
+## [0.0.4] — 2026-05-29
+
+### Added
+
+- Open a node's source straight from the diagram. Nodes that map to a single
+  file or directory now show an **Open file** / **Open folder** action that opens
+  the file in an editor (or reveals the folder in Explorer). Backed by new
+  manifest `source` + `sourceHost` fields and a per-node `path`.
+
+## [0.0.3] — 2026-05-28
 
 ### Added
 
