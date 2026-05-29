@@ -130,13 +130,28 @@ export function activate(context: vscode.ExtensionContext): void {
   };
   const createWatchers = (target: vscode.WorkspaceFolder) => {
     const archPath = getArchitecturePath(target);
+    const layoutsRoot = resolveLayoutsRoot(target);
+
+    const isLayoutFile = (uri: vscode.Uri) =>
+      uri.path.startsWith(`${layoutsRoot.path}/`) && uri.path.endsWith(".json");
+
+    const onFsEvent = (uri: vscode.Uri) => {
+      // Layout files are written only by the webview's own drag-persistence and
+      // are already reflected in its in-memory state. Reacting to them would
+      // round-trip our own write back as a destructive full reload (flicker +
+      // viewport reset). Architecture doc edits (manifest/diagrams/descriptions)
+      // live outside the layouts root and still refresh the UI normally.
+      if (isLayoutFile(uri)) return;
+      fireRefresh();
+    };
+
     for (const glob of [`${archPath}/**`, `${archPath}/.tecture/**`]) {
       const watcher = vscode.workspace.createFileSystemWatcher(
         new vscode.RelativePattern(target, glob),
       );
-      watcher.onDidChange(fireRefresh);
-      watcher.onDidCreate(fireRefresh);
-      watcher.onDidDelete(fireRefresh);
+      watcher.onDidChange(onFsEvent);
+      watcher.onDidCreate(onFsEvent);
+      watcher.onDidDelete(onFsEvent);
       watchers.push(watcher);
     }
   };
