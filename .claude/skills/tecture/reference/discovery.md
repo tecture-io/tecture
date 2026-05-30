@@ -12,7 +12,7 @@ Everything below serves that goal.
 
 ## Phase A — Discover (read-only)
 
-Before writing any JSON, gather evidence for six artifacts. Treat this as a checklist; if you cannot fill in an artifact, *find it* — do not guess.
+Before writing any JSON, gather evidence for eight artifacts. Treat this as a checklist; if you cannot fill in an artifact, *find it* — do not guess.
 
 ### A1. Repo shape
 
@@ -98,21 +98,13 @@ In one paragraph from the README + the package manifest `description`. This beco
 
 If the README is a wall of badges and boilerplate, fall back to: name of the deployed service + what its primary endpoint or CLI command does + who calls it.
 
+### A8. Source repository
+
+`git remote get-url origin` → `manifest.source`; the domain seeds `manifest.sourceHost`; `git rev-parse --show-toplevel` is the repo root every node `path` is relative to. The exact normalization (strip `.git`, rewrite `git@host:org/repo` → HTTPS, host mapping) lives in [SKILL.md's Workflow → Phase A item 8](../SKILL.md#workflow) — don't restate it here. Omit `source`/`sourceHost` when the repo has no remote.
+
 ## Phase B — Map discovery → C4
 
-### Universal rules
-
-- **L1 = system context.** One node for the system itself + person actors + every external SaaS/API/datastore that lives outside *your* deployable boundary. 3–5 nodes total. **Never** name internal services here.
-- **L2 = containers.** One node per deployable (A3) + one node per managed datastore (A4) + edges with concrete labels (`REST`, `gRPC`, `order.created`, `reads/writes`). 4–8 nodes.
-- **L3 = components.** Optional. Add only when an L2 container has 3+ separable internal parts that a reader genuinely needs to see (controllers/services/repos in a layered API; producers/consumers/state machines in a worker; pages/server-actions/middlewares in a Next.js app). 3–6 nodes.
-
-### Grouping vs. drill-down
-
-Inside any level you can also group 2–4 siblings under a labeled container using `parentId` + `meta.isContainer: true`. The rule:
-
-- **Group (`parentId`) when**: 2–4 nodes share an obvious runtime boundary on the **same level** (three controllers under one router, four workers under a pool), and the grouping reads better than leaving them flat. Edges into/out of the group still work; one level of nesting only.
-- **Drill down (`subDiagramId`) when**: the inner structure earns its own page — 3+ nodes with edges that matter only at the deeper level (an API service → its controllers/services/repos as L3).
-- **Default**: flat. Don't nest if the boundary isn't load-bearing; the reader pays for every box.
+The universal L1/L2/L3 sizing rules and the grouping (`parentId`) vs. drill-down (`subDiagramId`) decision rule are the single source of truth in [SKILL.md's Workflow → Phase B](../SKILL.md#workflow) and [Nesting within a diagram](../SKILL.md#nesting-within-a-diagram) — they are not repeated here so the two files can't drift. What this file adds is the concrete part: per-stack recipes for turning discovery evidence into those nodes.
 
 ### Stack recipes
 
@@ -191,15 +183,7 @@ Example node:
 
 ## Phase C — Author & self-evaluate
 
-After Phase B you have a list of nodes and edges in your head (or in a scratch buffer). Now write files in this order:
-
-1. **L3 diagrams first** (if any) — children before parents so slugs exist for `subDiagramId`.
-2. **L2 diagram(s).** Set `subDiagramId` on each container that has an L3.
-3. **L1 diagram.** Set `subDiagramId` on the system node pointing at the L2 slug.
-4. **Descriptions** — one `descriptions/<id>.md` per node id used anywhere. Lead with one sentence of *responsibility* (criterion #8). Add `## Responsibilities` and `## Tech Stack` sections. Add a Mermaid sub-diagram only when the prose is genuinely easier to grasp visually (sequence, state machine, fan-out).
-5. **`manifest.json`** — `name`, `description` (2–4 plain-text paragraphs), `topDiagram` set to the L1 slug, `diagrams` listing every slug.
-
-Then run the **quality checklist** (12 items in [SKILL.md](../SKILL.md#quality-checklist)) and the validator. Fix everything before reporting success.
+The authoring order (children before parents, a description per node id, `manifest.json` last), the closing **quality checklist**, and the validator step are defined once in [SKILL.md's Workflow → Phase C](../SKILL.md#workflow) and [Quality checklist](../SKILL.md#quality-checklist). Follow them there. The worked example below shows the level of evidence a real discovery pass should produce.
 
 ## Worked example: discovering Tecture IO itself
 

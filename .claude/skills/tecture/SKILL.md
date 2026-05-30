@@ -145,7 +145,7 @@ Stack-specific recipes, an external-system catalog, and a worked example live in
 
 ### Phase A — Discover (read-only)
 
-Before writing any JSON, gather evidence for these seven artifacts. **Do not guess** — find the file or dependency that proves it.
+Before writing any JSON, gather evidence for these eight artifacts. **Do not guess** — find the file or dependency that proves it.
 
 1. **Repo shape** — single app, monorepo (one or many deployables), microservices, library/SDK, CLI, mobile, data pipeline. Detect from workspace files (`pnpm-workspace.yaml`, `lerna.json`, `turbo.json`, `go.work`, Cargo workspaces), top-level directories (`packages/`, `services/`, `apps/`, `cmd/`), and the count of `Dockerfile`s.
 2. **Primary stack** — read every `package.json`, `pyproject.toml`, `requirements*.txt`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `Gemfile`, `composer.json`, `mix.exs`. Note the *frameworks* (Next.js, FastAPI, Django, NestJS, Spring Boot, gin, axum), not just the language.

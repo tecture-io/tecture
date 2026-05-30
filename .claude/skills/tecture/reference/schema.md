@@ -1,6 +1,6 @@
 # File-Based Architecture Schema
 
-Detailed reference for the file layout and JSON schemas used by the `architecture-files` skill.
+Detailed reference for the file layout and JSON schemas used by the `tecture` skill.
 
 This is the file-based mirror of the Tecture database schema documented in [/docs/ARCHITECTURE.md](/docs/ARCHITECTURE.md) and [/docs/DIAGRAM_SCHEMA.md](/docs/DIAGRAM_SCHEMA.md). The key differences:
 
@@ -143,23 +143,11 @@ Three mechanisms, each with a distinct job:
 2. **Nesting within a diagram (`parentId`)** — a node groups 2–4 sibling nodes under a container (`meta.isContainer: true`). The viewer renders the parent as a labeled boundary with its children laid out inside. One level deep only. Use when the grouping is a runtime boundary (controllers under a router, workers under a pool) but doesn't earn its own page.
 3. **Cross-diagram drill-down (`subDiagramId`)** — a node points at another diagram's slug. Clicking it navigates into that diagram. Use when the inner structure is complex enough (3+ nodes with their own edges) to deserve its own page. The drill-down graph must be acyclic.
 
-**Decision rule.**
-
-- 2–4 things share an obvious runtime boundary, on the same level? → `parentId`.
-- 3+ things warrant their own page, with edges only the reader at that level should see? → `subDiagramId`.
-- Default: flat. Don't nest or drill down unless the grouping is load-bearing.
-
-A parent in `parentId` is **not** a substitute for a container node in a C4 level — it's a visual grouping of siblings on the same level. The parent itself still needs a `descriptions/<id>.md`.
+**When to use which** is an authoring decision, not a schema rule — see the single source of truth under [Nesting within a diagram](../SKILL.md#nesting-within-a-diagram) in SKILL.md. One schema-level caveat: a `parentId` parent is **not** a substitute for a container node in a C4 level — it's a visual grouping of siblings on the same level, and the parent itself still needs a `descriptions/<id>.md`.
 
 ## Canonical authoring order
 
-Create children before parents, because parents reference child slugs:
-
-1. Write L3 diagrams (if any) and their node description files.
-2. Write L2 (Container) diagrams, set `subDiagramId` on nodes pointing at L3 slugs, and their description files.
-3. Write L1 (System Context) diagram, set `subDiagramId` on the main system node pointing at the L2 slug, and its description files.
-4. Write `manifest.json` with `diagrams[]` containing every slug and `topDiagram` set to the L1 slug.
-5. Run the validator (`node scripts/validate.mjs`).
+The authoring order (children before parents, since parents reference child slugs — descriptions per node, `manifest.json` last, then validate) is defined once in [SKILL.md's Workflow → Phase C](../SKILL.md#workflow). Run the validator from the project root as `node .claude/skills/tecture/scripts/validate.mjs` — see [SKILL.md → Validation](../SKILL.md#validation-always-run-before-reporting-done).
 
 ## Validation rules (what the script checks)
 
