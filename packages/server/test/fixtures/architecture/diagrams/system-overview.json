@@ -1,0 +1,39 @@
+{
+  "name": "System Overview",
+  "level": 1,
+  "meta": { "direction": "LR" },
+  "nodes": [
+    {
+      "id": "user",
+      "label": "End User",
+      "meta": { "type": "person" }
+    },
+    {
+      "id": "web-app",
+      "label": "Web App",
+      "subDiagramId": "nested-system",
+      "meta": { "type": "frontend", "technology": "React" }
+    },
+    {
+      "id": "api",
+      "label": "API Service",
+      "meta": { "type": "service", "technology": "Node.js" }
+    }
+  ],
+  "edges": [
+    {
+      "id": "user-web",
+      "source": "user",
+      "target": "web-app",
+      "label": "uses",
+      "meta": { "type": "calls" }
+    },
+    {
+      "id": "web-api",
+      "source": "web-app",
+      "target": "api",
+      "label": "reads",
+      "meta": { "type": "reads" }
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "Web App Internals",
+  "level": 2,
+  "meta": { "direction": "TB" },
+  "nodes": [
+    {
+      "id": "web-shell",
+      "label": "Web Shell",
+      "meta": { "type": "frontend", "isContainer": true }
+    },
+    {
+      "id": "router",
+      "label": "Router",
+      "parentId": "web-shell",
+      "meta": { "type": "frontend" }
+    },
+    {
+      "id": "store",
+      "label": "State Store",
+      "parentId": "web-shell",
+      "meta": { "type": "cache" }
+    }
+  ],
+  "edges": [
+    {
+      "id": "router-store",
+      "source": "router",
+      "target": "store",
+      "label": "reads",
+      "meta": { "type": "reads" }
+    },
+    {
+      "id": "dangling-edge",
+      "source": "router",
+      "target": "ghost-node",
+      "meta": { "type": "calls" }
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Sample Architecture",
+  "description": "A small architecture fixture used by tecture server tests.",
+  "source": "https://github.com/tecture-io/tecture",
+  "sourceHost": "github",
+  "topDiagram": "system-overview",
+  "diagrams": ["system-overview", "nested-system"]
+}
