@@ -41,3 +41,6 @@ packages/vscode/*.vsix
 
 # claude worktrees (local, never committed)
 .claude/worktrees/
+
+# skill-creator eval workspace (local eval runs + optimizer artifacts)
+.claude/skills/tecture-workspace/
