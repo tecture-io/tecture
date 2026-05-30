@@ -48,6 +48,10 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 20
+          # This repo declares pnpm in package.json; setup-node@v5 would try to
+          # enable the pnpm cache and fail (pnpm isn't installed in this job).
+          # The validator is dependency-free, so no package-manager cache is needed.
+          package-manager-cache: false
 
       - name: Validate bundled example before distributing
         # Guards against shipping a skill whose own validator is broken.
