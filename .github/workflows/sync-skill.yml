@@ -1,0 +1,89 @@
+# Propagates the `tecture` skill from this repo (the source of truth) to the
+# standalone distribution repo github.com/tecture-io/tecture-skill.
+#
+# Source : .claude/skills/tecture/   (SKILL.md + reference/ + schemas/ + scripts/)
+# Target : root of tecture-io/tecture-skill, mirrored exactly, EXCEPT the
+#          target-only files LICENSE, README.md and .github/ which are preserved.
+#
+# One-time setup (required before this runs):
+#   1. Create a fine-grained Personal Access Token scoped to the
+#      tecture-io/tecture-skill repository with: Contents = Read and write.
+#   2. In THIS repo's settings → Secrets and variables → Actions, add it as
+#      a secret named  SKILL_SYNC_TOKEN.
+#   3. Ensure tecture-skill's `main` allows the token to push directly
+#      (i.e. no branch-protection rule that blocks it). If main is protected,
+#      either exempt this token/app or switch this workflow to open a PR.
+#
+# Editing rule: never edit tecture-skill by hand — change the skill here and let
+# this workflow distribute it. Each sync commit links back to the source commit.
+
+name: Sync tecture skill to distribution repo
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".claude/skills/tecture/**"
+      - ".github/workflows/sync-skill.yml"
+  workflow_dispatch: {}
+
+concurrency:
+  group: sync-skill
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    name: Mirror skill to tecture-skill
+    runs-on: ubuntu-latest
+    # Never run from forks — this needs the org secret and pushes to another repo.
+    if: github.repository == 'tecture-io/tecture'
+    steps:
+      - name: Checkout source (tecture-io)
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+
+      - name: Validate bundled example before distributing
+        # Guards against shipping a skill whose own validator is broken.
+        run: node .claude/skills/tecture/scripts/validate.mjs .claude/skills/tecture/reference/example
+
+      - name: Checkout target (tecture-skill)
+        uses: actions/checkout@v5
+        with:
+          repository: tecture-io/tecture-skill
+          ref: main
+          token: ${{ secrets.SKILL_SYNC_TOKEN }}
+          path: target
+
+      - name: Mirror skill into target root
+        # --delete removes files dropped from the source; the excluded
+        # target-only files are protected from deletion by default.
+        run: |
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='LICENSE' \
+            --exclude='README.md' \
+            .claude/skills/tecture/ target/
+
+      - name: Commit and push if changed
+        working-directory: target
+        run: |
+          git config user.name "tecture-skill-sync[bot]"
+          git config user.email "tecture-skill-sync[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to propagate — target already up to date."
+            exit 0
+          fi
+          git commit \
+            -m "sync: skill from tecture-io@${GITHUB_SHA::7}" \
+            -m "Source: ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/commit/${GITHUB_SHA}" \
+            -m "Automated by .github/workflows/sync-skill.yml in tecture-io. Do not edit this repo by hand; edit the skill upstream."
+          git push origin main

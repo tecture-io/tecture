@@ -1,6 +1,6 @@
 ---
 name: tecture
-description: Author or update a file-based C4 architecture under ./architecture (manifest.json + one JSON file per C4 level + one markdown description per node) by first discovering the repo's tech stack, deployables, and external dependencies, then mapping them onto C4 diagrams. Use when the user asks to document, draw, create, update, or split the architecture of a codebase as local JSON/Markdown files (not via the Tecture MCP server). Always ends by running the bundled validator.
+description: Author or update a file-based C4 architecture saved under ./architecture (manifest.json + one JSON file per C4 level + one Markdown description per node). Use whenever the user wants to document, diagram, draw, map out, visualize, or generate a picture of how a codebase is built — its services, who uses it, and what it depends on — written to files in the repo. Triggers include "diagram my codebase," "document/visualize the architecture," "generate C4 / system-context / container diagrams," "create the architecture JSON/Markdown," and adding, updating, splitting, or wiring nodes and edges in an existing architecture. First discovers the repo's real frameworks, deployables, datastores, and external dependencies (any stack — monolith, monorepo, microservices, CLI, data pipeline), then maps them onto C4 diagrams and runs the bundled validator. NOT for: creating diagrams via the Tecture MCP server, refactoring code, reviewing a plan's design before coding, merely explaining folder layout in chat, opening the viewer, or drawing in other tools (draw.io, Structurizr DSL).
 ---
 
 Maintain a file-based C4 architecture at `./architecture/` (relative to the project root). The on-disk layout mirrors the Tecture data model but replaces UUIDs with slugs and moves long-form node descriptions into standalone markdown files.
@@ -145,7 +145,7 @@ Stack-specific recipes, an external-system catalog, and a worked example live in
 
 ### Phase A — Discover (read-only)
 
-Before writing any JSON, gather evidence for these seven artifacts. **Do not guess** — find the file or dependency that proves it.
+Before writing any JSON, gather evidence for these eight artifacts. **Do not guess** — find the file or dependency that proves it.
 
 1. **Repo shape** — single app, monorepo (one or many deployables), microservices, library/SDK, CLI, mobile, data pipeline. Detect from workspace files (`pnpm-workspace.yaml`, `lerna.json`, `turbo.json`, `go.work`, Cargo workspaces), top-level directories (`packages/`, `services/`, `apps/`, `cmd/`), and the count of `Dockerfile`s.
 2. **Primary stack** — read every `package.json`, `pyproject.toml`, `requirements*.txt`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `Gemfile`, `composer.json`, `mix.exs`. Note the *frameworks* (Next.js, FastAPI, Django, NestJS, Spring Boot, gin, axum), not just the language.
