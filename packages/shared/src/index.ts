@@ -176,3 +176,4 @@ export type TectureNotification =
   | { type: "diagramChanged"; slug: string };
 
 export * from "./validators";
+export * from "./deepDive";
