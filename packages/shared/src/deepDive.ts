@@ -23,19 +23,14 @@ export function isDeepDivable(
 
 /**
  * Build the prompt a user copies into a coding agent to enrich one component's
- * description. Keyed on the node `id` so the agent has no ambiguity about which
- * component to document or which file to rewrite.
+ * description. It only *invokes* the skill's deep-dive, keyed on the node `id`
+ * (unambiguous) — it deliberately does not restate how to deep-dive, since the
+ * tecture skill already owns that (which files to read, dependencies to trace,
+ * the target description file, prose-only, etc.).
  */
 export function buildDeepDivePrompt(
-  node: Pick<ArchitectureNode, "id" | "label" | "path">,
+  node: Pick<ArchitectureNode, "id" | "label">,
 ): string {
   const named = node.label && node.label !== node.id ? ` (${node.label})` : "";
-  const read = node.path
-    ? `Read its code at \`${node.path}\` and trace`
-    : "Read its code and trace";
-  return [
-    `Use the tecture skill to deep-dive the architecture component \`${node.id}\`${named}.`,
-    "",
-    `${read} its real inbound and outbound dependencies through the repo, then rewrite \`architecture/descriptions/${node.id}.md\` with a detailed, code-grounded description — responsibilities, key files, dependencies, and tech stack. Prose only; do not change any diagram JSON.`,
-  ].join("\n");
+  return `Use the tecture skill to deep-dive the architecture component \`${node.id}\`${named}.`;
 }
