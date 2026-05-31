@@ -1,6 +1,6 @@
 ---
 name: tecture
-description: Author or update a file-based C4 architecture saved under ./architecture (manifest.json + one JSON file per C4 level + one Markdown description per node). Use whenever the user wants to document, diagram, draw, map out, visualize, or generate a picture of how a codebase is built — its services, who uses it, and what it depends on — written to files in the repo. Triggers include "diagram my codebase," "document/visualize the architecture," "generate C4 / system-context / container diagrams," "create the architecture JSON/Markdown," and adding, updating, splitting, or wiring nodes and edges in an existing architecture. First discovers the repo's real frameworks, deployables, datastores, and external dependencies (any stack — monolith, monorepo, microservices, CLI, data pipeline), then maps them onto C4 diagrams and runs the bundled validator. NOT for creating diagrams via the Tecture MCP server, refactoring code, reviewing a plan's design before coding, merely explaining folder layout in chat, opening the viewer, or drawing in other tools (draw.io, Structurizr DSL).
+description: Author or update a file-based C4 architecture saved under ./architecture (manifest.json + one JSON file per C4 level + one Markdown description per node). Use whenever the user wants to document, diagram, draw, map out, visualize, or generate a picture of how a codebase is built — its services, who uses it, and what it depends on — written to files in the repo. Triggers include "diagram my codebase," "document/visualize the architecture," "generate C4 / system-context / container diagrams," "create the architecture JSON/Markdown," and adding, updating, splitting, or wiring nodes and edges in an existing architecture. First discovers the repo's real frameworks, deployables, datastores, and external dependencies (any stack — monolith, monorepo, microservices, CLI, data pipeline), then maps them onto C4 diagrams, enriches each component's description by investigating its code, and runs the bundled validator. NOT for creating diagrams via the Tecture MCP server, refactoring code, reviewing a plan's design before coding, merely explaining folder layout in chat, opening the viewer, or drawing in other tools (draw.io, Structurizr DSL).
 ---
 
 Maintain a file-based C4 architecture at `./architecture/` (relative to the project root). The on-disk layout mirrors the Tecture data model but replaces UUIDs with slugs and moves long-form node descriptions into standalone markdown files.
@@ -107,7 +107,7 @@ Constraints: children must live in the **same diagram** as the parent; the paren
 
 ### `descriptions/<node-id>.md`
 
-Free-form GitHub-flavored markdown. Convention: 1–2 sentence summary, then `## Responsibilities` and `## Tech Stack` sections.
+Free-form GitHub-flavored markdown. Phase C seeds each file with a 1–2 sentence summary, then `## Responsibilities` and `## Tech Stack`. [Phase D](#phase-d--enrich-descriptions) then deepens every first-party code node into the fuller convention — summary, `## Responsibilities`, `## Key files`, `## Dependencies` (inbound/outbound), `## Tech Stack` — grounded in the component's actual code (see [reference/enrichment.md](reference/enrichment.md)).
 
 **Embed mermaid diagrams** with a standard fenced block (```` ```mermaid ````). The viewer renders the block inline as an SVG and lets users click an expand affordance to open a full-screen lightbox — useful for illustrating runtime behavior that the static C4 diagram cannot: request/response sequences, state machines, decision flows, retry/error branches. Any diagram type mermaid supports works (`sequenceDiagram`, `flowchart`, `stateDiagram-v2`, `erDiagram`, `classDiagram`, `gantt`, …).
 
@@ -139,7 +139,7 @@ Machine-readable schemas (JSON Schema Draft 2020-12): [schemas/manifest.schema.j
 
 ## Workflow
 
-Three phases — **Discover → Map → Author**. Do not skip Phase A and dive straight into JSON; the most common failure mode is a generic, template-shaped architecture that names the right C4 levels but misses what makes *this* repo distinctive.
+Four phases — **Discover → Map → Author → Enrich**. Do not skip Phase A and dive straight into JSON; the most common failure mode is a generic, template-shaped architecture that names the right C4 levels but misses what makes *this* repo distinctive.
 
 Stack-specific recipes, an external-system catalog, and a worked example live in [reference/discovery.md](reference/discovery.md). Read it once before authoring an architecture for an unfamiliar repo shape.
 
@@ -169,10 +169,23 @@ Stack idioms differ — a Next.js + Postgres app, a Django monolith, a FastAPI +
 ### Phase C — Author & self-evaluate
 
 1. **Write child diagrams first** (L3 → L2 → L1) so slugs exist before parents reference them via `subDiagramId`.
-2. **For each diagram**, write `diagrams/<slug>.json`, then create `descriptions/<node-id>.md` for **every** node. Lead each description with one sentence of *responsibility* — what this node owns, not a rephrasing of its label. Add a `path` to any node that maps to exactly one file or directory (repo-root-relative; trailing `/` for a directory).
+2. **For each diagram**, write `diagrams/<slug>.json`, then create `descriptions/<node-id>.md` for **every** node. Lead each description with one sentence of *responsibility* — what this node owns, not a rephrasing of its label. These seed descriptions are deliberately brief; [Phase D](#phase-d--enrich-descriptions) deepens the first-party code nodes. Add a `path` to any node that maps to exactly one file or directory (repo-root-relative; trailing `/` for a directory).
 3. **Write `manifest.json`** with `name`, `description` (2–4 plain-text paragraphs), `source` + `sourceHost` from Phase A (if a remote exists), `topDiagram` set to the L1 slug, and `diagrams` listing every slug.
 4. **Run the [Quality checklist](#quality-checklist)** against the draft. Fix anything that fails.
-5. **Validate** (see below). Fix every error before reporting success.
+5. **Validate** (see below). Fix every error before continuing to Phase D.
+
+### Phase D — Enrich descriptions
+
+Phase C descriptions are necessarily shallow: one agent, holding the whole map in its head, can only spare a sentence or two per node, which reads generic on a large or complex repo. Once validation passes, deepen them by giving every first-party code node its own investigator — a sub-agent that reads *that* component's code (and any other part of the repo it needs to trace a dependency) and rewrites the description grounded in real files, calls, and seams.
+
+Run it as **fan-out → reconcile → finalize**, with the main agent as the **sole writer** (sub-agents return text, never edit files — this keeps the phase loop-free and race-free):
+
+1. **Round 1 — Investigate** — spawn one sub-agent per internal node (`service`/`frontend`/`gateway`/component types, or any node with a `path`; skip persons, external SaaS, and managed infra), in parallel batches. Each returns an enriched description draft plus structured findings: its inbound/outbound dependencies, cross-cutting "shared facts", and any *suspected* missing nodes/edges.
+2. **Reconcile** — the main agent merges all findings into a dependency map + shared-facts digest, detects cross-links (A calls B, but B's draft never mentions A), and collects the suspected structural gaps.
+3. **Round 2 — Refine** — only the nodes whose description changes given sibling findings get a second pass. Stop at two rounds.
+4. **Finalize** — write every `descriptions/<id>.md`, re-run the validator, and report any structural gaps for the user to decide. Enrichment is **prose-only** — it never edits diagram JSON.
+
+Full orchestration — node selection, the shared context pack, the investigator brief, the enriched-description template, and the findings contract — is in [reference/enrichment.md](reference/enrichment.md). Read it before running Phase D.
 
 ## Quality checklist
 
@@ -201,6 +214,8 @@ Common anti-patterns to watch for: "Business Logic" / "Service Layer" nodes; L1 
 - Removing a diagram: remove the file, remove the slug from `manifest.diagrams`, clear any `subDiagramId` that pointed to it, and delete description `.md`s for nodes that no longer appear anywhere.
 
 Write the complete file each time — do not try to patch JSON by hand with partial objects.
+
+After an update, re-run [Phase D](#phase-d--enrich-descriptions) enrichment for the **added or changed** first-party code nodes only — not the whole architecture — so new components get the same depth without re-investigating unchanged ones.
 
 ## Validation (always run before reporting done)
 
