@@ -44,7 +44,7 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
         className="flex shrink-0 items-start justify-between border-b px-5 py-4"
         style={{ borderColor: "var(--border-default)" }}
       >
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div
             className="blueprint-annotation mb-1"
             style={{ color: style.accent }}
@@ -66,7 +66,7 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
             </div>
           ) : null}
           {path || (detail && isDeepDivable(detail)) ? (
-            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <div className="mt-1.5 flex w-full items-center gap-x-3">
               {path ? (
                 <OpenSourceAction
                   path={path}
@@ -81,6 +81,7 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
                 <CopyPromptButton
                   prompt={buildDeepDivePrompt(detail)}
                   accent={style.accent}
+                  className="ml-auto"
                 />
               ) : null}
             </div>
@@ -216,9 +217,11 @@ function OpenSourceAction({
 function CopyPromptButton({
   prompt,
   accent,
+  className,
 }: {
   prompt: string;
   accent: string;
+  className?: string;
 }) {
   const [copied, setCopied] = useState(false);
   const onCopy = useCallback(() => {
@@ -232,7 +235,7 @@ function CopyPromptButton({
   return (
     <button
       type="button"
-      className={ACTION_CLASS}
+      className={className ? `${ACTION_CLASS} ${className}` : ACTION_CLASS}
       style={actionStyle(accent)}
       onClick={onCopy}
       title="Copy a prompt to enrich this component's description with a coding agent"
