@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   build:
-    name: typecheck + build (Node ${{ matrix.node }})
+    name: typecheck + test + build (Node ${{ matrix.node }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -34,6 +34,9 @@ jobs:
 
       - name: Typecheck
         run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
 
       - name: Build
         run: pnpm build
