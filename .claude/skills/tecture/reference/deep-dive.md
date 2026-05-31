@@ -42,7 +42,7 @@ For each named component, spawn one investigator sub-agent (the Task/Agent tool 
 
 ### Investigator brief (adapt the wording)
 
-> You are documenting one component of a larger architecture. Target: **`<label>`** (`<id>`), which maps to `<path>`. Read its code thoroughly, and read other parts of the repo as needed to learn what it depends on and what depends on it — do not guess; find the import, route, query, or call that proves it. Return the enriched description in the template below, grounded in specific files, functions, routes, tables, and libraries you actually read. Stay within this component's responsibility — describe what it owns, not the whole system. Do not edit any files; return your text.
+> You are documenting one component of a larger architecture. Target: **`<label>`** (`<id>`), which maps to `<path>`. Read its code thoroughly, and read other parts of the repo as needed to learn what it depends on and what depends on it — do not guess; find the import, route, query, or call that proves it. Return the enriched description in the template below, grounded in specific files, functions, routes, tables, and libraries you actually read. Stay within this component's responsibility — describe what it owns, not the whole system. If you find this component is internally complex enough to deserve its own drill-down diagram — 3+ separable parts (modules, routers, layers, workers) with their own interactions, not just a long list of files — add a one-line note after the description naming those sub-parts, so it can be offered as a drill-down. Don't design the diagram; just flag it. Do not edit any files; return your text.
 
 ### Enriched description template
 
@@ -85,6 +85,7 @@ So the orchestrator can reconcile, each investigator also returns:
 - `inbound`: who this component appears to be called by (node id/label + how).
 - `shared_facts`: cross-cutting facts other investigators would benefit from (e.g. "all services use the `@acme/db` client and the `requireAuth` middleware in `packages/auth`").
 - `structural_gaps`: suspected missing nodes or edges — **report only**.
+- `drilldown_candidate`: if this component is internally complex enough to deserve its own diagram (3+ separable parts with their own interactions), a one-line note of what the sub-nodes would be — **report only**.
 
 ### Return format
 
@@ -95,6 +96,7 @@ A sub-agent's reply *is* its return value (it can't write files), so pin the env
 - Write every final description to `descriptions/<id>.md` — you are the sole writer.
 - **Re-run the validator** (`node .claude/skills/tecture/scripts/validate.mjs`). Descriptions are keyed by node id, so a mistyped id orphans a file.
 - **Report briefly**: which components were deepened; any `structural_gaps` you did *not* apply (deep-dive is prose-only — let the user decide whether to add the node/edge); and any node where investigation failed and the prior description was kept.
+- **Suggest drill-downs.** If a deep-dive flagged a component as internally complex (a `drilldown_candidate`, or the Mode 1 note), suggest giving it its own diagram — a `subDiagramId` drill-down to a new level whose nodes are the sub-parts the investigation surfaced. This is a structural change, so don't create it unprompted: name the candidate component, sketch what the sub-diagram would contain (the sub-nodes and the edges between them), and offer to author it. If the user accepts, author it the normal way — write the new `diagrams/<slug>.json` and a `descriptions/<id>.md` per new node, set `subDiagramId` on the parent node, add the slug to `manifest.diagrams`, then re-validate. Only suggest it when the inner structure genuinely earns its own page; see [Grouping vs. drill-down](../SKILL.md#nesting-within-a-diagram) for the bar (and `parentId` grouping as the lighter alternative when 2–4 parts share one boundary).
 
 ## Cost & safety
 
