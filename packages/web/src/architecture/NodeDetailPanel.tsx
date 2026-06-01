@@ -1,5 +1,10 @@
+import { useCallback, useState } from "react";
 import type { NodeMetaType } from "@tecture/shared";
-import { buildSourceUrl } from "@tecture/shared";
+import {
+  buildDeepDivePrompt,
+  buildSourceUrl,
+  isDeepDivable,
+} from "@tecture/shared";
 import { getNodeStyle } from "./nodeStyles";
 import { MarkdownContent } from "./MarkdownContent";
 import {
@@ -39,7 +44,7 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
         className="flex shrink-0 items-start justify-between border-b px-5 py-4"
         style={{ borderColor: "var(--border-default)" }}
       >
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div
             className="blueprint-annotation mb-1"
             style={{ color: style.accent }}
@@ -60,13 +65,26 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
               {String(detail.meta.technology)}
             </div>
           ) : null}
-          {path ? (
-            <OpenSourceAction
-              path={path}
-              accent={style.accent}
-              onOpenInEditor={openInEditor ? () => openInEditor(path) : undefined}
-              sourceUrl={sourceUrl}
-            />
+          {path || (detail && isDeepDivable(detail)) ? (
+            <div className="mt-1.5 flex w-full items-center gap-x-3">
+              {path ? (
+                <OpenSourceAction
+                  path={path}
+                  accent={style.accent}
+                  onOpenInEditor={
+                    openInEditor ? () => openInEditor(path) : undefined
+                  }
+                  sourceUrl={sourceUrl}
+                />
+              ) : null}
+              {detail && isDeepDivable(detail) ? (
+                <CopyPromptButton
+                  prompt={buildDeepDivePrompt(detail)}
+                  accent={style.accent}
+                  className="ml-auto"
+                />
+              ) : null}
+            </div>
           ) : null}
         </div>
         <button
@@ -120,6 +138,20 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
   );
 }
 
+const ACTION_CLASS =
+  "inline-flex items-center gap-1.5 text-xs transition-opacity hover:opacity-80";
+
+function actionStyle(accent: string) {
+  return {
+    color: accent,
+    fontFamily: "var(--font-mono)",
+    background: "transparent",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
+  } as const;
+}
+
 function OpenSourceAction({
   path,
   accent,
@@ -132,16 +164,6 @@ function OpenSourceAction({
   sourceUrl?: string;
 }) {
   const isDir = path.endsWith("/");
-  const className =
-    "mt-1.5 inline-flex items-center gap-1.5 text-xs transition-opacity hover:opacity-80";
-  const style = {
-    color: accent,
-    fontFamily: "var(--font-mono)",
-    background: "transparent",
-    border: "none",
-    padding: 0,
-    cursor: "pointer",
-  } as const;
   const icon = (
     <svg
       width="11"
@@ -161,7 +183,13 @@ function OpenSourceAction({
 
   if (onOpenInEditor) {
     return (
-      <button type="button" className={className} style={style} onClick={onOpenInEditor} title={path}>
+      <button
+        type="button"
+        className={ACTION_CLASS}
+        style={actionStyle(accent)}
+        onClick={onOpenInEditor}
+        title={path}
+      >
         {icon}
         <span>{isDir ? "Open folder" : "Open file"}</span>
       </button>
@@ -169,11 +197,110 @@ function OpenSourceAction({
   }
   if (sourceUrl) {
     return (
-      <a className={className} style={style} href={sourceUrl} target="_blank" rel="noreferrer" title={path}>
+      <a
+        className={ACTION_CLASS}
+        style={actionStyle(accent)}
+        href={sourceUrl}
+        target="_blank"
+        rel="noreferrer"
+        title={path}
+      >
         {icon}
         <span>{isDir ? "View folder" : "View file"}</span>
       </a>
     );
   }
   return null;
+}
+
+/** Copies an auto-generated, id-keyed deep-dive prompt to paste into a coding agent. */
+function CopyPromptButton({
+  prompt,
+  accent,
+  className,
+}: {
+  prompt: string;
+  accent: string;
+  className?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const onCopy = useCallback(() => {
+    void copyText(prompt).then((ok) => {
+      if (!ok) return;
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    });
+  }, [prompt]);
+
+  return (
+    <button
+      type="button"
+      className={className ? `${ACTION_CLASS} ${className}` : ACTION_CLASS}
+      style={actionStyle(accent)}
+      onClick={onCopy}
+      title="Copy a prompt to enrich this component's description with a coding agent"
+    >
+      {copied ? (
+        <svg
+          width="11"
+          height="11"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : (
+        <svg
+          width="11"
+          height="11"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      )}
+      <span>{copied ? "Copied" : "Copy deep-dive prompt"}</span>
+    </button>
+  );
+}
+
+/**
+ * Copy text to the clipboard, falling back to a hidden textarea + execCommand for
+ * restrictive hosts (e.g. the VS Code webview) where the async clipboard API may be
+ * unavailable. Returns whether the copy succeeded.
+ */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // fall through to the execCommand path
+  }
+  try {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    textarea.style.top = "0";
+    textarea.style.left = "0";
+    textarea.style.opacity = "0";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(textarea);
+    return ok;
+  } catch {
+    return false;
+  }
 }
