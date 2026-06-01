@@ -2,6 +2,21 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [0.0.5] — 2026-06-02
+
+### Added
+
+- **Copy deep-dive prompt** action in a node's detail panel. For first-party
+  code nodes (alongside **Open file/folder**), one click copies a ready-to-paste
+  prompt that asks a coding agent to deep-dive that component and enrich its
+  description — keyed on the node id so there's no ambiguity about which
+  component to document.
+
+### Fixed
+
+- The diagram no longer flickers or resets its zoom/pan when you drag a node to
+  reposition it.
+
 ## [0.0.4] — 2026-05-29
 
 ### Added
