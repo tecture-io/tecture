@@ -2,6 +2,21 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [0.0.7] — 2026-06-02
+
+### Changed
+
+- **Copy deep-dive prompt** now copies a slash command —
+  `/architecture-docs deep-dive <id>` — instead of the longer
+  "Use the architecture-docs skill to deep-dive…" sentence. Shorter to
+  paste, and it invokes the skill directly. The id alone resolves the
+  component.
+- Renamed the bundled skill from `tecture` to `architecture-docs`, so
+  the deep-dive prompt and skill invocation use the new name.
+
+> Version jumps from 0.0.5 to 0.0.7 (no 0.0.6) to align the extension
+> with `@tecture/core` on a single shared version.
+
 ## [0.0.5] — 2026-06-02
 
 ### Added
