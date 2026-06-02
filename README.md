@@ -17,14 +17,15 @@ The output is a folder of plain files that lives in the repo alongside the code.
 **1. Install the architecture-docs skill** (works with Claude Code, Cursor, Copilot, Aider, and other major coding agents)
 
 ```bash
-npx skills add tecture-io/tecture-skill
+npx skills add tecture-io/architecture-docs
 ```
 
-**2. Generate the map.** From your project root, ask your agent:
+**2. Generate the map.** From your project root, either:
 
-> Map this codebase using Tecture
+- **2.1** — run `/architecture-docs` in your agent's chat, *or*
+- **2.2** — ask it in plain language to document your architecture.
 
-The agent reads the code and writes the architecture into an `architecture/` folder. Expect a few minutes on a medium repo.
+The agent writes the map into an `architecture/` folder — a few minutes on a medium repo. Once the initial architecture exists, run a deep-dive on any component you want to explore further: `/architecture-docs deep-dive <component>`.
 
 **3. Visualize it.**
 
