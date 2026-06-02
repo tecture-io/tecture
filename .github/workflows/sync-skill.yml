@@ -1,20 +1,20 @@
 # Propagates the `architecture-docs` skill from this repo (the source of truth) to the
-# standalone distribution repo github.com/tecture-io/tecture-skill.
+# standalone distribution repo github.com/tecture-io/architecture-docs.
 #
 # Source : .claude/skills/architecture-docs/   (SKILL.md + reference/ + schemas/ + scripts/)
-# Target : root of tecture-io/tecture-skill, mirrored exactly, EXCEPT the
+# Target : root of tecture-io/architecture-docs, mirrored exactly, EXCEPT the
 #          target-only files LICENSE, README.md and .github/ which are preserved.
 #
 # One-time setup (required before this runs):
 #   1. Create a fine-grained Personal Access Token scoped to the
-#      tecture-io/tecture-skill repository with: Contents = Read and write.
+#      tecture-io/architecture-docs repository with: Contents = Read and write.
 #   2. In THIS repo's settings → Secrets and variables → Actions, add it as
 #      a secret named  SKILL_SYNC_TOKEN.
-#   3. Ensure tecture-skill's `main` allows the token to push directly
+#   3. Ensure architecture-docs's `main` allows the token to push directly
 #      (i.e. no branch-protection rule that blocks it). If main is protected,
 #      either exempt this token/app or switch this workflow to open a PR.
 #
-# Editing rule: never edit tecture-skill by hand — change the skill here and let
+# Editing rule: never edit architecture-docs by hand — change the skill here and let
 # this workflow distribute it. Each sync commit links back to the source commit.
 
 name: Sync architecture-docs skill to distribution repo
@@ -36,7 +36,7 @@ permissions:
 
 jobs:
   sync:
-    name: Mirror skill to tecture-skill
+    name: Mirror skill to architecture-docs
     runs-on: ubuntu-latest
     # Never run from forks — this needs the org secret and pushes to another repo.
     if: github.repository == 'tecture-io/tecture'
@@ -57,10 +57,10 @@ jobs:
         # Guards against shipping a skill whose own validator is broken.
         run: node .claude/skills/architecture-docs/scripts/validate.mjs .claude/skills/architecture-docs/reference/example
 
-      - name: Checkout target (tecture-skill)
+      - name: Checkout target (architecture-docs)
         uses: actions/checkout@v5
         with:
-          repository: tecture-io/tecture-skill
+          repository: tecture-io/architecture-docs
           ref: main
           token: ${{ secrets.SKILL_SYNC_TOKEN }}
           path: target
@@ -79,8 +79,8 @@ jobs:
       - name: Commit and push if changed
         working-directory: target
         run: |
-          git config user.name "tecture-skill-sync[bot]"
-          git config user.email "tecture-skill-sync[bot]@users.noreply.github.com"
+          git config user.name "architecture-docs-sync[bot]"
+          git config user.email "architecture-docs-sync[bot]@users.noreply.github.com"
           git add -A
           if git diff --cached --quiet; then
             echo "No changes to propagate — target already up to date."
