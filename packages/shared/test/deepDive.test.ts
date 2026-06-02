@@ -29,7 +29,7 @@ describe("buildDeepDivePrompt", () => {
       id: "api-clients",
       label: "API Clients & Helpers",
     });
-    expect(prompt).toContain("tecture skill");
+    expect(prompt).toContain("architecture-docs skill");
     expect(prompt).toContain("deep-dive");
     expect(prompt).toContain("`api-clients`");
     expect(prompt).toContain("API Clients & Helpers");

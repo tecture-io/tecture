@@ -1,6 +1,6 @@
-# `evals/tecture/`
+# `evals/architecture-docs/`
 
-External quality rubric for architectures produced by the Tecture skill at [.claude/skills/tecture/](../../.claude/skills/tecture/).
+External quality rubric for architectures produced by the architecture-docs skill at [.claude/skills/architecture-docs/](../../.claude/skills/architecture-docs/).
 
 **Do not reference this directory from the skill.** These evals exist to grade the skill from the outside so we can run a self-improvement loop without the skill learning to game its own graders.
 
@@ -17,7 +17,7 @@ External quality rubric for architectures produced by the Tecture skill at [.cla
 
 The rubric is designed to power a self-improvement loop:
 
-1. Run the Tecture skill on a target repo to produce `./architecture/`.
+1. Run the architecture-docs skill on a target repo to produce `./architecture/`.
 2. Run the eval harness (future work — `scripts/evaluate.mjs`) to score the output.
 3. Inspect failures; identify skill-level root causes.
 4. **Change the skill** — SKILL.md prompts, discovery heuristics, validator rules — never the rubric.
