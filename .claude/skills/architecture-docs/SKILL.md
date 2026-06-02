@@ -1,5 +1,5 @@
 ---
-name: tecture
+name: architecture-docs
 description: Author or update a file-based C4 architecture saved under ./architecture (manifest.json + one JSON file per C4 level + one Markdown description per node). Use whenever the user wants to document, diagram, draw, map out, visualize, or generate a picture of how a codebase is built — its services, who uses it, and what it depends on — written to files in the repo. Triggers include "diagram my codebase," "document/visualize the architecture," "generate C4 / system-context / container diagrams," "create the architecture JSON/Markdown," and adding, updating, splitting, or wiring nodes and edges in an existing architecture. First discovers the repo's real frameworks, deployables, datastores, and external dependencies (any stack — monolith, monorepo, microservices, CLI, data pipeline), then maps them onto C4 diagrams and runs the bundled validator. Also use it on demand to deep-dive a single component and enrich its description from the code (e.g. "deep-dive the auth service," "enrich the realtime component"). NOT for creating diagrams via the Tecture MCP server, refactoring code, reviewing a plan's design before coding, merely explaining folder layout in chat, opening the viewer, or drawing in other tools (draw.io, Structurizr DSL).
 ---
 
@@ -202,7 +202,7 @@ It is **never automatic.** After authoring, offer it and wait — let the user d
 
 Invoke it by naming a component (matched to a node id or label):
 
-- `/tecture deep-dive <component>` — or plain English: "deep-dive the auth service", "enrich the realtime component's description". *enrich* / *deep-dive* / *investigate* all mean the same thing here.
+- `/architecture-docs deep-dive <component>` — or plain English: "deep-dive the auth service", "enrich the realtime component's description". *enrich* / *deep-dive* / *investigate* all mean the same thing here.
 - Name **one** component, **several**, or **all** of them.
 
 How it runs:
@@ -229,10 +229,10 @@ After an update, offer to [deep-dive](#deep-dive) the **added or changed** first
 Run the bundled validator from the project root:
 
 ```
-node .claude/skills/tecture/scripts/validate.mjs
+node .claude/skills/architecture-docs/scripts/validate.mjs
 ```
 
-By default it checks `./architecture`. Pass a path to validate a different location: `node .claude/skills/tecture/scripts/validate.mjs path/to/other-arch`.
+By default it checks `./architecture`. Pass a path to validate a different location: `node .claude/skills/architecture-docs/scripts/validate.mjs path/to/other-arch`.
 
 The validator checks:
 

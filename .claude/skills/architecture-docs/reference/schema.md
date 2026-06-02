@@ -1,6 +1,6 @@
 # File-Based Architecture Schema
 
-Detailed reference for the file layout and JSON schemas used by the `tecture` skill.
+Detailed reference for the file layout and JSON schemas used by the `architecture-docs` skill.
 
 This is the file-based mirror of the Tecture database schema documented in [/docs/ARCHITECTURE.md](/docs/ARCHITECTURE.md) and [/docs/DIAGRAM_SCHEMA.md](/docs/DIAGRAM_SCHEMA.md). The key differences:
 
@@ -147,7 +147,7 @@ Three mechanisms, each with a distinct job:
 
 ## Canonical authoring order
 
-The authoring order (children before parents, since parents reference child slugs — descriptions per node, `manifest.json` last, then validate) is defined once in [SKILL.md's Workflow → Phase C](../SKILL.md#workflow). Run the validator from the project root as `node .claude/skills/tecture/scripts/validate.mjs` — see [SKILL.md → Validation](../SKILL.md#validation-always-run-before-reporting-done).
+The authoring order (children before parents, since parents reference child slugs — descriptions per node, `manifest.json` last, then validate) is defined once in [SKILL.md's Workflow → Phase C](../SKILL.md#workflow). Run the validator from the project root as `node .claude/skills/architecture-docs/scripts/validate.mjs` — see [SKILL.md → Validation](../SKILL.md#validation-always-run-before-reporting-done).
 
 ## Validation rules (what the script checks)
 

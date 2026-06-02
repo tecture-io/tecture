@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "description": "Standalone catalog mapping dependency-manifest entries to the external provider each one implies. Used by criterion B3. Entries are independent of anything under .claude/skills/tecture/. Package names may contain glob wildcards (* prefix/suffix) for SDK families.",
+  "description": "Standalone catalog mapping dependency-manifest entries to the external provider each one implies. Used by criterion B3. Entries are independent of anything under .claude/skills/architecture-docs/. Package names may contain glob wildcards (* prefix/suffix) for SDK families.",
   "providers": [
     { "provider": "stripe",           "packages": ["stripe", "@stripe/stripe-js"] },
     { "provider": "braintree",        "packages": ["braintree"] },

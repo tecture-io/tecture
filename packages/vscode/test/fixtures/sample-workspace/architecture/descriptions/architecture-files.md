@@ -5,6 +5,6 @@ The user's local `architecture/` directory — the only durable state Tecture IO
 - Serve as the single source of truth for every diagram, node, and description the viewer renders.
 
 ## Tech Stack
-- JSON (shape validated against `.claude/skills/tecture/schemas/*.schema.json`)
+- JSON (shape validated against `.claude/skills/architecture-docs/schemas/*.schema.json`)
 - GitHub-flavored Markdown with optional fenced Mermaid blocks
 - Read via `node:fs/promises` by the CLI server

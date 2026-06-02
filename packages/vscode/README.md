@@ -10,7 +10,7 @@ If your repo already has an `architecture/` folder, the extension activates auto
 
 ## Getting started
 
-### 1. Install the Tecture skill into your coding agent
+### 1. Install the architecture-docs skill into your coding agent
 
 The skill teaches your agent how to read a codebase and write architecture files in the Tecture format. Works with Claude Code, Cursor, Copilot, Aider, and other major coding agents.
 

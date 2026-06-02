@@ -8,7 +8,7 @@ Deep-dive is **on-demand and never automatic.** After authoring, offer it and wa
 
 The user names one or more components, or asks for all:
 
-- `/tecture deep-dive <component>` — or plain English ("deep-dive the auth service", "enrich the realtime component's description", "give every component a deeper writeup").
+- `/architecture-docs deep-dive <component>` — or plain English ("deep-dive the auth service", "enrich the realtime component's description", "give every component a deeper writeup").
 - *enrich* / *deep-dive* / *investigate* all mean the same thing here.
 
 ### Resolving the component name
@@ -94,7 +94,7 @@ A sub-agent's reply *is* its return value (it can't write files), so pin the env
 ## Finalize & report
 
 - Write every final description to `descriptions/<id>.md` — you are the sole writer.
-- **Re-run the validator** (`node .claude/skills/tecture/scripts/validate.mjs`). Descriptions are keyed by node id, so a mistyped id orphans a file.
+- **Re-run the validator** (`node .claude/skills/architecture-docs/scripts/validate.mjs`). Descriptions are keyed by node id, so a mistyped id orphans a file.
 - **Confirm and apply JSON corrections.** If the investigation surfaced `json_discrepancies` — places the diagram JSON or `manifest.json` is inaccurate against the real code — do **not** change them silently. Show the user each one (what the JSON says vs. what the code shows, with the evidence) and **ask whether to correct it**; group related ones so it's a few clear questions, not a flood. Apply only what the user confirms — edit the relevant `diagrams/<slug>.json` (or `manifest.json`), rewriting the whole file, then **re-run the validator**. Leave anything they decline exactly as it was, and just report it.
 - **Report briefly**: which components were deepened; which JSON corrections were applied vs. left as-is; and any node where investigation failed and the prior description was kept.
 - **Suggest drill-downs.** If a deep-dive flagged a component as internally complex (a `drilldown_candidate`, or the Mode 1 note), suggest giving it its own diagram — a `subDiagramId` drill-down to a new level whose nodes are the sub-parts the investigation surfaced. This is a structural change, so don't create it unprompted: name the candidate component, sketch what the sub-diagram would contain (the sub-nodes and the edges between them), and offer to author it. If the user accepts, author it the normal way — write the new `diagrams/<slug>.json` and a `descriptions/<id>.md` per new node, set `subDiagramId` on the parent node, add the slug to `manifest.diagrams`, then re-validate. Only suggest it when the inner structure genuinely earns its own page; see [Grouping vs. drill-down](../SKILL.md#nesting-within-a-diagram) for the bar (and `parentId` grouping as the lighter alternative when 2–4 parts share one boundary).

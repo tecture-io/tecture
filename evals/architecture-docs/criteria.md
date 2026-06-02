@@ -1,6 +1,6 @@
 # Tecture architecture evals
 
-A deterministic rubric for scoring any architecture produced by the Tecture skill under `./architecture/`. This document is **external** to the skill: the skill must not be modified to accommodate it, and the skill should have no knowledge of these criteria. The rubric measures output quality; improvements land in the skill.
+A deterministic rubric for scoring any architecture produced by the architecture-docs skill under `./architecture/`. This document is **external** to the skill: the skill must not be modified to accommodate it, and the skill should have no knowledge of these criteria. The rubric measures output quality; improvements land in the skill.
 
 Every criterion returns a score in `[0, 1]`. The aggregate is the weighted sum (weights in the table at the end). Release bar: **aggregate ≥ 0.90 AND every `[AUTO]` criterion = 1.0 AND no individual criterion < 0.6**.
 
@@ -27,7 +27,7 @@ Throughout: "Target repo" = the repo whose architecture is under test; "architec
 ## A. Structural validity (weight 0.10)
 
 ### A1. Validator clean run — `[AUTO]`
-Run `node .claude/skills/tecture/scripts/validate.mjs` against `./architecture/`. (The validator is a published, black-box behavior of the skill's output format; we invoke it as a tool.)
+Run `node .claude/skills/architecture-docs/scripts/validate.mjs` against `./architecture/`. (The validator is a published, black-box behavior of the skill's output format; we invoke it as a tool.)
 - **Score:** `1.0` if exit code `0` and zero warnings; `0.5` if exit code `0` with ≥1 warning; `0.0` otherwise.
 
 ### A2. Description-file integrity — `[AUTO]`

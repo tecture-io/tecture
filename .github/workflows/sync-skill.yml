@@ -1,7 +1,7 @@
-# Propagates the `tecture` skill from this repo (the source of truth) to the
+# Propagates the `architecture-docs` skill from this repo (the source of truth) to the
 # standalone distribution repo github.com/tecture-io/tecture-skill.
 #
-# Source : .claude/skills/tecture/   (SKILL.md + reference/ + schemas/ + scripts/)
+# Source : .claude/skills/architecture-docs/   (SKILL.md + reference/ + schemas/ + scripts/)
 # Target : root of tecture-io/tecture-skill, mirrored exactly, EXCEPT the
 #          target-only files LICENSE, README.md and .github/ which are preserved.
 #
@@ -17,13 +17,13 @@
 # Editing rule: never edit tecture-skill by hand — change the skill here and let
 # this workflow distribute it. Each sync commit links back to the source commit.
 
-name: Sync tecture skill to distribution repo
+name: Sync architecture-docs skill to distribution repo
 
 on:
   push:
     branches: [main]
     paths:
-      - ".claude/skills/tecture/**"
+      - ".claude/skills/architecture-docs/**"
       - ".github/workflows/sync-skill.yml"
   workflow_dispatch: {}
 
@@ -55,7 +55,7 @@ jobs:
 
       - name: Validate bundled example before distributing
         # Guards against shipping a skill whose own validator is broken.
-        run: node .claude/skills/tecture/scripts/validate.mjs .claude/skills/tecture/reference/example
+        run: node .claude/skills/architecture-docs/scripts/validate.mjs .claude/skills/architecture-docs/reference/example
 
       - name: Checkout target (tecture-skill)
         uses: actions/checkout@v5
@@ -74,7 +74,7 @@ jobs:
             --exclude='.github/' \
             --exclude='LICENSE' \
             --exclude='README.md' \
-            .claude/skills/tecture/ target/
+            .claude/skills/architecture-docs/ target/
 
       - name: Commit and push if changed
         working-directory: target
