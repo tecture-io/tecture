@@ -20,9 +20,7 @@ The output is a folder of plain files that lives in the repo alongside the code.
 npx skills add tecture-io/architecture-docs
 ```
 
-**2. Generate the map.** From your project root, invoke the skill by typing `/architecture-docs` in your agent's chat — Claude Code, GitHub Copilot, Cursor, and other agents that support the [Agent Skills](https://agentskills.io) standard list installed skills in the `/` menu. You can also just ask in plain language (e.g. *"Document this codebase's architecture"*); the agent runs the skill automatically when your request matches its description.
-
-The agent reads the code and writes the architecture into an `architecture/` folder. Expect a few minutes on a medium repo.
+**2. Generate the map.** From your project root, run `/architecture-docs` in your agent's chat — or just ask it to document your architecture. The agent reads the code and writes the map into an `architecture/` folder. Expect a few minutes on a medium repo.
 
 **3. Visualize it.**
 
