@@ -23,14 +23,13 @@ export function isDeepDivable(
 
 /**
  * Build the prompt a user copies into a coding agent to enrich one component's
- * description. It only *invokes* the skill's deep-dive, keyed on the node `id`
- * (unambiguous) — it deliberately does not restate how to deep-dive, since the
- * architecture-docs skill already owns that (which files to read, dependencies to trace,
- * the target description file, prose-only, etc.).
+ * description. It invokes the skill's deep-dive via its slash command, keyed on
+ * the node `id` (unambiguous) — it deliberately does not restate how to deep-dive,
+ * since the architecture-docs skill already owns that (which files to read,
+ * dependencies to trace, the target description file, prose-only, etc.).
  */
 export function buildDeepDivePrompt(
-  node: Pick<ArchitectureNode, "id" | "label">,
+  node: Pick<ArchitectureNode, "id">,
 ): string {
-  const named = node.label && node.label !== node.id ? ` (${node.label})` : "";
-  return `Use the architecture-docs skill to deep-dive the architecture component \`${node.id}\`${named}.`;
+  return `/architecture-docs deep-dive ${node.id}`;
 }

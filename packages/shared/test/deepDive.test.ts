@@ -24,22 +24,13 @@ describe("isDeepDivable", () => {
 });
 
 describe("buildDeepDivePrompt", () => {
-  it("invokes the skill keyed on the node id and label", () => {
-    const prompt = buildDeepDivePrompt({
-      id: "api-clients",
-      label: "API Clients & Helpers",
-    });
-    expect(prompt).toContain("architecture-docs skill");
-    expect(prompt).toContain("deep-dive");
-    expect(prompt).toContain("`api-clients`");
-    expect(prompt).toContain("API Clients & Helpers");
+  it("invokes the skill via its slash command, keyed on the node id", () => {
+    const prompt = buildDeepDivePrompt({ id: "api-clients" });
+    expect(prompt).toBe("/architecture-docs deep-dive api-clients");
   });
 
   it("does not restate instructions the skill already owns", () => {
-    const prompt = buildDeepDivePrompt({
-      id: "api-clients",
-      label: "API Clients & Helpers",
-    });
+    const prompt = buildDeepDivePrompt({ id: "api-clients" });
     expect(prompt).not.toMatch(/descriptions\//);
     expect(prompt).not.toMatch(/prose only/i);
     expect(prompt).not.toMatch(/read its code/i);
@@ -47,13 +38,7 @@ describe("buildDeepDivePrompt", () => {
   });
 
   it("is a single concise line", () => {
-    const prompt = buildDeepDivePrompt({ id: "auth", label: "Auth Service" });
+    const prompt = buildDeepDivePrompt({ id: "auth" });
     expect(prompt.split("\n")).toHaveLength(1);
-  });
-
-  it("omits the parenthetical when the label equals the id", () => {
-    const prompt = buildDeepDivePrompt({ id: "worker", label: "worker" });
-    expect(prompt).toContain("`worker`");
-    expect(prompt).not.toContain("(worker)");
   });
 });
