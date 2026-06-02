@@ -20,7 +20,12 @@ npx skills add tecture-io/architecture-docs
 
 ### 2. Generate the architecture map
 
-From your project root, run `/architecture-docs` in your agent's chat — or just ask it to document your architecture. The agent reads the code and writes the map into an `architecture/` folder. Expect a few minutes on a medium repo.
+From your project root, either:
+
+- **2.1** — run `/architecture-docs` in your agent's chat, *or*
+- **2.2** — ask it in plain language to document your architecture.
+
+The agent writes the map into an `architecture/` folder — a few minutes on a medium repo. Once the initial architecture exists, run a deep-dive on any component you want to explore further: `/architecture-docs deep-dive <component>`.
 
 ### 3. Open the diagrams
 
