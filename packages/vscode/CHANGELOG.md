@@ -2,6 +2,15 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [Unreleased]
+
+### Added
+
+- **Anonymous usage telemetry** (opt-out via VS Code's `telemetry.telemetryLevel`).
+  Records only the C4 level and interaction counts — never diagram/node names,
+  file paths, or repo content. Dependency-free; the standalone viewer and CLI
+  send nothing.
+
 ## [0.0.7] — 2026-06-02
 
 ### Changed

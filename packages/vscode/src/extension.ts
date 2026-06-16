@@ -8,9 +8,11 @@ import {
 } from "./dataSource";
 import { TecturePanel } from "./panel";
 import { TectureTreeDataProvider } from "./treeView";
+import { createTelemetry, type Reporter } from "./telemetry";
 import type { MessageDeps } from "./messaging";
 
 let activeDeps: MessageDeps | undefined;
+let telemetry: Reporter | undefined;
 
 // Open a repo-root-relative file (or reveal a directory) inside the workspace, rejecting any path
 // that is absolute or escapes the workspace folder.
@@ -68,6 +70,10 @@ function getWorkspaceFolder(): vscode.WorkspaceFolder | undefined {
 }
 
 export function activate(context: vscode.ExtensionContext): void {
+  telemetry = createTelemetry();
+  context.subscriptions.push({ dispose: () => telemetry?.dispose() });
+  telemetry.capture("extension.activated");
+
   const folder = getWorkspaceFolder();
   if (!folder) {
     void vscode.window.showWarningMessage(
@@ -105,10 +111,12 @@ export function activate(context: vscode.ExtensionContext): void {
       "tecture.open",
       async (slug?: unknown) => {
         if (!activeDeps) return;
+        telemetry?.capture("architecture.opened");
         const panel = await TecturePanel.createOrShow(
           context.extensionUri,
           activeDeps,
           (changedSlug) => void revealDiagram(changedSlug),
+          telemetry,
         );
         if (typeof slug === "string" && slug.length > 0) {
           panel.postEvent({ type: "selectDiagram", slug });
@@ -192,5 +200,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
 export function deactivate(): void {
   TecturePanel.current?.dispose();
+  telemetry?.dispose();
+  telemetry = undefined;
   activeDeps = undefined;
 }

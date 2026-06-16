@@ -67,6 +67,12 @@ The extension stays completely inert in repos without architecture files.
 - **Multi-root workspaces**: only the first workspace folder is used.
 - **Theme**: the panel uses a dark color scheme. Light theme support is planned.
 
+## Telemetry
+
+The extension sends **anonymous** usage events (e.g. opening the architecture view, viewing a diagram level) to help prioritize improvements. It records only the C4 level (1/2/3) and counts — **never** your diagram names, node names, file paths, or any repo content. Events are keyed to an anonymous machine id.
+
+It fully respects VS Code's telemetry setting: if you set `telemetry.telemetryLevel` to `off`, nothing is sent. The standalone browser viewer and the CLI send nothing at all.
+
 ## Resources
 
 - [Tecture project](https://github.com/tecture-io/tecture) — full documentation and browser-based viewer

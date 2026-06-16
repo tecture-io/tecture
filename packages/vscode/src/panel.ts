@@ -1,9 +1,12 @@
 import * as vscode from "vscode";
 import { handleRequest, type MessageDeps } from "./messaging";
+import type { Reporter } from "./telemetry";
 import type {
+  ApiDiagram,
   TectureEvent,
   TectureNotification,
   TectureRequest,
+  TectureResponse,
 } from "@tecture/shared";
 
 const textDecoder = new TextDecoder("utf-8");
@@ -18,6 +21,7 @@ export class TecturePanel {
     extensionUri: vscode.Uri,
     deps: MessageDeps,
     onDiagramChanged?: (slug: string) => void,
+    report?: Reporter,
   ): Promise<TecturePanel> {
     const column =
       vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One;
@@ -40,7 +44,13 @@ export class TecturePanel {
       },
     );
 
-    const instance = new TecturePanel(panel, extensionUri, deps, onDiagramChanged);
+    const instance = new TecturePanel(
+      panel,
+      extensionUri,
+      deps,
+      onDiagramChanged,
+      report,
+    );
     await instance.init();
     TecturePanel.current = instance;
     return instance;
@@ -51,6 +61,7 @@ export class TecturePanel {
     private readonly extensionUri: vscode.Uri,
     private deps: MessageDeps,
     onDiagramChanged?: (slug: string) => void,
+    private readonly report?: Reporter,
   ) {
     this.onDiagramChanged = onDiagramChanged;
     this.panel.onDidDispose(() => this.dispose(), null);
@@ -65,7 +76,23 @@ export class TecturePanel {
       if (!isRequest(raw)) return;
       const response = await handleRequest(raw, this.deps);
       this.panel.webview.postMessage(response);
+      this.trackInteraction(raw, response);
     });
+  }
+
+  // Anonymous usage signal: only the C4 level (1/2/3) and counts — never the
+  // diagram slug, node name, or any repo content.
+  private trackInteraction(req: TectureRequest, res: TectureResponse): void {
+    if (!this.report || !res.ok) return;
+    if (req.type === "loadDiagram") {
+      const level = (res.data as ApiDiagram | undefined)?.level;
+      this.report.capture(
+        "diagram.viewed",
+        typeof level === "number" ? { level } : {},
+      );
+    } else if (req.type === "loadNodeDetail") {
+      this.report.capture("node.inspected");
+    }
   }
 
   private async init(): Promise<void> {
