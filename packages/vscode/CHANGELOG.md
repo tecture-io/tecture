@@ -2,7 +2,7 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
-## [Unreleased]
+## [0.0.8] — 2026-06-16
 
 ### Added
 
@@ -10,6 +10,11 @@ All notable changes to the Tecture VS Code extension are documented here.
   Records only the C4 level and interaction counts — never diagram/node names,
   file paths, or repo content. Dependency-free; the standalone viewer and CLI
   send nothing.
+
+### Changed
+
+- Install docs now point to `npx @tecture/skill@latest` as the single
+  cross-agent install command for the architecture-docs skill.
 
 ## [0.0.7] — 2026-06-02
 
