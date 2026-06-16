@@ -12,11 +12,13 @@ If your repo already has an `architecture/` folder, the extension activates auto
 
 ### 1. Install the architecture-docs skill into your coding agent
 
-The skill teaches your agent how to read a codebase and write architecture files in the Tecture format. Works with Claude Code, Cursor, Copilot, Aider, and other major coding agents.
+The skill teaches your agent how to read a codebase and write architecture files in the Tecture format. Works with Claude Code, Cursor, GitHub Copilot, Codex, Windsurf, and other major coding agents.
 
 ```bash
-npx skills add tecture-io/architecture-docs
+npx @tecture/skill@latest
 ```
+
+This installs the skill into each agent's native skills directory (interactive — pick your agents). Re-run the same command anytime to update. Always use `@latest` so npx doesn't re-run a cached copy.
 
 ### 2. Generate the architecture map
 

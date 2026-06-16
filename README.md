@@ -14,11 +14,13 @@ The output is a folder of plain files that lives in the repo alongside the code.
 
 ## Quickstart
 
-**1. Install the architecture-docs skill** (works with Claude Code, Cursor, Copilot, Aider, and other major coding agents)
+**1. Install the architecture-docs skill** (works with Claude Code, Cursor, GitHub Copilot, Codex, Windsurf, and other major coding agents)
 
 ```bash
-npx skills add tecture-io/architecture-docs
+npx @tecture/skill@latest
 ```
+
+This installs the skill into each agent's native skills directory (interactive — pick your agents). Re-run the same command anytime to update; add `--check` to see what's installed, or `--yes` for a non-interactive install. Always use `@latest` so npx doesn't re-run a cached copy.
 
 **2. Generate the map.** From your project root, either:
 
