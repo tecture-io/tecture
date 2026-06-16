@@ -1,6 +1,6 @@
 {
   "name": "@tecture/skill",
-  "version": "0.0.0",
+  "version": "0.2.0",
   "description": "Install and update the Tecture architecture-docs agent skill across Claude Code, Cursor, GitHub Copilot, Codex, and Windsurf — one command, no registry.",
   "keywords": [
     "agent-skills",

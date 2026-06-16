@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 - 2026-06-17
 
 - Initial release of `@tecture/skill`: one-command install/update of the
   `architecture-docs` agent skill across Claude Code, Cursor, GitHub Copilot,
