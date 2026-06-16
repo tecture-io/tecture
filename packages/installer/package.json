@@ -1,0 +1,48 @@
+{
+  "name": "@tecture/skill",
+  "version": "0.0.0",
+  "description": "Install and update the Tecture architecture-docs agent skill across Claude Code, Cursor, GitHub Copilot, Codex, and Windsurf — one command, no registry.",
+  "keywords": [
+    "agent-skills",
+    "skill",
+    "claude-code",
+    "cursor",
+    "github-copilot",
+    "codex",
+    "windsurf",
+    "architecture",
+    "installer"
+  ],
+  "license": "MIT",
+  "author": "Shanika Wijerathna <shanikacj@gmail.com>",
+  "homepage": "https://github.com/tecture-io/tecture#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tecture-io/tecture.git",
+    "directory": "packages/installer"
+  },
+  "bugs": {
+    "url": "https://github.com/tecture-io/tecture/issues"
+  },
+  "type": "module",
+  "bin": "./dist/cli.js",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "build": "tsup && node scripts/copy-skill.mjs",
+    "start": "node dist/cli.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.6",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
