@@ -12,10 +12,13 @@ import type {
   ArchitectureDataSource,
   LayoutStore,
 } from "./source/types.js";
+import type { Reporter } from "./telemetry.js";
 
 export interface CreateAppOptions {
   source: ArchitectureDataSource | SourceResolver;
   layoutStore?: LayoutStore | LayoutStoreResolver | null;
+  /** Optional anonymous usage reporter (standalone viewer only). */
+  report?: Reporter;
 }
 
 function toSourceResolver(
@@ -43,6 +46,7 @@ export function createApp(options: CreateAppOptions): Express {
     createArchitectureRouter({
       resolveSource: toSourceResolver(options.source),
       resolveLayoutStore: toLayoutStoreResolver(options.layoutStore),
+      report: options.report,
     }),
   );
   app.use("/api/architecture", architectureErrorHandler);

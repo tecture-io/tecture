@@ -2,6 +2,17 @@
 
 All notable changes to `@tecture/core` are documented here.
 
+## [Unreleased]
+
+### Added
+
+- **Anonymous, opt-out usage telemetry** for the standalone viewer. Records only
+  the C4 diagram level and counts — never names, paths, or architecture content.
+  Disable with `TECTURE_TELEMETRY=0` or `DO_NOT_TRACK=1`; a one-time notice
+  prints on first run. (Only the standalone viewer reports; the VS Code webview
+  uses the extension's own telemetry, so there's no double-counting.)
+- First `@tecture/core` README, documenting usage and the telemetry policy.
+
 ## [0.0.7] — 2026-06-02
 
 ### Changed
