@@ -2,7 +2,7 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
-## [Unreleased]
+## [0.0.9] — 2026-06-22
 
 ### Fixed
 
