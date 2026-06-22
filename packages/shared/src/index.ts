@@ -173,7 +173,10 @@ export type TectureEvent =
 
 export type TectureNotification =
   | { type: "ready" }
-  | { type: "diagramChanged"; slug: string };
+  | { type: "diagramChanged"; slug: string }
+  // Anonymous usage signal emitted on real user actions (not data fetches).
+  // Carries only a C4 level — never slugs, names, or content.
+  | { type: "usage"; event: string; level?: number };
 
 export * from "./validators";
 export * from "./deepDive";

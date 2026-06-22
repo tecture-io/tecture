@@ -46,10 +46,24 @@ export function createApp(options: CreateAppOptions): Express {
     createArchitectureRouter({
       resolveSource: toSourceResolver(options.source),
       resolveLayoutStore: toLayoutStoreResolver(options.layoutStore),
-      report: options.report,
     }),
   );
   app.use("/api/architecture", architectureErrorHandler);
+
+  // Anonymous usage signal from the viewer UI, fired on real user actions
+  // (navigating to a diagram, opening a node). Whitelisted event names; only a
+  // numeric C4 level is forwarded — never slugs, names, or content.
+  const USAGE_EVENTS = new Set(["diagram.viewed", "node.inspected"]);
+  app.post("/api/telemetry", (req, res) => {
+    const body = (req.body ?? {}) as { event?: unknown; level?: unknown };
+    if (typeof body.event === "string" && USAGE_EVENTS.has(body.event)) {
+      options.report?.capture(
+        body.event,
+        typeof body.level === "number" ? { level: body.level } : {},
+      );
+    }
+    res.status(204).end();
+  });
 
   const publicDir = fileURLToPath(new URL("./public", import.meta.url));
 

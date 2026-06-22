@@ -2,11 +2,9 @@ import * as vscode from "vscode";
 import { handleRequest, type MessageDeps } from "./messaging";
 import type { Reporter } from "./telemetry";
 import type {
-  ApiDiagram,
   TectureEvent,
   TectureNotification,
   TectureRequest,
-  TectureResponse,
 } from "@tecture/shared";
 
 const textDecoder = new TextDecoder("utf-8");
@@ -70,29 +68,21 @@ export class TecturePanel {
       if (notification) {
         if (notification.type === "diagramChanged") {
           this.onDiagramChanged?.(notification.slug);
+        } else if (notification.type === "usage") {
+          // Real user-action signal from the webview — level/counts only.
+          this.report?.capture(
+            notification.event,
+            typeof notification.level === "number"
+              ? { level: notification.level }
+              : {},
+          );
         }
         return;
       }
       if (!isRequest(raw)) return;
       const response = await handleRequest(raw, this.deps);
       this.panel.webview.postMessage(response);
-      this.trackInteraction(raw, response);
     });
-  }
-
-  // Anonymous usage signal: only the C4 level (1/2/3) and counts — never the
-  // diagram slug, node name, or any repo content.
-  private trackInteraction(req: TectureRequest, res: TectureResponse): void {
-    if (!this.report || !res.ok) return;
-    if (req.type === "loadDiagram") {
-      const level = (res.data as ApiDiagram | undefined)?.level;
-      this.report.capture(
-        "diagram.viewed",
-        typeof level === "number" ? { level } : {},
-      );
-    } else if (req.type === "loadNodeDetail") {
-      this.report.capture("node.inspected");
-    }
   }
 
   private async init(): Promise<void> {
@@ -178,6 +168,16 @@ function asNotification(value: unknown): TectureNotification | undefined {
   if (type === "diagramChanged") {
     const slug = (value as { slug?: unknown }).slug;
     if (typeof slug === "string") return { type: "diagramChanged", slug };
+  }
+  if (type === "usage") {
+    const v = value as { event?: unknown; level?: unknown };
+    if (typeof v.event === "string") {
+      return {
+        type: "usage",
+        event: v.event,
+        level: typeof v.level === "number" ? v.level : undefined,
+      };
+    }
   }
   return undefined;
 }

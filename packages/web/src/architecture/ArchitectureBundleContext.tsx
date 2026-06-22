@@ -42,6 +42,7 @@ interface ContextValue {
   bundle: ArchitectureBundle;
   saveLayout: (slug: string, update: ApiDiagramLayoutUpdate) => Promise<void>;
   openInEditor?: (path: string) => void;
+  reportUsage: (event: string, props?: { level?: number }) => void;
 }
 
 const ArchitectureBundleContext = createContext<ContextValue | null>(null);
@@ -78,6 +79,20 @@ export function useOpenInEditor(): ((path: string) => void) | undefined {
     );
   }
   return ctx.openInEditor;
+}
+
+/** Returns the anonymous usage reporter (no-op when the data source omits it). */
+export function useReportUsage(): (
+  event: string,
+  props?: { level?: number },
+) => void {
+  const ctx = useContext(ArchitectureBundleContext);
+  if (!ctx) {
+    throw new Error(
+      "useReportUsage must be used inside ArchitectureBundleProvider",
+    );
+  }
+  return ctx.reportUsage;
 }
 
 export interface ArchitectureBundleProviderProps {
@@ -139,11 +154,18 @@ export function ArchitectureBundleProvider({
     [dataSource],
   );
 
+  const reportUsage = useCallback(
+    (event: string, props?: { level?: number }) => {
+      dataSource.reportUsage?.(event, props);
+    },
+    [dataSource],
+  );
+
   const bundle = state.status === "ready" ? state.bundle : null;
   const contextValue = useMemo<ContextValue | null>(() => {
     if (!bundle) return null;
-    return { bundle, saveLayout, openInEditor };
-  }, [bundle, saveLayout, openInEditor]);
+    return { bundle, saveLayout, openInEditor, reportUsage };
+  }, [bundle, saveLayout, openInEditor, reportUsage]);
 
   if (state.status !== "ready") {
     return <LoadingSplash state={state} />;

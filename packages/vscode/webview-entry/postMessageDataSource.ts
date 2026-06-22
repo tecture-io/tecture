@@ -65,5 +65,9 @@ export function createPostMessageDataSource(): WebDataSource {
     openInEditor: (path) => {
       void send<void>({ type: "openFile", path });
     },
+    reportUsage: (event, props) => {
+      // Fire-and-forget notification (no response) — the host captures it.
+      vscode.postMessage({ type: "usage", event, level: props?.level });
+    },
   };
 }

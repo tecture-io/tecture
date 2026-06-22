@@ -2,6 +2,16 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- **Telemetry accuracy.** `diagram.viewed` and `node.inspected` now fire on real
+  user actions (navigating to a diagram, opening a node) instead of on the
+  viewer's background data fetches. Previously, opening the panel pre-loaded
+  every diagram and node detail, massively over-counting views and reporting
+  levels the user never opened. Events now reflect actual usage.
+
 ## [0.0.8] — 2026-06-16
 
 ### Added

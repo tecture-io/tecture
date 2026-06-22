@@ -2,6 +2,16 @@
 
 All notable changes to `@tecture/core` are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+- **Telemetry accuracy.** `diagram.viewed` now fires when the user navigates to a
+  diagram, and `node.inspected` when they open a node — not on the viewer's
+  background prefetch of every diagram and node detail (which previously
+  over-counted views). The viewer reports usage via a new `/api/telemetry`
+  endpoint driven by real UI actions.
+
 ## [0.0.8] — 2026-06-16
 
 ### Added

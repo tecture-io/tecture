@@ -22,6 +22,12 @@ export interface WebDataSource {
    * UI links to the repo host instead.
    */
   openInEditor?(path: string): void;
+  /**
+   * Report an anonymous usage event for a real user action (navigating to a
+   * diagram, opening a node). Fire-and-forget. Carries only a C4 level — never
+   * slugs, names, or content. Optional; the viewer works fine without it.
+   */
+  reportUsage?(event: string, props?: { level?: number }): void;
 }
 
 async function fetchJson<T>(url: string): Promise<T> {
@@ -55,6 +61,14 @@ export function createHttpDataSource(): WebDataSource {
       fetchJson<ApiNodeDetail>(
         `/api/architecture/nodes/${encodeURIComponent(nodeId)}`,
       ),
+    reportUsage: (event, props) => {
+      // Fire-and-forget; never block the UI or throw on a dead endpoint.
+      void fetch("/api/telemetry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event, level: props?.level }),
+      }).catch(() => {});
+    },
     saveLayout: async (slug, update) => {
       const res = await fetch(
         `/api/architecture/diagrams/${encodeURIComponent(slug)}/layout`,

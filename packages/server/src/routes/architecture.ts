@@ -21,7 +21,6 @@ import {
   emptyLayout,
   findNode,
 } from "../source/types.js";
-import type { Reporter } from "../telemetry.js";
 
 export type SourceResolver = (
   req: Request,
@@ -34,8 +33,6 @@ export type LayoutStoreResolver = (
 export interface ArchitectureRouterOptions {
   resolveSource: SourceResolver;
   resolveLayoutStore?: LayoutStoreResolver;
-  /** Optional anonymous usage reporter (standalone viewer only). */
-  report?: Reporter;
 }
 
 function send501(res: Response, body: ApiArchitectureError): void {
@@ -54,7 +51,7 @@ export function createArchitectureRouter(
   opts: ArchitectureRouterOptions,
 ): Router {
   const router = Router();
-  const { resolveSource, resolveLayoutStore, report } = opts;
+  const { resolveSource, resolveLayoutStore } = opts;
 
   router.get("/", async (req, res, next) => {
     try {
@@ -103,11 +100,6 @@ export function createArchitectureRouter(
         edges: diagram.edges ?? [],
       };
       res.json(body);
-      // Anonymous usage signal: C4 level only, never the slug/name/content.
-      report?.capture(
-        "diagram.viewed",
-        typeof diagram.level === "number" ? { level: diagram.level } : {},
-      );
     } catch (err) {
       if (err instanceof DiagramNotFoundError) {
         return send404(res, { error: "diagram_not_found", slug: err.slug });
