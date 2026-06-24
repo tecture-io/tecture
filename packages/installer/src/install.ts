@@ -11,6 +11,7 @@ import {
 import { skillTargetDir } from "./paths.js";
 import { confirm, multiSelect, selectScope } from "./prompt.js";
 import { loadBundledSkill, type BundledSkill } from "./skill.js";
+import { createTelemetry } from "./telemetry.js";
 
 export interface SyncOptions {
   agentIds?: string[];
@@ -160,6 +161,8 @@ export async function runSync(opts: SyncOptions): Promise<void> {
   let installed = 0;
   let updated = 0;
   let skipped = 0;
+  const actedAgents = new Set<string>();
+  let actedScope: Scope | undefined;
 
   for (const target of targets) {
     const plan = await planTarget(target, skill, opts.force);
@@ -184,6 +187,8 @@ export async function runSync(opts: SyncOptions): Promise<void> {
     }
 
     await applyInstall(plan, skill, checksum);
+    actedAgents.add(target.agent.id);
+    actedScope = target.scope;
     if (plan.action === "install") {
       console.log(`  + ${where} — installed ${skill.version}`);
       installed++;
@@ -198,6 +203,19 @@ export async function runSync(opts: SyncOptions): Promise<void> {
   console.log(
     `\nDone: ${installed} installed, ${updated} updated, ${skipped} unchanged.`,
   );
+
+  if (installed > 0 || updated > 0) {
+    // Anonymous, opt-out, best-effort. Awaited only so the one-shot CLI flushes
+    // before exit; it never throws and is capped by its own timeout.
+    await createTelemetry().capture("skill.installed", {
+      skillName: skill.name,
+      skillVersion: skill.version,
+      installed,
+      updated,
+      scope: actedScope ?? "",
+      agents: [...actedAgents].sort().join(","),
+    });
+  }
 }
 
 export async function runCheck(opts: SyncOptions): Promise<void> {
