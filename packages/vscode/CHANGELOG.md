@@ -2,6 +2,15 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [0.0.10] — 2026-06-25
+
+### Changed
+
+- **Webview rebuilt from the now-published `@tecture/web` library.** The diagram
+  UI hosted in the webview is now built from the `@tecture/web` package that ships
+  to npm, so the extension and the standalone viewer render from the same source.
+  No change to behaviour — diagrams, drill-down, and node details work as before.
+
 ## [0.0.9] — 2026-06-22
 
 ### Fixed
