@@ -1,7 +1,25 @@
 {
   "name": "@tecture/shared",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "Shared types and runtime helpers for Tecture — the file-based (JSON + Markdown) architecture documentation format.",
+  "keywords": [
+    "c4",
+    "architecture",
+    "diagram",
+    "documentation",
+    "tecture"
+  ],
+  "license": "MIT",
+  "author": "Shanika Wijerathna <shanikacj@gmail.com>",
+  "homepage": "https://github.com/tecture-io/tecture#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tecture-io/tecture.git",
+    "directory": "packages/shared"
+  },
+  "bugs": {
+    "url": "https://github.com/tecture-io/tecture/issues"
+  },
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
@@ -11,10 +29,27 @@
       "default": "./src/index.ts"
     }
   },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "import": "./dist/index.js"
+      }
+    }
+  },
   "scripts": {
+    "build": "tsup",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "tsup": "^8.3.5",
     "typescript": "^5.6.3"
   }
 }

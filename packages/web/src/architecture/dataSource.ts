@@ -41,17 +41,28 @@ async function fetchJson<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
-export function createHttpDataSource(): WebDataSource {
+/**
+ * HTTP data source for the viewer.
+ *
+ * `baseUrl` is prefixed to every request path, so the same UI can talk to a
+ * server mounted under any prefix. Defaults to `""`, which preserves the
+ * original behaviour (absolute `/api/...` paths) for the CLI server and the
+ * VS Code webview. Pass e.g. `"/open/<user>/<project>/api"` to point the
+ * viewer at a per-repo endpoint namespace. A trailing slash is trimmed.
+ */
+export function createHttpDataSource(baseUrl = ""): WebDataSource {
+  const base = baseUrl.replace(/\/+$/, "");
   return {
-    loadSummary: () => fetchJson<ApiArchitectureSummary>("/api/architecture"),
+    loadSummary: () =>
+      fetchJson<ApiArchitectureSummary>(`${base}/api/architecture`),
     loadDiagram: (slug) =>
       fetchJson<ApiDiagram>(
-        `/api/architecture/diagrams/${encodeURIComponent(slug)}`,
+        `${base}/api/architecture/diagrams/${encodeURIComponent(slug)}`,
       ),
     loadLayout: async (slug) => {
       try {
         return await fetchJson<DiagramLayoutFile>(
-          `/api/architecture/diagrams/${encodeURIComponent(slug)}/layout`,
+          `${base}/api/architecture/diagrams/${encodeURIComponent(slug)}/layout`,
         );
       } catch {
         return emptyLayout(slug);
@@ -59,11 +70,11 @@ export function createHttpDataSource(): WebDataSource {
     },
     loadNodeDetail: (nodeId) =>
       fetchJson<ApiNodeDetail>(
-        `/api/architecture/nodes/${encodeURIComponent(nodeId)}`,
+        `${base}/api/architecture/nodes/${encodeURIComponent(nodeId)}`,
       ),
     reportUsage: (event, props) => {
       // Fire-and-forget; never block the UI or throw on a dead endpoint.
-      void fetch("/api/telemetry", {
+      void fetch(`${base}/api/telemetry`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ event, level: props?.level }),
@@ -71,7 +82,7 @@ export function createHttpDataSource(): WebDataSource {
     },
     saveLayout: async (slug, update) => {
       const res = await fetch(
-        `/api/architecture/diagrams/${encodeURIComponent(slug)}/layout`,
+        `${base}/api/architecture/diagrams/${encodeURIComponent(slug)}/layout`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
