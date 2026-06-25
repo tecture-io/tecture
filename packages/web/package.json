@@ -1,35 +1,80 @@
 {
   "name": "@tecture/web",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0",
+  "description": "The Tecture architecture viewer as a reusable React component — render file-based (JSON + Markdown) architecture diagrams from any data source.",
+  "keywords": [
+    "c4",
+    "architecture",
+    "diagram",
+    "documentation",
+    "visualization",
+    "reactflow",
+    "react",
+    "tecture"
+  ],
+  "license": "MIT",
+  "author": "Shanika Wijerathna <shanikacj@gmail.com>",
+  "homepage": "https://github.com/tecture-io/tecture#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tecture-io/tecture.git",
+    "directory": "packages/web"
+  },
+  "bugs": {
+    "url": "https://github.com/tecture-io/tecture/issues"
+  },
   "type": "module",
   "exports": {
     "./App": "./src/App.tsx",
     "./styles.css": "./src/styles.css",
     "./architecture/dataSource": "./src/architecture/dataSource.ts"
   },
+  "files": [
+    "dist-lib",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "exports": {
+      "./App": {
+        "types": "./dist-lib/App.d.ts",
+        "import": "./dist-lib/App.js"
+      },
+      "./architecture/dataSource": {
+        "types": "./dist-lib/architecture/dataSource.d.ts",
+        "import": "./dist-lib/architecture/dataSource.js"
+      },
+      "./styles.css": "./dist-lib/style.css"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:lib": "vite build --config vite.lib.config.ts",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@tecture/shared": "workspace:*",
     "@xyflow/react": "^12.10.2",
     "elkjs": "^0.11.1",
     "markdown-to-jsx": "^9.7.16",
-    "mermaid": "^11.14.0",
+    "mermaid": "^11.14.0"
+  },
+  "peerDependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4",
-    "@tecture/shared": "workspace:*",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react": "^4.3.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "tailwindcss": "^4",
     "typescript": "^5.6.3",
-    "vite": "^5.4.10"
+    "vite": "^5.4.10",
+    "vite-plugin-dts": "^4.3.0"
   }
 }
