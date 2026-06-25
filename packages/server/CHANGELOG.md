@@ -2,6 +2,17 @@
 
 All notable changes to `@tecture/core` are documented here.
 
+## [0.0.10] — 2026-06-25
+
+### Changed
+
+- **Bundled viewer tracks the now-published `@tecture/web` library.** The web UI
+  that `@tecture/core` serves is now built from the `@tecture/web` package that
+  ships to npm, so the standalone viewer and any external embedders render from
+  the same source. The viewer's HTTP data source gained an optional base-URL
+  prefix used internally for this; default behaviour (absolute `/api/...` paths)
+  is unchanged for the CLI server.
+
 ## [0.0.9] — 2026-06-22
 
 ### Fixed
