@@ -2,6 +2,17 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [0.0.11] — 2026-06-26
+
+### Added
+
+- **First-run onboarding wizard in the diagram panel.** Opening an architecture
+  now shows a short, dismissable tour: an intro with the architecture's name and
+  description, followed by two looping animated demos — clicking a component to
+  open its detail panel, and double-clicking a container to drill into its
+  sub-diagram. A floating help (`?`) button replays the tour at any time, and the
+  animations respect `prefers-reduced-motion`.
+
 ## [0.0.10] — 2026-06-25
 
 ### Changed
