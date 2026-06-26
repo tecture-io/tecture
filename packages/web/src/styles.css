@@ -437,3 +437,247 @@ body {
   max-width: 88vw;
   max-height: calc(90vh - 100px);
 }
+
+/* ─── Onboarding demo animations ─────────────────────────────────────────────
+   Two looping, CSS-driven mini-diagrams used by the onboarding wizard to show
+   (1) clicking a box to open its detail panel and (2) double-clicking to drill
+   down. Everything is positioned in % within .ob-stage so it scales with the
+   modal. Base (non-animated) styles render an informative resting frame so the
+   prefers-reduced-motion fallback still reads. */
+.ob-stage {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+}
+
+.ob-box {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border-default);
+  background: rgba(20, 29, 51, 0.55);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+}
+
+.ob-box-icon {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  opacity: 0.7;
+}
+
+.ob-cursor {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin: -2px 0 0 -2px;
+  pointer-events: none;
+  z-index: 4;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+}
+
+.ob-ripple {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  margin: -28px 0 0 -28px;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    rgba(34, 211, 238, 0.5) 0%,
+    rgba(34, 211, 238, 0) 70%
+  );
+  pointer-events: none;
+  z-index: 3;
+  opacity: 0;
+}
+
+/* drill-down pill inside a node */
+.ob-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 2px;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ── Click demo ── */
+.ob-click-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 44%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  border-left: 1px solid var(--border-default);
+  background: rgba(10, 15, 26, 0.92);
+  backdrop-filter: blur(4px);
+  z-index: 2;
+}
+.ob-line {
+  height: 6px;
+  border-radius: 2px;
+  background: var(--border-default);
+}
+.ob-line.accent {
+  background: rgba(34, 211, 238, 0.55);
+}
+
+.ob-click-target {
+  border-color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.1);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
+  color: var(--accent-cyan);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ob-click-cursor {
+    animation: ob-click-cursor 7s ease-in-out infinite;
+  }
+  .ob-click-target {
+    animation: ob-click-target 7s ease-in-out infinite;
+  }
+  .ob-click-ripple {
+    animation: ob-click-ripple 7s ease-out infinite;
+  }
+  .ob-click-slide {
+    animation: ob-click-panel 7s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+  .ob-drill-cursor {
+    animation: ob-drill-cursor 7s ease-in-out infinite;
+  }
+  .ob-drill-pill {
+    animation: ob-drill-pill 7s ease-in-out infinite;
+  }
+  .ob-drill-ripple {
+    animation: ob-drill-ripple 7s ease-out infinite;
+  }
+  .ob-level-1 {
+    animation: ob-level-1 7s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+  .ob-level-2 {
+    animation: ob-level-2 7s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+}
+
+@keyframes ob-click-cursor {
+  0% { left: 64%; top: 82%; opacity: 0; }
+  4% { opacity: 1; }
+  16% { left: 22%; top: 34%; }
+  33% { left: 22%; top: 34%; }
+  35% { left: 21%; top: 36%; }
+  38% { left: 22%; top: 34%; }
+  82% { left: 22%; top: 34%; opacity: 1; }
+  88% { left: 64%; top: 82%; opacity: 0; }
+  100% { left: 64%; top: 82%; opacity: 0; }
+}
+@keyframes ob-click-target {
+  0%, 30% {
+    border-color: var(--border-default);
+    background: rgba(20, 29, 51, 0.55);
+    box-shadow: none;
+    color: var(--text-secondary);
+  }
+  36%, 82% {
+    border-color: var(--accent-cyan);
+    background: rgba(34, 211, 238, 0.1);
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
+    color: var(--accent-cyan);
+  }
+  92%, 100% {
+    border-color: var(--border-default);
+    background: rgba(20, 29, 51, 0.55);
+    box-shadow: none;
+    color: var(--text-secondary);
+  }
+}
+@keyframes ob-click-ripple {
+  0%, 31% { transform: scale(0); opacity: 0; }
+  34% { transform: scale(0.25); opacity: 0.7; }
+  48% { transform: scale(1); opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes ob-click-panel {
+  0%, 33% { transform: translateX(112%); opacity: 0; }
+  40% { opacity: 1; }
+  56%, 82% { transform: translateX(0); opacity: 1; }
+  92%, 100% { transform: translateX(112%); opacity: 0; }
+}
+
+/* ── Drill demo ── */
+.ob-level-1,
+.ob-level-2 {
+  position: absolute;
+  inset: 0;
+  transform-origin: 44% 50%;
+}
+.ob-level-2 {
+  opacity: 0;
+}
+
+@keyframes ob-drill-cursor {
+  0% { left: 66%; top: 84%; opacity: 0; }
+  4% { opacity: 1; }
+  15% { left: 44%; top: 64%; }
+  30% { left: 43%; top: 66%; }
+  34% { left: 44%; top: 64%; }
+  38% { left: 43%; top: 66%; }
+  42% { left: 44%; top: 64%; opacity: 1; }
+  54% { opacity: 0; }
+  84% { left: 44%; top: 64%; opacity: 0; }
+  86% { left: 66%; top: 84%; opacity: 0; }
+  100% { left: 66%; top: 84%; opacity: 0; }
+}
+@keyframes ob-drill-pill {
+  0%, 28% {
+    border-color: var(--border-default);
+    background: transparent;
+    color: var(--text-muted);
+  }
+  40%, 50% {
+    border-color: var(--accent-cyan);
+    background: rgba(34, 211, 238, 0.12);
+    color: var(--accent-cyan);
+  }
+  58%, 100% {
+    border-color: var(--border-default);
+    background: transparent;
+    color: var(--text-muted);
+  }
+}
+@keyframes ob-drill-ripple {
+  0%, 29% { transform: scale(0); opacity: 0; }
+  32% { transform: scale(0.25); opacity: 0.7; }
+  39% { transform: scale(0.9); opacity: 0; }
+  40% { transform: scale(0.25); opacity: 0.7; }
+  48% { transform: scale(1); opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes ob-level-1 {
+  0%, 42% { transform: scale(1); opacity: 1; }
+  58% { transform: scale(1.5); opacity: 0; }
+  84% { transform: scale(0.92); opacity: 0; }
+  94%, 100% { transform: scale(1); opacity: 1; }
+}
+@keyframes ob-level-2 {
+  0%, 46% { transform: scale(0.7); opacity: 0; }
+  62%, 80% { transform: scale(1); opacity: 1; }
+  88%, 100% { transform: scale(1.18); opacity: 0; }
+}

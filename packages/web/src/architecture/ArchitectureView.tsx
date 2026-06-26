@@ -3,6 +3,8 @@ import { DiagramCanvas } from "./DiagramCanvas";
 import { DiagramList } from "./DiagramList";
 import { NodeDetailPanel } from "./NodeDetailPanel";
 import { KeyboardHint } from "./KeyboardHint";
+import { OnboardingWizard } from "./OnboardingWizard";
+import { useOnboarding } from "./useOnboarding";
 import {
   useArchitectureBundle,
   useReportUsage,
@@ -21,6 +23,7 @@ export function ArchitectureView({ diagramId, showDiagramList = true }: Props) {
   const bundle = useArchitectureBundle();
   const reportUsage = useReportUsage();
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const onboarding = useOnboarding();
 
   useEffect(() => {
     if (diagramId) return;
@@ -87,7 +90,49 @@ export function ArchitectureView({ diagramId, showDiagramList = true }: Props) {
           onClose={() => setSelectedNodeId(null)}
         />
       )}
+      <HelpButton onClick={onboarding.openWizard} />
+      <OnboardingWizard
+        open={onboarding.open}
+        onClose={onboarding.closeWizard}
+        architectureName={bundle.summary.name}
+        architectureDescription={bundle.summary.description}
+      />
     </div>
+  );
+}
+
+function HelpButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Show getting started tour"
+      title="Getting started"
+      className="absolute right-4 z-10 flex h-8 w-8 items-center justify-center border shadow-lg backdrop-blur-md transition-colors hover:text-white"
+      style={{
+        // Sit just above the @xyflow Controls cluster (bottom-right) so the
+        // help affordance reads as part of the canvas controls.
+        bottom: "132px",
+        borderColor: "var(--border-default)",
+        backgroundColor: "rgba(10, 15, 26, 0.85)",
+        color: "var(--text-muted)",
+      }}
+    >
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="12" cy="12" r="10" />
+        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+        <line x1="12" y1="17" x2="12.01" y2="17" />
+      </svg>
+    </button>
   );
 }
 
