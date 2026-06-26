@@ -2,7 +2,7 @@
   "name": "tecture-vscode",
   "displayName": "Tecture",
   "description": "AI-generated architecture diagrams for complex codebases — rendered inside VS Code.",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "type": "commonjs",
   "publisher": "Tecture",
   "license": "MIT",
