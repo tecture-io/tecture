@@ -1,6 +1,6 @@
 {
   "name": "@tecture/web",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The Tecture architecture viewer as a reusable React component — render file-based (JSON + Markdown) architecture diagrams from any data source.",
   "keywords": [
     "c4",

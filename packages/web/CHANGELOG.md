@@ -1,5 +1,14 @@
 # @tecture/web
 
+## 0.1.1
+
+- Added a first-run onboarding wizard. On every architecture load the viewer shows a
+  short, dismissable tour: an intro with the architecture's name and description, then
+  two looping animated demos — clicking a component to open its detail panel, and
+  double-clicking a container to drill into its sub-diagram. A floating help (`?`)
+  button replays the tour, and the animations respect `prefers-reduced-motion`. No API
+  changes — embedders get the wizard automatically.
+
 ## 0.1.0
 
 - First public release of the Tecture viewer as a reusable React component library.
