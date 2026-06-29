@@ -2,6 +2,21 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [0.0.12] — 2026-06-29
+
+### Fixed
+
+- **Dragging a node no longer reloads the whole diagram.** The atomic layout
+  save writes through a temporary `<slug>.json.tmp` file, whose create/delete
+  events were slipping past the layout-file filter in the file watcher and
+  triggering a full refresh — which reset the viewport and re-opened the
+  onboarding wizard on every drag. The watcher now ignores all writes under the
+  `.tecture/layouts` directory, so positions persist silently.
+
+### Changed
+
+- **New app icon.** Refreshed the Marketplace/extension logo.
+
 ## [0.0.11] — 2026-06-26
 
 ### Added
