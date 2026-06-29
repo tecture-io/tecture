@@ -140,8 +140,13 @@ export function activate(context: vscode.ExtensionContext): void {
     const archPath = getArchitecturePath(target);
     const layoutsRoot = resolveLayoutsRoot(target);
 
+    // Anything under the layouts root is owned by the webview's drag
+    // persistence — including the atomic-write temp file (`<slug>.json.tmp`),
+    // whose create/delete events must be ignored too. Matching only `.json`
+    // here would let the temp file slip through and trigger a full reload.
     const isLayoutFile = (uri: vscode.Uri) =>
-      uri.path.startsWith(`${layoutsRoot.path}/`) && uri.path.endsWith(".json");
+      uri.path === layoutsRoot.path ||
+      uri.path.startsWith(`${layoutsRoot.path}/`);
 
     const onFsEvent = (uri: vscode.Uri) => {
       // Layout files are written only by the webview's own drag-persistence and
