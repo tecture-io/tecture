@@ -31,9 +31,20 @@
       "meta": { "type": "service", "technology": "typescript" }
     },
     {
+      "id": "skill-installer",
+      "label": "Skill Installer",
+      "path": "packages/installer/",
+      "meta": { "type": "service", "technology": "typescript" }
+    },
+    {
       "id": "architecture-fs",
       "label": "Architecture Directory",
       "meta": { "type": "storage", "technology": "markdown" }
+    },
+    {
+      "id": "posthog-cloud",
+      "label": "PostHog Cloud",
+      "meta": { "type": "external", "technology": "posthog" }
     }
   ],
   "edges": [
@@ -99,6 +110,27 @@
       "target": "architecture-fs",
       "label": "reads/writes via vscode.workspace.fs",
       "meta": { "type": "reads" }
+    },
+    {
+      "id": "e-cli-server-posthog-cloud",
+      "source": "cli-server",
+      "target": "posthog-cloud",
+      "label": "anonymous viewer telemetry (opt-out)",
+      "meta": { "type": "writes" }
+    },
+    {
+      "id": "e-vscode-extension-posthog-cloud",
+      "source": "vscode-extension",
+      "target": "posthog-cloud",
+      "label": "anonymous viewer telemetry (opt-out)",
+      "meta": { "type": "writes" }
+    },
+    {
+      "id": "e-skill-installer-posthog-cloud",
+      "source": "skill-installer",
+      "target": "posthog-cloud",
+      "label": "anonymous install telemetry (opt-out)",
+      "meta": { "type": "writes" }
     }
   ]
 }

@@ -23,6 +23,11 @@
       "id": "architecture-files",
       "label": "Architecture Files",
       "meta": { "type": "storage", "technology": "markdown" }
+    },
+    {
+      "id": "posthog",
+      "label": "PostHog Cloud",
+      "meta": { "type": "external", "technology": "posthog" }
     }
   ],
   "edges": [
@@ -41,11 +46,25 @@
       "meta": { "type": "calls" }
     },
     {
+      "id": "e-developer-tecture-io-install",
+      "source": "developer",
+      "target": "tecture-io",
+      "label": "installs architecture-docs skill (npx @tecture/skill)",
+      "meta": { "type": "calls" }
+    },
+    {
       "id": "e-tecture-io-architecture-files",
       "source": "tecture-io",
       "target": "architecture-files",
       "label": "reads from ./architecture on disk",
       "meta": { "type": "reads" }
+    },
+    {
+      "id": "e-tecture-io-posthog",
+      "source": "tecture-io",
+      "target": "posthog",
+      "label": "anonymous, opt-out usage telemetry",
+      "meta": { "type": "writes" }
     }
   ]
 }
