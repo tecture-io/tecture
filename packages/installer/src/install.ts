@@ -21,8 +21,24 @@ export interface SyncOptions {
   cwd: string;
 }
 
+/**
+ * Seams for wrappers (e.g. @tecture/install) that add steps around the pure
+ * skill install. The bare `npx @tecture/skill` CLI never passes hooks.
+ */
+export interface SyncHooks {
+  /**
+   * Called once, after agents/scope are resolved and BEFORE any skill files
+   * are written. A throw aborts the whole run with nothing on disk.
+   */
+  afterTargetsChosen?(info: {
+    agentIds: string[];
+    scope: Scope;
+    cwd: string;
+  }): Promise<void>;
+}
+
 /** Compare dotted numeric versions. Returns -1, 0, or 1 (a relative to b). */
-function compareVersions(a: string, b: string): number {
+export function compareVersions(a: string, b: string): number {
   const pa = a.split(".").map(Number);
   const pb = b.split(".").map(Number);
   for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
@@ -153,10 +169,21 @@ async function applyInstall(
   await writeManifest(dir, manifest);
 }
 
-export async function runSync(opts: SyncOptions): Promise<void> {
+export async function runSync(
+  opts: SyncOptions,
+  hooks: SyncHooks = {},
+): Promise<void> {
   const skill = await loadBundledSkill();
   const checksum = await hashDir(skill.payloadDir, [MANIFEST_FILE]);
   const targets = await chooseTargets(opts, skill);
+
+  if (hooks.afterTargetsChosen) {
+    await hooks.afterTargetsChosen({
+      agentIds: targets.map((t) => t.agent.id),
+      scope: targets[0]!.scope,
+      cwd: opts.cwd,
+    });
+  }
 
   let installed = 0;
   let updated = 0;

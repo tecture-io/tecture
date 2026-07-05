@@ -29,7 +29,11 @@ Options:
   -h, --help       show this help
 
 Note: always run with @latest — npx caches packages, so a bare
-@tecture/skill may re-run a stale installer and appear to do nothing.`;
+@tecture/skill may re-run a stale installer and appear to do nothing.
+
+This installs the skill only. For the full Tecture setup — skill plus the
+required CodeGraph companion (MCP server + code index) — use:
+  npx @tecture/install@latest`;
 
 function parseArgs(argv: string[]): ParsedArgs {
   const parsed: ParsedArgs = {
