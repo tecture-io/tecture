@@ -5,6 +5,7 @@ import type {
   ApiDiagramLayoutUpdate,
   ApiNodeDetail,
   DiagramLayoutFile,
+  DriftReport,
   TectureRequest,
   TectureResponse,
 } from "@tecture/shared";
@@ -60,6 +61,7 @@ export function createPostMessageDataSource(): WebDataSource {
     loadLayout: (slug) => send<DiagramLayoutFile>({ type: "loadLayout", slug }),
     loadNodeDetail: (nodeId) =>
       send<ApiNodeDetail>({ type: "loadNodeDetail", nodeId }),
+    loadDrift: () => send<DriftReport | null>({ type: "loadDrift" }),
     saveLayout: (slug, update: ApiDiagramLayoutUpdate) =>
       send<DiagramLayoutFile>({ type: "saveLayout", slug, update }),
     openInEditor: (path) => {

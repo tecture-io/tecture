@@ -3,6 +3,8 @@ export {
   architectureErrorHandler,
   createArchitectureRouter,
   type ArchitectureRouterOptions,
+  type DriftLoader,
+  type DriftResolver,
   type LayoutStoreResolver,
   type SourceResolver,
 } from "./routes/architecture.js";
@@ -21,5 +23,5 @@ export {
   isValidLayoutEntry,
   normalizeLayoutUpdate,
 } from "./source/types.js";
-export { FsArchitectureDataSource, FsLayoutStore, safeJoin } from "./source/fs.js";
+export { FsArchitectureDataSource, FsDriftReader, FsLayoutStore, safeJoin } from "./source/fs.js";
 export * from "@tecture/shared";

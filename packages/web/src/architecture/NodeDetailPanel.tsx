@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
-import type { NodeMetaType } from "@tecture/shared";
+import type { DriftFinding, NodeMetaType } from "@tecture/shared";
 import {
   buildDeepDivePrompt,
   buildSourceUrl,
+  driftForNode,
   isDeepDivable,
 } from "@tecture/shared";
 import { getNodeStyle } from "./nodeStyles";
@@ -22,6 +23,10 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
   const openInEditor = useOpenInEditor();
   const detail = bundle.nodes[nodeId];
   const missingDescription = bundle.missingDescriptions.has(nodeId);
+  const driftFindings =
+    bundle.drift && detail
+      ? driftForNode(bundle.drift, detail.diagramId, nodeId)
+      : [];
   const style = getNodeStyle(detail?.meta?.type as NodeMetaType | undefined);
   const path = detail?.path;
   const sourceUrl = openInEditor
@@ -133,8 +138,54 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
               No description provided.
             </div>
           ))}
+        {driftFindings.length > 0 && (
+          <EvidenceSection findings={driftFindings} />
+        )}
       </div>
     </aside>
+  );
+}
+
+const EVIDENCE_SEVERITY_COLORS: Record<DriftFinding["severity"], string> = {
+  error: "#f87171",
+  warn: "#fbbf24",
+  info: "#38bdf8",
+};
+
+/** Drift findings touching this node, from the evidence script's report. */
+function EvidenceSection({ findings }: { findings: DriftFinding[] }) {
+  return (
+    <div
+      className="mt-4 border-t pt-3"
+      style={{ borderColor: "var(--border-default)" }}
+    >
+      <div
+        className="mb-2 text-[9px] tracking-[0.25em] uppercase"
+        style={{ color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}
+      >
+        Evidence ({findings.length})
+      </div>
+      <div className="flex flex-col gap-1.5">
+        {findings.map((finding, i) => (
+          <div
+            key={i}
+            className="flex items-start gap-2 text-[11px] leading-snug"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            <span
+              className="mt-1 inline-block h-1.5 w-1.5 shrink-0 rounded-full"
+              style={{
+                backgroundColor: EVIDENCE_SEVERITY_COLORS[finding.severity],
+              }}
+              title={finding.severity}
+            />
+            <span style={{ color: "var(--text-primary, #e2e8f0)" }}>
+              {finding.message}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

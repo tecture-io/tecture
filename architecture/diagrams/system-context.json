@@ -1,33 +1,55 @@
 {
   "name": "System Context",
   "level": 1,
-  "meta": { "direction": "TB" },
+  "meta": {
+    "direction": "TB"
+  },
   "nodes": [
     {
       "id": "coding-agent",
       "label": "Coding Agent",
-      "meta": { "type": "person" }
+      "meta": {
+        "type": "person"
+      }
     },
     {
       "id": "developer",
       "label": "Developer",
-      "meta": { "type": "person" }
+      "meta": {
+        "type": "person"
+      }
     },
     {
       "id": "tecture-io",
       "label": "Tecture IO",
       "subDiagramId": "containers",
-      "meta": { "type": "system" }
+      "meta": {
+        "type": "system"
+      }
     },
     {
       "id": "architecture-files",
       "label": "Architecture Files",
-      "meta": { "type": "storage", "technology": "markdown" }
+      "meta": {
+        "type": "storage",
+        "technology": "markdown"
+      }
     },
     {
       "id": "posthog",
       "label": "PostHog Cloud",
-      "meta": { "type": "external", "technology": "posthog" }
+      "meta": {
+        "type": "external",
+        "technology": "posthog"
+      }
+    },
+    {
+      "id": "codegraph",
+      "label": "CodeGraph",
+      "meta": {
+        "type": "external",
+        "technology": "sqlite"
+      }
     }
   ],
   "edges": [
@@ -36,35 +58,63 @@
       "source": "coding-agent",
       "target": "architecture-files",
       "label": "writes JSON + Markdown via fs.writeFile",
-      "meta": { "type": "writes" }
+      "meta": {
+        "type": "writes"
+      }
     },
     {
       "id": "e-developer-tecture-io",
       "source": "developer",
       "target": "tecture-io",
       "label": "browses diagrams in VS Code or browser",
-      "meta": { "type": "calls" }
+      "meta": {
+        "type": "calls"
+      }
     },
     {
       "id": "e-developer-tecture-io-install",
       "source": "developer",
       "target": "tecture-io",
-      "label": "installs architecture-docs skill (npx @tecture/skill)",
-      "meta": { "type": "calls" }
+      "label": "installs skill + CodeGraph (npx @tecture/install)",
+      "meta": {
+        "type": "calls"
+      }
     },
     {
       "id": "e-tecture-io-architecture-files",
       "source": "tecture-io",
       "target": "architecture-files",
       "label": "reads from ./architecture on disk",
-      "meta": { "type": "reads" }
+      "meta": {
+        "type": "reads"
+      }
     },
     {
       "id": "e-tecture-io-posthog",
       "source": "tecture-io",
       "target": "posthog",
       "label": "anonymous, opt-out usage telemetry",
-      "meta": { "type": "writes" }
+      "meta": {
+        "type": "writes"
+      }
+    },
+    {
+      "id": "e-tecture-io-codegraph",
+      "source": "tecture-io",
+      "target": "codegraph",
+      "label": "installs CLI, indexes repo, reads .codegraph index",
+      "meta": {
+        "type": "calls"
+      }
+    },
+    {
+      "id": "e-coding-agent-codegraph",
+      "source": "coding-agent",
+      "target": "codegraph",
+      "label": "codegraph explore / MCP during authoring",
+      "meta": {
+        "type": "calls"
+      }
     }
   ]
 }

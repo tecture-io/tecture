@@ -14,6 +14,25 @@ Everything below serves that goal.
 
 Before writing any JSON, gather evidence for eight artifacts. Treat this as a checklist; if you cannot fill in an artifact, *find it* — do not guess.
 
+### A0. Query CodeGraph first
+
+The presence gate in [SKILL.md](../SKILL.md#codegraph-presence-gate-hard-requirement) applies: no `codegraph` binary or no `.codegraph/` index → **stop** and point the user at `npx @tecture/install`; never fall back to grep-only discovery.
+
+With the index present, CodeGraph answers the code-shaped half of this checklist in a few calls — `codegraph explore "<question or symbol names>"` (or the `codegraph_explore` MCP tool; Copilot and Windsurf have no CodeGraph MCP integration, so use the CLI there) and `codegraph status --json`:
+
+| Artifact | CodeGraph gives you | Still manual |
+|---|---|---|
+| A1 repo shape | indexed languages + file/node/edge counts (`status --json`) | workspace files, `Dockerfile` count |
+| A2 stack | frameworks *as wired*: route/component nodes prove Express/FastAPI/React/… is actually used, not just installed | manifest versions |
+| A3 deployables | entry points: files with many outbound imports and none inbound (`explore` on suspected entries) | Dockerfiles, compose services, Procfile, k8s, CI deploy jobs |
+| A4 datastores & infra | ORM/driver usage sites; Terraform resources where indexed | env vars, compose, un-indexed IaC |
+| A5 external SDKs | every third-party import in the graph — `evidence.mjs` later cross-checks the well-known ones against your nodes | webhook routes, OAuth config |
+| A6 actors | route groups/prefixes hint at distinct API surfaces (admin vs public) | auth roles, frontends in other repos |
+| A7 purpose | — | README, manifest description |
+| A8 source repo | — | `git remote get-url origin` |
+
+Dockerfiles, compose/k8s manifests, env files, and CI config are not in the code graph — those artifacts stay file-reading work.
+
 ### A1. Repo shape
 
 Pick one. Determines L2 granularity.

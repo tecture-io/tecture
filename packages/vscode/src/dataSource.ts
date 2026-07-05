@@ -4,8 +4,10 @@ import {
   DiagramNotFoundError,
   emptyLayout,
   normalizeLayoutUpdate,
+  parseDriftReport,
   SLUG_RE,
   type ArchitectureDataSource,
+  type DriftReport,
   type LayoutStore,
   type ApiDiagramLayoutUpdate,
   type DiagramFile,
@@ -118,6 +120,31 @@ export class VscodeFsLayoutStore implements LayoutStore {
       throw err;
     }
     return normalized;
+  }
+}
+
+/**
+ * Read the drift report written by the architecture-docs skill's evidence
+ * script (`<architectureRoot>/.tecture/drift.json`). Missing or malformed
+ * files are a normal state — return null, never throw.
+ */
+export async function readWorkspaceDrift(
+  architectureRoot: vscode.Uri,
+): Promise<DriftReport | null> {
+  const uri = vscode.Uri.joinPath(architectureRoot, ".tecture", "drift.json");
+  let raw: string;
+  try {
+    raw = textDecoder.decode(await vscode.workspace.fs.readFile(uri));
+  } catch (err) {
+    if (isFileNotFound(err)) return null;
+    console.warn(`[tecture] failed to read drift report ${uri.fsPath}: ${String(err)}`);
+    return null;
+  }
+  try {
+    return parseDriftReport(JSON.parse(raw));
+  } catch (err) {
+    console.warn(`[tecture] malformed drift JSON at ${uri.fsPath}: ${String(err)}`);
+    return null;
   }
 }
 

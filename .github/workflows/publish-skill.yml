@@ -33,7 +33,8 @@ jobs:
 
       - uses: actions/setup-node@v5
         with:
-          node-version: 20
+          # 22+: the bundled evidence.mjs self-test needs node:sqlite (>= 22.5).
+          node-version: 22
           cache: pnpm
           registry-url: "https://registry.npmjs.org"
 
@@ -49,6 +50,10 @@ jobs:
       - name: Validate bundled skill before publishing
         # Guards against shipping a skill whose own validator is broken.
         run: node packages/installer/dist/skill/architecture-docs/scripts/validate.mjs packages/installer/dist/skill/architecture-docs/reference/example
+
+      - name: Self-test bundled evidence script
+        # Guards against shipping a skill whose evidence checker is broken.
+        run: node packages/installer/dist/skill/architecture-docs/scripts/evidence.mjs --self-test
 
       - name: Verify version matches tag
         if: startsWith(github.ref, 'refs/tags/skill-v')

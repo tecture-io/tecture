@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-06T00:00:00.000Z",
+  "generator": { "name": "evidence.mjs", "skillVersion": "0.3.0" },
+  "codegraphSchemaVersion": 6,
+  "staleIndex": false,
+  "summary": {
+    "errors": 1,
+    "warns": 1,
+    "infos": 1,
+    "nodesChecked": 2,
+    "edgesChecked": 2,
+    "nodesSkipped": 1,
+    "edgesSkipped": 0
+  },
+  "findings": [
+    {
+      "kind": "missing-path",
+      "severity": "error",
+      "message": "node path src/missing/ matches no indexed or on-disk file",
+      "diagramId": "system-overview",
+      "nodeId": "api"
+    },
+    {
+      "kind": "unverified-edge",
+      "severity": "warn",
+      "message": "no symbol edges support web-app -> api (calls)",
+      "edge": {
+        "diagramId": "system-overview",
+        "sourceId": "web-app",
+        "targetId": "api",
+        "type": "calls"
+      }
+    },
+    {
+      "kind": "unmapped-external",
+      "severity": "info",
+      "message": "package stripe is imported but no node maps to it",
+      "evidence": { "package": "stripe" }
+    }
+  ]
+}

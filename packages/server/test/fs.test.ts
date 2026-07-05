@@ -8,7 +8,12 @@ import {
   DiagramNotFoundError,
   LayoutInvalidError,
 } from "@tecture/shared";
-import { FsArchitectureDataSource, FsLayoutStore, safeJoin } from "../src/source/fs.js";
+import {
+  FsArchitectureDataSource,
+  FsDriftReader,
+  FsLayoutStore,
+  safeJoin,
+} from "../src/source/fs.js";
 
 const FIXTURES_ROOT = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -216,5 +221,59 @@ describe("FsLayoutStore", () => {
     await expect(
       readFile(join(tectureRoot, "layouts", "system-overview.json.tmp"), "utf8"),
     ).rejects.toThrow();
+  });
+});
+
+describe("FsDriftReader", () => {
+  let tectureRoot: string;
+
+  beforeEach(async () => {
+    tectureRoot = await mkdtemp(join(tmpdir(), "tecture-drift-"));
+  });
+
+  afterEach(async () => {
+    await rm(tectureRoot, { recursive: true, force: true });
+  });
+
+  it("loads a valid drift report from the fixture", async () => {
+    const reader = new FsDriftReader(join(FIXTURES_ROOT, ".tecture"));
+    const report = await reader.load();
+    expect(report).not.toBeNull();
+    expect(report?.version).toBe(1);
+    expect(report?.findings).toHaveLength(3);
+    expect(report?.summary.errors).toBe(1);
+  });
+
+  it("returns null when drift.json does not exist", async () => {
+    const reader = new FsDriftReader(tectureRoot);
+    await expect(reader.load()).resolves.toBeNull();
+  });
+
+  it("returns null + warns on malformed JSON", async () => {
+    await writeFile(join(tectureRoot, "drift.json"), "{not json", "utf8");
+    const reader = new FsDriftReader(tectureRoot);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      await expect(reader.load()).resolves.toBeNull();
+      expect(warn).toHaveBeenCalledOnce();
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
+  it("returns null + warns on a structurally invalid report", async () => {
+    await writeFile(
+      join(tectureRoot, "drift.json"),
+      JSON.stringify({ version: 99, findings: "nope" }),
+      "utf8",
+    );
+    const reader = new FsDriftReader(tectureRoot);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      await expect(reader.load()).resolves.toBeNull();
+      expect(warn).toHaveBeenCalledOnce();
+    } finally {
+      warn.mockRestore();
+    }
   });
 });

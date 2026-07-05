@@ -1,0 +1,345 @@
+{
+  "version": 1,
+  "generatedAt": "2026-07-05T18:34:43.633Z",
+  "generator": {
+    "name": "architecture-docs/evidence.mjs"
+  },
+  "codegraphSchemaVersion": 6,
+  "staleIndex": false,
+  "summary": {
+    "errors": 0,
+    "warns": 9,
+    "infos": 18,
+    "nodesChecked": 25,
+    "edgesChecked": 30,
+    "nodesSkipped": 10,
+    "edgesSkipped": 16
+  },
+  "findings": [
+    {
+      "kind": "skipped-node",
+      "severity": "info",
+      "message": "node has no path — not verifiable against the index",
+      "diagramId": "system-context",
+      "nodeId": "tecture-io"
+    },
+    {
+      "kind": "skipped-node",
+      "severity": "info",
+      "message": "node has no path — not verifiable against the index",
+      "diagramId": "components-api",
+      "nodeId": "static-handler"
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge coding-agent -> architecture-files (writes) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "system-context",
+        "sourceId": "coding-agent",
+        "targetId": "architecture-files",
+        "type": "writes"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge developer -> tecture-io (calls) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "system-context",
+        "sourceId": "developer",
+        "targetId": "tecture-io",
+        "type": "calls"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge developer -> tecture-io (calls) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "system-context",
+        "sourceId": "developer",
+        "targetId": "tecture-io",
+        "type": "calls"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge tecture-io -> architecture-files (reads) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "system-context",
+        "sourceId": "tecture-io",
+        "targetId": "architecture-files",
+        "type": "reads"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge tecture-io -> posthog (writes) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "system-context",
+        "sourceId": "tecture-io",
+        "targetId": "posthog",
+        "type": "writes"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge tecture-io -> codegraph (calls) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "system-context",
+        "sourceId": "tecture-io",
+        "targetId": "codegraph",
+        "type": "calls"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge coding-agent -> codegraph (calls) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "system-context",
+        "sourceId": "coding-agent",
+        "targetId": "codegraph",
+        "type": "calls"
+      }
+    },
+    {
+      "kind": "unverified-edge",
+      "severity": "warn",
+      "message": "no CodeGraph symbol edges support cli-server -> web-ui (data-flow) — possible causes: runtime/HTTP boundary, config-driven wiring, or stale index",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "cli-server",
+        "targetId": "web-ui",
+        "type": "data-flow"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge cli-server -> architecture-fs (reads) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "cli-server",
+        "targetId": "architecture-fs",
+        "type": "reads"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge vscode-extension -> architecture-fs (reads) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "vscode-extension",
+        "targetId": "architecture-fs",
+        "type": "reads"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge cli-server -> posthog-cloud (writes) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "cli-server",
+        "targetId": "posthog-cloud",
+        "type": "writes"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge vscode-extension -> posthog-cloud (writes) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "vscode-extension",
+        "targetId": "posthog-cloud",
+        "type": "writes"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge skill-installer -> posthog-cloud (writes) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "skill-installer",
+        "targetId": "posthog-cloud",
+        "type": "writes"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge umbrella-installer -> codegraph-cli (calls) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "umbrella-installer",
+        "targetId": "codegraph-cli",
+        "type": "calls"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge skill-installer -> codegraph-cli (reads) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "skill-installer",
+        "targetId": "codegraph-cli",
+        "type": "reads"
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge umbrella-installer -> posthog-cloud (writes) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "umbrella-installer",
+        "targetId": "posthog-cloud",
+        "type": "writes"
+      }
+    },
+    {
+      "kind": "undeclared-dependency",
+      "severity": "warn",
+      "message": "7 symbol edge(s) cross umbrella-installer -> vscode-extension but the diagram declares no edge between them",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "umbrella-installer",
+        "targetId": "vscode-extension"
+      },
+      "evidence": {
+        "edgeKinds": {
+          "calls": 6,
+          "imports": 1
+        },
+        "heuristicCount": 0,
+        "files": [
+          "packages/install/scripts/copy-skill-bundle.mjs",
+          "packages/vscode/webview-entry/postMessageDataSource.ts",
+          "packages/install/src/codegraph.ts"
+        ]
+      }
+    },
+    {
+      "kind": "undeclared-dependency",
+      "severity": "warn",
+      "message": "14 symbol edge(s) cross skill-installer -> vscode-extension but the diagram declares no edge between them",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "skill-installer",
+        "targetId": "vscode-extension"
+      },
+      "evidence": {
+        "edgeKinds": {
+          "calls": 11,
+          "imports": 3
+        },
+        "heuristicCount": 0,
+        "files": [
+          "packages/installer/scripts/copy-skill.mjs",
+          "packages/vscode/webview-entry/postMessageDataSource.ts",
+          "packages/installer/src/paths.ts",
+          "packages/installer/src/skill.ts"
+        ]
+      }
+    },
+    {
+      "kind": "undeclared-dependency",
+      "severity": "warn",
+      "message": "14 symbol edge(s) cross cli-server -> vscode-extension but the diagram declares no edge between them",
+      "edge": {
+        "diagramId": "containers",
+        "sourceId": "cli-server",
+        "targetId": "vscode-extension"
+      },
+      "evidence": {
+        "edgeKinds": {
+          "calls": 11,
+          "imports": 3
+        },
+        "heuristicCount": 0,
+        "files": [
+          "packages/server/scripts/copy-web-assets.mjs",
+          "packages/vscode/webview-entry/postMessageDataSource.ts",
+          "packages/server/src/cli.ts",
+          "packages/server/src/routes/architecture.ts",
+          "packages/server/src/source/fs.ts"
+        ]
+      }
+    },
+    {
+      "kind": "skipped-edge",
+      "severity": "info",
+      "message": "edge express-app -> static-handler (calls) is not statically verifiable (person/external/datastore endpoint or missing path)",
+      "edge": {
+        "diagramId": "components-api",
+        "sourceId": "express-app",
+        "targetId": "static-handler",
+        "type": "calls"
+      }
+    },
+    {
+      "kind": "unverified-edge",
+      "severity": "warn",
+      "message": "no CodeGraph symbol edges support architecture-routes -> data-source-types (calls) — possible causes: runtime/HTTP boundary, config-driven wiring, or stale index",
+      "edge": {
+        "diagramId": "components-api",
+        "sourceId": "architecture-routes",
+        "targetId": "data-source-types",
+        "type": "calls"
+      }
+    },
+    {
+      "kind": "unverified-edge",
+      "severity": "warn",
+      "message": "no CodeGraph symbol edges support fs-data-source -> data-source-types (data-flow) — possible causes: runtime/HTTP boundary, config-driven wiring, or stale index",
+      "edge": {
+        "diagramId": "components-api",
+        "sourceId": "fs-data-source",
+        "targetId": "data-source-types",
+        "type": "data-flow"
+      }
+    },
+    {
+      "kind": "unverified-edge",
+      "severity": "warn",
+      "message": "no CodeGraph symbol edges support diagram-canvas -> node-detail-panel (calls) — possible causes: runtime/HTTP boundary, config-driven wiring, or stale index",
+      "edge": {
+        "diagramId": "components-web",
+        "sourceId": "diagram-canvas",
+        "targetId": "node-detail-panel",
+        "type": "calls"
+      }
+    },
+    {
+      "kind": "unverified-edge",
+      "severity": "warn",
+      "message": "no CodeGraph symbol edges support tree-view -> vscode-data-source (calls) — possible causes: runtime/HTTP boundary, config-driven wiring, or stale index",
+      "edge": {
+        "diagramId": "components-vscode",
+        "sourceId": "tree-view",
+        "targetId": "vscode-data-source",
+        "type": "calls"
+      }
+    },
+    {
+      "kind": "unverified-edge",
+      "severity": "warn",
+      "message": "no CodeGraph symbol edges support webview-bundle -> webview-panel (calls) — possible causes: runtime/HTTP boundary, config-driven wiring, or stale index",
+      "edge": {
+        "diagramId": "components-vscode",
+        "sourceId": "webview-bundle",
+        "targetId": "webview-panel",
+        "type": "calls"
+      }
+    }
+  ]
+}

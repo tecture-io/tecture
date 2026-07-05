@@ -38,6 +38,12 @@ jobs:
       - name: Test
         run: pnpm test
 
+      - name: Self-test evidence script
+        # node:sqlite needs >= 22.5 — the script itself hard-errors below that,
+        # so only the 22 leg runs it.
+        if: matrix.node >= 22
+        run: node .claude/skills/architecture-docs/scripts/evidence.mjs --self-test
+
       - name: Build
         run: pnpm build
 

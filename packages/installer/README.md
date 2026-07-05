@@ -7,6 +7,13 @@ registry). The skill itself is bundled in the package, so installs work offline;
 the only network call is an optional, anonymous usage ping (see
 [Telemetry](#telemetry)).
 
+> **This installs the skill only.** The skill hard-requires the CodeGraph
+> companion at authoring time (discovery, deep-dives, and the evidence/drift
+> check read its index). For the full setup — skill + CodeGraph CLI + MCP
+> config + repo index — use [`npx @tecture/install@latest`](https://www.npmjs.com/package/@tecture/install)
+> instead. `@tecture/skill` stays useful for offline/air-gapped machines and as
+> the library `@tecture/install` builds on.
+
 ## Usage
 
 ```bash

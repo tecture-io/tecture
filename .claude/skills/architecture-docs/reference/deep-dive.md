@@ -4,6 +4,8 @@ A deep-dive takes one component (or several, or all) and rewrites its `descripti
 
 Deep-dive is **on-demand and never automatic.** After authoring, offer it and wait. The user drives what gets deepened, and when — that control is the point.
 
+The [CodeGraph presence gate](../SKILL.md#codegraph-presence-gate-hard-requirement) applies to deep-dives: no `codegraph` binary or no `.codegraph/` index → stop and point the user at `npx @tecture/install` before investigating anything.
+
 ## Invocation
 
 The user names one or more components, or asks for all:
@@ -35,6 +37,7 @@ Even a single-component deep-dive needs to see the whole, so it can describe the
 - A **flat node index**: every node across all diagrams — `id`, `label`, `meta.type`, `meta.technology`, `path`, diagram/level. (This is also what you match the component name against above.)
 - The **edge list**: `source → target` with labels — the *declared* relationships, so the investigator can confirm or extend them.
 - The **repo root** (`git rev-parse --show-toplevel`) so `path` values resolve.
+- The component's **drift findings** from `architecture/.tecture/drift.json`, when it exists — the evidence script's verdicts on this node's path and edges (unverified edges to justify or fix, undeclared dependencies to investigate). Pass only the findings whose `nodeId` or edge endpoints name the target component.
 
 ## Mode 1 — one or a few components (the common path)
 
@@ -42,7 +45,7 @@ For each named component, spawn one investigator sub-agent (the Task/Agent tool 
 
 ### Investigator brief (adapt the wording)
 
-> You are documenting one component of a larger architecture. Target: **`<label>`** (`<id>`), which maps to `<path>`. Read its code thoroughly, and read other parts of the repo as needed to learn what it depends on and what depends on it — do not guess; find the import, route, query, or call that proves it. Return the enriched description in the template below, grounded in specific files, functions, routes, tables, and libraries you actually read. Stay within this component's responsibility — describe what it owns, not the whole system. If you find this component is internally complex enough to deserve its own drill-down diagram — 3+ separable parts (modules, routers, layers, workers) with their own interactions, not just a long list of files — add a one-line note after the description naming those sub-parts, so it can be offered as a drill-down. Don't design the diagram; just flag it. Also flag any place the **existing diagram JSON disagrees with the code you actually read** — a wrong `meta.type`, `technology`, `path`, or label; an edge the code doesn't make; a real dependency that has no edge; or a node with no code backing — and quote the evidence. Do not edit any files yourself; just report what you found and return your text.
+> You are documenting one component of a larger architecture. Target: **`<label>`** (`<id>`), which maps to `<path>`. This repo has a CodeGraph index — start with `codegraph explore "<the component's key symbols or files>"` (or the `codegraph_explore` MCP tool) and treat the returned line-numbered source as already read: it gives you the component's real code plus the call paths and blast radius (who calls it, what it affects), which feed the `## Dependencies` section directly. Read further files only for what the graph can't show (configs, env wiring, docs). Do not guess; find the import, route, query, or call that proves it. If drift findings for this component were included in your context, address them: confirm or refute each unverified edge and investigate each undeclared dependency. Return the enriched description in the template below, grounded in specific files, functions, routes, tables, and libraries you actually read. Stay within this component's responsibility — describe what it owns, not the whole system. If you find this component is internally complex enough to deserve its own drill-down diagram — 3+ separable parts (modules, routers, layers, workers) with their own interactions, not just a long list of files — add a one-line note after the description naming those sub-parts, so it can be offered as a drill-down. Don't design the diagram; just flag it. Also flag any place the **existing diagram JSON disagrees with the code you actually read** — a wrong `meta.type`, `technology`, `path`, or label; an edge the code doesn't make; a real dependency that has no edge; or a node with no code backing — and quote the evidence. Do not edit any files yourself; just report what you found and return your text.
 
 ### Enriched description template
 

@@ -4,6 +4,7 @@ import { handleRequest } from "../../src/messaging";
 import {
   VscodeFsArchitectureDataSource,
   VscodeFsLayoutStore,
+  readWorkspaceDrift,
   resolveArchitectureRoot,
   resolveLayoutsRoot,
 } from "../../src/dataSource";
@@ -12,6 +13,7 @@ import type {
   ApiDiagram,
   ApiNodeDetail,
   DiagramLayoutFile,
+  DriftReport,
 } from "@tecture/shared";
 
 function deps() {
@@ -96,6 +98,53 @@ suite("handleRequest", () => {
       deps(),
     );
     assert.strictEqual(res.ok, false);
+  });
+
+  test("loadDrift returns the report from deps.loadDrift", async () => {
+    const report: DriftReport = {
+      version: 1,
+      generatedAt: "2026-07-06T00:00:00.000Z",
+      generator: { name: "evidence.mjs" },
+      codegraphSchemaVersion: 6,
+      staleIndex: false,
+      summary: {
+        errors: 0,
+        warns: 1,
+        infos: 0,
+        nodesChecked: 1,
+        edgesChecked: 1,
+        nodesSkipped: 0,
+        edgesSkipped: 0,
+      },
+      findings: [
+        {
+          kind: "unverified-edge",
+          severity: "warn",
+          message: "no symbol edges support a -> b",
+        },
+      ],
+    };
+    const res = await handleRequest(
+      { id: "9", type: "loadDrift" },
+      { ...deps(), loadDrift: async () => report },
+    );
+    assert.strictEqual(res.ok, true);
+    if (!res.ok) return;
+    assert.deepStrictEqual(res.data, report);
+  });
+
+  test("loadDrift without a loadDrift capability returns ok:true null", async () => {
+    const res = await handleRequest({ id: "10", type: "loadDrift" }, deps());
+    assert.strictEqual(res.ok, true);
+    if (!res.ok) return;
+    assert.strictEqual(res.data, null);
+  });
+
+  test("readWorkspaceDrift returns null when drift.json is absent", async () => {
+    const folder = vscode.workspace.workspaceFolders?.[0];
+    if (!folder) throw new Error("no workspace folder in test environment");
+    const drift = await readWorkspaceDrift(resolveArchitectureRoot(folder));
+    assert.strictEqual(drift, null);
   });
 
   test("saveLayout + loadLayout round-trips through messaging", async () => {

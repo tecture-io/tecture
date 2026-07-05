@@ -5,6 +5,8 @@ import { healthRouter } from "./routes/health.js";
 import {
   architectureErrorHandler,
   createArchitectureRouter,
+  type DriftLoader,
+  type DriftResolver,
   type LayoutStoreResolver,
   type SourceResolver,
 } from "./routes/architecture.js";
@@ -17,6 +19,8 @@ import type { Reporter } from "./telemetry.js";
 export interface CreateAppOptions {
   source: ArchitectureDataSource | SourceResolver;
   layoutStore?: LayoutStore | LayoutStoreResolver | null;
+  /** Optional drift-report source (e.g. FsDriftReader); null/omitted → /drift serves null. */
+  drift?: DriftLoader | DriftResolver | null;
   /** Optional anonymous usage reporter (standalone viewer only). */
   report?: Reporter;
 }
@@ -36,6 +40,14 @@ function toLayoutStoreResolver(
   return () => value;
 }
 
+function toDriftResolver(
+  value: DriftLoader | DriftResolver | null | undefined,
+): DriftResolver | undefined {
+  if (value == null) return undefined;
+  if (typeof value === "function") return value as DriftResolver;
+  return () => value;
+}
+
 export function createApp(options: CreateAppOptions): Express {
   const app = express();
 
@@ -46,6 +58,7 @@ export function createApp(options: CreateAppOptions): Express {
     createArchitectureRouter({
       resolveSource: toSourceResolver(options.source),
       resolveLayoutStore: toLayoutStoreResolver(options.layoutStore),
+      resolveDrift: toDriftResolver(options.drift),
     }),
   );
   app.use("/api/architecture", architectureErrorHandler);

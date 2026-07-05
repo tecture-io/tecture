@@ -1,6 +1,6 @@
 import { resolve } from "node:path";
 import { createApp } from "./server.js";
-import { FsArchitectureDataSource, FsLayoutStore } from "./source/fs.js";
+import { FsArchitectureDataSource, FsDriftReader, FsLayoutStore } from "./source/fs.js";
 import { createTelemetry } from "./telemetry.js";
 
 interface CliOptions {
@@ -53,6 +53,7 @@ const telemetry = createTelemetry();
 const app = createApp({
   source: new FsArchitectureDataSource(architecturePath),
   layoutStore: new FsLayoutStore(tecturePath),
+  drift: new FsDriftReader(tecturePath),
   report: telemetry,
 });
 

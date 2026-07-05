@@ -17,14 +17,15 @@ A good architecture is **grounded in the repo** (every node, edge, and technolog
     │   └── <diagram-slug>.json  # one file per diagram
     ├── descriptions/
     │   └── <node-id>.md       # one file per unique node id
-    └── .tecture/              # viewer-managed state (optional, auto-created)
-        └── layouts/<slug>.json  # per-diagram node positions/sizes
+    └── .tecture/              # viewer-managed state (auto-created)
+        ├── layouts/<slug>.json  # per-diagram node positions/sizes
+        └── drift.json           # evidence report (scripts/evidence.mjs) — COMMIT this one
 ```
 
 - Slugs are kebab-case (`[a-z0-9]+(-[a-z0-9]+)*`).
 - Node ids must be **globally unique across all diagrams** — the description filename is the node id.
 - Cross-diagram drill-down uses `subDiagramId = "<other-diagram-slug>"`, not a UUID.
-- `architecture/.tecture/` (inside the architecture folder) is written by the Tecture viewer when users drag or resize nodes. Authoring agents must not hand-edit it. Deleting it is always safe — ELK auto-layout recomputes positions on the next load, and future user edits will recreate entries as needed. Commit or ignore it based on whether your team wants shared canonical layouts.
+- `architecture/.tecture/` (inside the architecture folder) is written by the Tecture viewer when users drag or resize nodes, and by `scripts/evidence.mjs` (which writes `drift.json`). Authoring agents must not hand-edit it. Deleting it is always safe — ELK auto-layout recomputes positions on the next load, and the evidence script regenerates `drift.json` on its next run. Commit or ignore `layouts/` based on whether your team wants shared canonical layouts; **commit `drift.json`** — it makes drift deltas reviewable in PRs, and the script rewrites it only when findings actually change.
 
 ## File formats
 
@@ -143,9 +144,24 @@ Three phases — **Discover → Map → Author**. Do not skip Phase A and dive s
 
 Stack-specific recipes, an external-system catalog, and a worked example live in [reference/discovery.md](reference/discovery.md). Read it once before authoring an architecture for an unfamiliar repo shape.
 
+### CodeGraph presence gate (hard requirement)
+
+This skill requires **CodeGraph** — the code-intelligence companion installed by `npx @tecture/install` — for discovery, deep-dives, and evidence checking. Before Phase A (and before any update or deep-dive), verify it:
+
+```
+codegraph status --json     # expect "initialized": true for this repo
+```
+
+If the `codegraph` binary is missing or the repo has no index (no `.codegraph/` directory), **STOP**. Tell the user to run `npx @tecture/install` (it installs the skill, installs CodeGraph globally, wires its MCP server, and indexes the repo), and do not proceed with authoring, updating, or deep-diving until it has. Do **not** fall back to manual grep/read-only discovery — an unverifiable architecture is the failure mode this gate exists to prevent.
+
 ### Phase A — Discover (read-only)
 
-Before writing any JSON, gather evidence for these eight artifacts. **Do not guess** — find the file or dependency that proves it.
+**Lead with CodeGraph.** The index already contains the repo's symbols, imports, call graph, routes, and framework wiring — query it before reading files:
+
+- `codegraph explore "<question or symbol names>"` (or the `codegraph_explore` MCP tool when your host has it; agents without the MCP integration — e.g. Copilot, Windsurf — use the CLI) answers "how does X work / what talks to Y" with verbatim source plus call paths.
+- `codegraph status --json` reports indexed languages and file/node/edge counts — a fast stack fingerprint.
+
+Then gather evidence for these eight artifacts. **Do not guess** — find the file, dependency, or index entry that proves it.
 
 1. **Repo shape** — single app, monorepo (one or many deployables), microservices, library/SDK, CLI, mobile, data pipeline. Detect from workspace files (`pnpm-workspace.yaml`, `lerna.json`, `turbo.json`, `go.work`, Cargo workspaces), top-level directories (`packages/`, `services/`, `apps/`, `cmd/`), and the count of `Dockerfile`s.
 2. **Primary stack** — read every `package.json`, `pyproject.toml`, `requirements*.txt`, `Cargo.toml`, `go.mod`, `pom.xml`, `build.gradle`, `Gemfile`, `composer.json`, `mix.exs`. Note the *frameworks* (Next.js, FastAPI, Django, NestJS, Spring Boot, gin, axum), not just the language.
@@ -172,7 +188,8 @@ Stack idioms differ — a Next.js + Postgres app, a Django monolith, a FastAPI +
 2. **For each diagram**, write `diagrams/<slug>.json`, then create `descriptions/<node-id>.md` for **every** node. Lead each description with one sentence of *responsibility* — what this node owns, not a rephrasing of its label. These seed descriptions are deliberately brief; a later [deep-dive](#deep-dive) can enrich any first-party code node on request. Add a `path` to any node that maps to exactly one file or directory (repo-root-relative; trailing `/` for a directory).
 3. **Write `manifest.json`** with `name`, `description` (2–4 plain-text paragraphs), `source` + `sourceHost` from Phase A (if a remote exists), `topDiagram` set to the L1 slug, and `diagrams` listing every slug.
 4. **Run the [Quality checklist](#quality-checklist)** against the draft. Fix anything that fails.
-5. **Validate** (see below). Fix every error before reporting success. Then **offer a [deep-dive](#deep-dive)** to enrich descriptions — a component, several, or all — but don't run it automatically.
+5. **Validate** (see below). Fix every error before reporting success.
+6. **Run the evidence check** (see [Evidence check](#evidence-check-codegraph)) and apply **resolve-or-explain**: fix every `error` finding; for each `warn`, either correct the diagram (add the missing edge, fix the wrong one) or explicitly justify it in your final report (e.g. "unverified: REST boundary, statically invisible"). Never silently ignore a finding. Commit the updated `architecture/.tecture/drift.json` along with the architecture files. Then **offer a [deep-dive](#deep-dive)** to enrich descriptions — a component, several, or all — but don't run it automatically.
 
 ## Quality checklist
 
@@ -220,7 +237,7 @@ Full orchestration — component resolution, the shared context pack, the invest
 - Renaming a node id: rename the description file to match, update every `parentId`/`subDiagramId`/`source`/`target` reference, then re-validate.
 - Removing a diagram: remove the file, remove the slug from `manifest.diagrams`, clear any `subDiagramId` that pointed to it, and delete description `.md`s for nodes that no longer appear anywhere.
 
-Write the complete file each time — do not try to patch JSON by hand with partial objects.
+Write the complete file each time — do not try to patch JSON by hand with partial objects. The [presence gate](#codegraph-presence-gate-hard-requirement) applies to updates too; after any update, re-run both the validator and the [evidence check](#evidence-check-codegraph) (resolve-or-explain, commit the refreshed `drift.json`).
 
 After an update, offer to [deep-dive](#deep-dive) the **added or changed** first-party code nodes only — not the whole architecture — so new components get the same depth without re-investigating unchanged ones.
 
@@ -245,3 +262,23 @@ The validator checks:
 - **Cycles** — the `subDiagramId` drill-down graph is acyclic.
 
 Exit codes: `0` success, `1` validation failure, `2` internal error. Non-zero exit means there is still work to do — fix and re-run.
+
+## Evidence check (CodeGraph)
+
+The validator checks *shape*; the evidence script checks the architecture **against the actual code**, via the CodeGraph index:
+
+```
+node .claude/skills/architecture-docs/scripts/evidence.mjs
+```
+
+Defaults to `./architecture` and `<repo-root>/.codegraph/codegraph.db` (repo root = the parent of the architecture directory); pass a path and/or `--db <path>` to override. Requires Node ≥ 22.5 (for `node:sqlite`) and an index — no index is a hard error pointing at `npx @tecture/install`.
+
+What it reports:
+
+- `missing-path` (**error**) — a node's `path` matches no indexed file and doesn't exist on disk. Always fix.
+- `unverified-edge` (**warn**) — a declared edge with no supporting symbol edges between the two nodes' paths. Legitimate for runtime/HTTP boundaries; still needs an explicit justification in your report (resolve-or-explain).
+- `undeclared-dependency` (**warn**) — ≥3 real (non-heuristic) symbol edges cross two nodes with no declared edge. Usually a missing edge in the diagram — add it, or justify why it stays off the map.
+- `unmapped-external` (**info**) — a well-known SDK (stripe, openai, pg, …) is imported but no node covers it. Consider an external node.
+- `skipped-node` / `skipped-edge` (**info**) — pathless nodes and person/external/datastore edges that static analysis cannot verify. Expected; no action needed.
+
+It writes `architecture/.tecture/drift.json` (the Tecture viewer renders it as the Drift panel and per-node Evidence sections) — but only when findings actually changed, so committing it produces reviewable PR diffs without churn. Exit codes: `0` ran (findings are advisory), `1` hard failure (no index / old schema / Node < 22.5) or — with `--strict` — error-severity findings present, `2` internal error. If it warns about a stale index, run `codegraph sync` and re-run.

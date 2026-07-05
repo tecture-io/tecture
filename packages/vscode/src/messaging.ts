@@ -5,6 +5,7 @@ import {
   type ApiNodeDetail,
   type ArchitectureDataSource,
   type DescriptionNotFoundError,
+  type DriftReport,
   type LayoutStore,
   type TectureRequest,
   type TectureResponse,
@@ -15,6 +16,8 @@ export interface MessageDeps {
   layouts: LayoutStore;
   /** Open a repo-root-relative file or directory in the editor. */
   openFile?: (path: string) => Promise<void>;
+  /** Load the evidence script's drift report, or null when none exists. */
+  loadDrift?: () => Promise<DriftReport | null>;
 }
 
 export async function handleRequest(
@@ -57,6 +60,10 @@ export async function handleRequest(
       }
       case "saveLayout": {
         const data = await deps.layouts.saveLayout(req.slug, req.update);
+        return { id: req.id, ok: true, data };
+      }
+      case "loadDrift": {
+        const data = deps.loadDrift ? await deps.loadDrift() : null;
         return { id: req.id, ok: true, data };
       }
       case "openFile": {

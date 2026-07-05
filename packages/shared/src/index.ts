@@ -155,6 +155,7 @@ export type TectureRequest =
   | { id: string; type: "loadDiagram"; slug: string }
   | { id: string; type: "loadLayout"; slug: string }
   | { id: string; type: "loadNodeDetail"; nodeId: string }
+  | { id: string; type: "loadDrift" }
   | { id: string; type: "openFile"; path: string }
   | {
       id: string;
@@ -180,3 +181,4 @@ export type TectureNotification =
 
 export * from "./validators";
 export * from "./deepDive";
+export * from "./drift";
