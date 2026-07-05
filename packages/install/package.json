@@ -1,0 +1,52 @@
+{
+  "name": "@tecture/install",
+  "version": "0.1.0",
+  "description": "One-command Tecture setup: installs the architecture-docs agent skill AND the required CodeGraph companion (global CLI, MCP server config, repo index).",
+  "keywords": [
+    "agent-skills",
+    "skill",
+    "installer",
+    "codegraph",
+    "code-intelligence",
+    "claude-code",
+    "cursor",
+    "codex",
+    "architecture",
+    "c4"
+  ],
+  "license": "MIT",
+  "author": "Shanika Wijerathna <shanikacj@gmail.com>",
+  "homepage": "https://github.com/tecture-io/tecture#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tecture-io/tecture.git",
+    "directory": "packages/install"
+  },
+  "bugs": {
+    "url": "https://github.com/tecture-io/tecture/issues"
+  },
+  "type": "module",
+  "bin": "./dist/cli.js",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "tsx src/cli.ts",
+    "build": "tsup && node scripts/copy-skill-bundle.mjs",
+    "start": "node dist/cli.js",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@tecture/skill": "workspace:*",
+    "@types/node": "^20.17.6",
+    "tsup": "^8.3.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.9"
+  }
+}

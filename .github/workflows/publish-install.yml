@@ -1,0 +1,99 @@
+name: Publish @tecture/install to npm
+
+on:
+  push:
+    tags:
+      - "install-v*"
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Build + verify the tarball only, do not publish."
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+concurrency:
+  group: publish-install-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build and publish @tecture/install
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          # 22+: the bundled evidence.mjs self-test needs node:sqlite (>= 22.5).
+          node-version: 22
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm --filter @tecture/install typecheck
+
+      - name: Build (inlines @tecture/skill + bundles the skill payload)
+        run: pnpm --filter @tecture/install build
+
+      - name: Test
+        run: pnpm --filter @tecture/install test
+
+      - name: Validate bundled skill before publishing
+        run: node packages/install/dist/skill/architecture-docs/scripts/validate.mjs packages/install/dist/skill/architecture-docs/reference/example
+
+      - name: Self-test bundled evidence script
+        run: node packages/install/dist/skill/architecture-docs/scripts/evidence.mjs --self-test
+
+      - name: Verify version matches tag
+        if: startsWith(github.ref, 'refs/tags/install-v')
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/install-v}"
+          PKG_VERSION="$(node -p "require('./packages/install/package.json').version")"
+          echo "tag=$TAG pkg=$PKG_VERSION"
+          if [ "$TAG" != "$PKG_VERSION" ]; then
+            echo "::error::Tag install-v$TAG does not match package version $PKG_VERSION"
+            exit 1
+          fi
+
+      - name: Verify publishable tarball
+        run: pnpm --filter @tecture/install publish --dry-run --no-git-checks
+
+      - name: Publish to npm
+        if: inputs.dry-run != 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::NPM_TOKEN secret is not set. Add it in Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > "$HOME/.npmrc"
+          pnpm --filter @tecture/install publish --no-git-checks
+
+      - name: Create GitHub Release
+        if: |
+          startsWith(github.ref, 'refs/tags/install-v') &&
+          inputs.dry-run != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#install-v}"
+          gh release create "$TAG" \
+            --title "@tecture/install $VERSION" \
+            --notes "\`npx @tecture/install@$VERSION\` — skill + CodeGraph companion · see the [repo](https://github.com/${{ github.repository }}#readme)."
