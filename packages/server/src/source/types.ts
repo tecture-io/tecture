@@ -10,8 +10,10 @@ export {
   normalizeLayoutUpdate,
   buildArchitectureSummary,
   findNode,
+  parseDriftReport,
 } from "@tecture/shared";
 export type {
   ArchitectureDataSource,
+  DriftReport,
   LayoutStore,
 } from "@tecture/shared";

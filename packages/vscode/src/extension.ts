@@ -3,6 +3,7 @@ import {
   VscodeFsArchitectureDataSource,
   VscodeFsLayoutStore,
   getArchitecturePath,
+  readWorkspaceDrift,
   resolveArchitectureRoot,
   resolveLayoutsRoot,
 } from "./dataSource";
@@ -61,6 +62,7 @@ function buildDeps(folder: vscode.WorkspaceFolder): MessageDeps {
     source: new VscodeFsArchitectureDataSource(resolveArchitectureRoot(folder)),
     layouts: new VscodeFsLayoutStore(resolveLayoutsRoot(folder)),
     openFile: (path) => openFileInWorkspace(folder, path),
+    loadDrift: () => readWorkspaceDrift(resolveArchitectureRoot(folder)),
   };
 }
 

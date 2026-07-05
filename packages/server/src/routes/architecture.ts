@@ -13,6 +13,7 @@ import {
   type ArchitectureDataSource,
   DescriptionNotFoundError,
   DiagramNotFoundError,
+  type DriftReport,
   type LayoutStore,
   LayoutInvalidError,
   NodeNotFoundError,
@@ -30,9 +31,19 @@ export type LayoutStoreResolver = (
   req: Request,
 ) => LayoutStore | null | Promise<LayoutStore | null>;
 
+/** Anything that can produce the current drift report (e.g. FsDriftReader). */
+export interface DriftLoader {
+  load(): Promise<DriftReport | null>;
+}
+
+export type DriftResolver = (
+  req: Request,
+) => DriftLoader | null | Promise<DriftLoader | null>;
+
 export interface ArchitectureRouterOptions {
   resolveSource: SourceResolver;
   resolveLayoutStore?: LayoutStoreResolver;
+  resolveDrift?: DriftResolver;
 }
 
 function send501(res: Response, body: ApiArchitectureError): void {
@@ -51,7 +62,7 @@ export function createArchitectureRouter(
   opts: ArchitectureRouterOptions,
 ): Router {
   const router = Router();
-  const { resolveSource, resolveLayoutStore } = opts;
+  const { resolveSource, resolveLayoutStore, resolveDrift } = opts;
 
   router.get("/", async (req, res, next) => {
     try {
@@ -68,6 +79,19 @@ export function createArchitectureRouter(
       const source = await resolveSource(req);
       const manifest: ManifestFile = await source.loadManifest();
       res.json(manifest);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Drift is optional viewer state: absent file, malformed file, or an
+  // unconfigured loader are all the same normal condition — 200 with a null
+  // body (never 404, so clients stay branch-free).
+  router.get("/drift", async (req, res, next) => {
+    try {
+      const loader = resolveDrift ? await resolveDrift(req) : null;
+      const report = loader ? await loader.load() : null;
+      res.json(report);
     } catch (err) {
       next(err);
     }

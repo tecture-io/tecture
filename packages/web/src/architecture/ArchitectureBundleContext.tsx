@@ -13,6 +13,7 @@ import type {
   ApiDiagramLayoutUpdate,
   ApiNodeDetail,
   DiagramLayoutFile,
+  DriftReport,
 } from "@tecture/shared";
 import { LoadingSplash } from "./LoadingSplash";
 import type { WebDataSource } from "./dataSource";
@@ -23,6 +24,8 @@ export interface ArchitectureBundle {
   layouts: Record<string, DiagramLayoutFile>;
   nodes: Record<string, ApiNodeDetail>;
   missingDescriptions: Set<string>;
+  /** Drift report from the evidence script, or null when none exists. */
+  drift: DriftReport | null;
 }
 
 export type BundlePhase = "summary" | "diagrams" | "descriptions";
@@ -192,6 +195,11 @@ async function loadBundle({
 }: LoadCallbacks): Promise<void> {
   try {
     onState({ status: "loading", phase: "summary", done: 0, total: 1 });
+    // Drift is optional decoration — load it alongside everything else and
+    // never let its failure break the bundle.
+    const driftPromise: Promise<DriftReport | null> = dataSource.loadDrift
+      ? dataSource.loadDrift().catch(() => null)
+      : Promise.resolve(null);
     const summary = await dataSource.loadSummary();
     if (isCancelled()) return;
 
@@ -282,6 +290,9 @@ async function loadBundle({
     );
     if (isCancelled()) return;
 
+    const drift = await driftPromise;
+    if (isCancelled()) return;
+
     onState({
       status: "ready",
       bundle: {
@@ -290,6 +301,7 @@ async function loadBundle({
         layouts,
         nodes,
         missingDescriptions: missing,
+        drift,
       },
     });
   } catch (err) {

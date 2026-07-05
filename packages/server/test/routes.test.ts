@@ -4,8 +4,13 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import request from "supertest";
+import { writeFile } from "node:fs/promises";
 import { createApp } from "../src/server.js";
-import { FsArchitectureDataSource, FsLayoutStore } from "../src/source/fs.js";
+import {
+  FsArchitectureDataSource,
+  FsDriftReader,
+  FsLayoutStore,
+} from "../src/source/fs.js";
 
 const FIXTURES_ROOT = join(
   dirname(fileURLToPath(import.meta.url)),
@@ -238,5 +243,54 @@ describe("layout endpoints", () => {
     );
     expect(res.status).toBe(200);
     expect(res.body.nodes).toEqual({});
+  });
+});
+
+describe("GET /api/architecture/drift", () => {
+  let driftDir: string;
+
+  beforeEach(async () => {
+    driftDir = await mkdtemp(join(tmpdir(), "tecture-drift-route-"));
+  });
+
+  afterEach(async () => {
+    await rm(driftDir, { recursive: true, force: true });
+  });
+
+  function makeDriftApp(tectureRoot: string | null) {
+    const source = new FsArchitectureDataSource(FIXTURES_ROOT);
+    const drift = tectureRoot ? new FsDriftReader(tectureRoot) : null;
+    return createApp({ source, drift });
+  }
+
+  it("returns the drift report when present", async () => {
+    const app = makeDriftApp(join(FIXTURES_ROOT, ".tecture"));
+    const res = await request(app).get("/api/architecture/drift");
+    expect(res.status).toBe(200);
+    expect(res.body.version).toBe(1);
+    expect(res.body.findings).toHaveLength(3);
+    expect(res.body.findings[0].kind).toBe("missing-path");
+  });
+
+  it("returns 200 null when drift.json is absent", async () => {
+    const app = makeDriftApp(driftDir);
+    const res = await request(app).get("/api/architecture/drift");
+    expect(res.status).toBe(200);
+    expect(res.body).toBeNull();
+  });
+
+  it("returns 200 null when drift.json is malformed", async () => {
+    await writeFile(join(driftDir, "drift.json"), "{not json", "utf8");
+    const app = makeDriftApp(driftDir);
+    const res = await request(app).get("/api/architecture/drift");
+    expect(res.status).toBe(200);
+    expect(res.body).toBeNull();
+  });
+
+  it("returns 200 null when no drift loader is configured", async () => {
+    const app = makeDriftApp(null);
+    const res = await request(app).get("/api/architecture/drift");
+    expect(res.status).toBe(200);
+    expect(res.body).toBeNull();
   });
 });

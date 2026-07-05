@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { DiagramCanvas } from "./DiagramCanvas";
 import { DiagramList } from "./DiagramList";
+import { DriftPanel } from "./DriftPanel";
 import { NodeDetailPanel } from "./NodeDetailPanel";
 import { KeyboardHint } from "./KeyboardHint";
 import { OnboardingWizard } from "./OnboardingWizard";
@@ -83,6 +84,7 @@ export function ArchitectureView({ diagramId, showDiagramList = true }: Props) {
         />
       )}
       <KeyboardHint />
+      <DriftPanel />
       {selectedNodeId && (
         <NodeDetailPanel
           key={selectedNodeId}
