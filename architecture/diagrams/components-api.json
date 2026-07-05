@@ -1,57 +1,83 @@
 {
   "name": "CLI Server — Components",
   "level": 3,
-  "meta": { "direction": "TB" },
+  "meta": {
+    "direction": "TB"
+  },
   "nodes": [
     {
       "id": "cli-entry",
       "label": "CLI Entry",
       "path": "packages/server/src/cli.ts",
-      "meta": { "type": "service", "technology": "typescript" }
+      "meta": {
+        "type": "service",
+        "technology": "typescript"
+      }
     },
     {
       "id": "express-app",
       "label": "Express App",
       "path": "packages/server/src/server.ts",
-      "meta": { "type": "service", "technology": "express" }
+      "meta": {
+        "type": "service",
+        "technology": "express"
+      }
     },
     {
       "id": "route-handlers",
       "label": "Route Handlers",
       "path": "packages/server/src/routes/",
-      "meta": { "type": "gateway", "isContainer": true }
+      "meta": {
+        "type": "gateway",
+        "isContainer": true
+      }
     },
     {
       "id": "health-route",
       "label": "Health Route",
       "parentId": "route-handlers",
       "path": "packages/server/src/routes/health.ts",
-      "meta": { "type": "service", "technology": "express" }
+      "meta": {
+        "type": "service",
+        "technology": "express"
+      }
     },
     {
       "id": "architecture-routes",
       "label": "Architecture Routes",
       "parentId": "route-handlers",
       "path": "packages/server/src/routes/architecture.ts",
-      "meta": { "type": "service", "technology": "express" }
+      "meta": {
+        "type": "service",
+        "technology": "express"
+      }
     },
     {
       "id": "static-handler",
       "label": "Static Handler",
       "parentId": "route-handlers",
-      "meta": { "type": "service", "technology": "express" }
+      "meta": {
+        "type": "service",
+        "technology": "express"
+      }
     },
     {
       "id": "data-source-types",
       "label": "Data Source Abstraction",
       "path": "packages/server/src/source/types.ts",
-      "meta": { "type": "service", "technology": "typescript" }
+      "meta": {
+        "type": "service",
+        "technology": "typescript"
+      }
     },
     {
       "id": "fs-data-source",
       "label": "FS Data Source",
       "path": "packages/server/src/source/fs.ts",
-      "meta": { "type": "service", "technology": "nodedotjs" }
+      "meta": {
+        "type": "service",
+        "technology": "nodedotjs"
+      }
     }
   ],
   "edges": [
@@ -60,49 +86,72 @@
       "source": "cli-entry",
       "target": "fs-data-source",
       "label": "new FsArchitectureDataSource + FsLayoutStore",
-      "meta": { "type": "calls" }
+      "meta": {
+        "type": "calls"
+      }
     },
     {
       "id": "e-cli-entry-express-app",
       "source": "cli-entry",
       "target": "express-app",
       "label": "createApp({ source, layoutStore })",
-      "meta": { "type": "calls" }
+      "meta": {
+        "type": "calls"
+      }
     },
     {
       "id": "e-express-app-health-route",
       "source": "express-app",
       "target": "health-route",
       "label": "mount /api/health",
-      "meta": { "type": "calls" }
+      "meta": {
+        "type": "calls"
+      }
     },
     {
       "id": "e-express-app-architecture-routes",
       "source": "express-app",
       "target": "architecture-routes",
       "label": "mount /api/architecture",
-      "meta": { "type": "calls" }
+      "meta": {
+        "type": "calls"
+      }
     },
     {
       "id": "e-express-app-static-handler",
       "source": "express-app",
       "target": "static-handler",
       "label": "mount /* (SPA fallback)",
-      "meta": { "type": "calls" }
+      "meta": {
+        "type": "calls"
+      }
     },
     {
       "id": "e-architecture-routes-data-source-types",
       "source": "architecture-routes",
       "target": "data-source-types",
       "label": "resolveSource(req).loadManifest / loadDiagram / loadDescription",
-      "meta": { "type": "calls" }
+      "meta": {
+        "type": "calls"
+      }
     },
     {
       "id": "e-fs-data-source-data-source-types",
       "source": "fs-data-source",
       "target": "data-source-types",
       "label": "implements ArchitectureDataSource + LayoutStore",
-      "meta": { "type": "data-flow" }
+      "meta": {
+        "type": "data-flow"
+      }
+    },
+    {
+      "id": "e-architecture-routes-fs-data-source",
+      "source": "architecture-routes",
+      "target": "fs-data-source",
+      "label": "loads manifest/diagrams/descriptions per request",
+      "meta": {
+        "type": "calls"
+      }
     }
   ]
 }

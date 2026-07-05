@@ -37,21 +37,23 @@ Vite proxies `/api/*` to the Express server, so open the Vite URL — don't open
 
 ```
 packages/
-  shared/    # @tecture/shared — TypeScript types only
-  web/       # @tecture/web    — React + Vite UI (private, bundled into the CLI)
-  server/    # @tecture/core   — Express + CLI (the published package)
+  shared/    # @tecture/shared  — TypeScript types + validators
+  web/       # @tecture/web     — React + Vite UI (bundled into the CLI)
+  server/    # @tecture/core    — Express + CLI (the standalone viewer)
+  installer/ # @tecture/skill   — pure skill installer (also a library)
+  install/   # @tecture/install — umbrella installer: skill + CodeGraph companion
+  vscode/    # tecture-vscode   — VS Code extension
 architecture/ # this project's own C4 diagrams — edit to dogfood your change
 ```
 
 ### Before opening a PR
 
 1. `pnpm typecheck` — must pass in every package.
-2. `pnpm build` — must produce `packages/server/dist/cli.js` + `dist/public/`.
-3. `pnpm start` — open `http://localhost:3000` and verify the diagram you touched still renders.
-4. If you changed the file format, update [architecture/](architecture/) in this repo so Tecture keeps dogfooding itself.
-5. Update the README/CHANGELOG if your change is user-visible.
-
-There is no test suite yet. If you add one, great — propose the framework in an issue first so we pick something that sticks.
+2. `pnpm test` — the vitest workspace (shared, server, web, installer, install). The skill's evidence script has its own suite: `node .claude/skills/architecture-docs/scripts/evidence.mjs --self-test` (needs Node ≥ 22.5).
+3. `pnpm build` — must produce `packages/server/dist/cli.js` + `dist/public/`.
+4. `pnpm start` — open `http://localhost:3000` and verify the diagram you touched still renders.
+5. If you changed the file format, update [architecture/](architecture/) in this repo so Tecture keeps dogfooding itself.
+6. Update the README/CHANGELOG if your change is user-visible.
 
 ## Commits and PRs
 

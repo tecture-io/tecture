@@ -1,6 +1,6 @@
 {
   "name": "@tecture/shared",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shared types and runtime helpers for Tecture — the file-based (JSON + Markdown) architecture documentation format.",
   "keywords": [
     "c4",

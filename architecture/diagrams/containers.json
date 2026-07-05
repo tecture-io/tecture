@@ -1,50 +1,90 @@
 {
   "name": "Containers",
   "level": 2,
-  "meta": { "direction": "TB" },
+  "meta": {
+    "direction": "TB"
+  },
   "nodes": [
     {
       "id": "cli-server",
       "label": "CLI Server",
       "path": "packages/server/",
       "subDiagramId": "components-api",
-      "meta": { "type": "service", "technology": "express" }
+      "meta": {
+        "type": "service",
+        "technology": "express"
+      }
     },
     {
       "id": "vscode-extension",
       "label": "VS Code Extension",
       "path": "packages/vscode/",
       "subDiagramId": "components-vscode",
-      "meta": { "type": "service", "technology": "typescript" }
+      "meta": {
+        "type": "service",
+        "technology": "typescript"
+      }
     },
     {
       "id": "web-ui",
       "label": "Web UI",
       "path": "packages/web/",
       "subDiagramId": "components-web",
-      "meta": { "type": "frontend", "technology": "react" }
+      "meta": {
+        "type": "frontend",
+        "technology": "react"
+      }
     },
     {
       "id": "shared-contract",
       "label": "Shared Contract",
       "path": "packages/shared/src/",
-      "meta": { "type": "service", "technology": "typescript" }
+      "meta": {
+        "type": "service",
+        "technology": "typescript"
+      }
     },
     {
       "id": "skill-installer",
       "label": "Skill Installer",
       "path": "packages/installer/",
-      "meta": { "type": "service", "technology": "typescript" }
+      "meta": {
+        "type": "service",
+        "technology": "typescript"
+      }
     },
     {
       "id": "architecture-fs",
       "label": "Architecture Directory",
-      "meta": { "type": "storage", "technology": "markdown" }
+      "meta": {
+        "type": "storage",
+        "technology": "markdown"
+      }
     },
     {
       "id": "posthog-cloud",
       "label": "PostHog Cloud",
-      "meta": { "type": "external", "technology": "posthog" }
+      "meta": {
+        "type": "external",
+        "technology": "posthog"
+      }
+    },
+    {
+      "id": "umbrella-installer",
+      "label": "Umbrella Installer",
+      "path": "packages/install/",
+      "meta": {
+        "type": "service",
+        "technology": "typescript"
+      }
+    },
+    {
+      "id": "codegraph-cli",
+      "label": "CodeGraph CLI",
+      "meta": {
+        "type": "external",
+        "technology": "sqlite"
+      }
     }
   ],
   "edges": [
@@ -53,84 +93,144 @@
       "source": "cli-server",
       "target": "web-ui",
       "label": "serves bundled SPA + static assets",
-      "meta": { "type": "data-flow" }
+      "meta": {
+        "type": "data-flow"
+      }
     },
     {
       "id": "e-web-ui-cli-server",
       "source": "web-ui",
       "target": "cli-server",
       "label": "GET/PUT /api/architecture/*",
-      "meta": { "type": "calls" }
+      "meta": {
+        "type": "calls"
+      }
     },
     {
       "id": "e-vscode-extension-web-ui",
       "source": "vscode-extension",
       "target": "web-ui",
       "label": "hosts SPA in webview panel",
-      "meta": { "type": "data-flow" }
+      "meta": {
+        "type": "data-flow"
+      }
     },
     {
       "id": "e-web-ui-vscode-extension",
       "source": "web-ui",
       "target": "vscode-extension",
       "label": "postMessage TectureRequest",
-      "meta": { "type": "calls" }
+      "meta": {
+        "type": "calls"
+      }
     },
     {
       "id": "e-cli-server-shared-contract",
       "source": "cli-server",
       "target": "shared-contract",
       "label": "implements ArchitectureDataSource + LayoutStore",
-      "meta": { "type": "data-flow" }
+      "meta": {
+        "type": "data-flow"
+      }
     },
     {
       "id": "e-vscode-extension-shared-contract",
       "source": "vscode-extension",
       "target": "shared-contract",
       "label": "implements ArchitectureDataSource + LayoutStore",
-      "meta": { "type": "data-flow" }
+      "meta": {
+        "type": "data-flow"
+      }
     },
     {
       "id": "e-web-ui-shared-contract",
       "source": "web-ui",
       "target": "shared-contract",
       "label": "imports API + request types",
-      "meta": { "type": "data-flow" }
+      "meta": {
+        "type": "data-flow"
+      }
     },
     {
       "id": "e-cli-server-architecture-fs",
       "source": "cli-server",
       "target": "architecture-fs",
       "label": "reads/writes via node:fs",
-      "meta": { "type": "reads" }
+      "meta": {
+        "type": "reads"
+      }
     },
     {
       "id": "e-vscode-extension-architecture-fs",
       "source": "vscode-extension",
       "target": "architecture-fs",
       "label": "reads/writes via vscode.workspace.fs",
-      "meta": { "type": "reads" }
+      "meta": {
+        "type": "reads"
+      }
     },
     {
       "id": "e-cli-server-posthog-cloud",
       "source": "cli-server",
       "target": "posthog-cloud",
       "label": "anonymous viewer telemetry (opt-out)",
-      "meta": { "type": "writes" }
+      "meta": {
+        "type": "writes"
+      }
     },
     {
       "id": "e-vscode-extension-posthog-cloud",
       "source": "vscode-extension",
       "target": "posthog-cloud",
       "label": "anonymous viewer telemetry (opt-out)",
-      "meta": { "type": "writes" }
+      "meta": {
+        "type": "writes"
+      }
     },
     {
       "id": "e-skill-installer-posthog-cloud",
       "source": "skill-installer",
       "target": "posthog-cloud",
       "label": "anonymous install telemetry (opt-out)",
-      "meta": { "type": "writes" }
+      "meta": {
+        "type": "writes"
+      }
+    },
+    {
+      "id": "e-umbrella-installer-skill-installer",
+      "source": "umbrella-installer",
+      "target": "skill-installer",
+      "label": "runs skill install via runSync hooks",
+      "meta": {
+        "type": "calls"
+      }
+    },
+    {
+      "id": "e-umbrella-installer-codegraph-cli",
+      "source": "umbrella-installer",
+      "target": "codegraph-cli",
+      "label": "npm install -g; codegraph install/init",
+      "meta": {
+        "type": "calls"
+      }
+    },
+    {
+      "id": "e-skill-installer-codegraph-cli",
+      "source": "skill-installer",
+      "target": "codegraph-cli",
+      "label": "bundled evidence.mjs reads .codegraph/codegraph.db",
+      "meta": {
+        "type": "reads"
+      }
+    },
+    {
+      "id": "e-umbrella-installer-posthog-cloud",
+      "source": "umbrella-installer",
+      "target": "posthog-cloud",
+      "label": "anonymous install telemetry (opt-out)",
+      "meta": {
+        "type": "writes"
+      }
     }
   ]
 }

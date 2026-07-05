@@ -2,6 +2,17 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [0.0.13] — 2026-07-06
+
+### Added
+
+- **Drift panel + per-node Evidence sections.** When the workspace has
+  `architecture/.tecture/drift.json` (written by the architecture-docs skill's
+  CodeGraph evidence script), the webview shows the same severity-colored
+  **Drift** pill and node-level Evidence sections as the standalone viewer.
+  The existing `.tecture/**` file watcher picks up report changes automatically;
+  a missing or malformed report simply shows no drift UI.
+
 ## [0.0.12] — 2026-06-29
 
 ### Fixed

@@ -2,6 +2,19 @@
 
 All notable changes to `@tecture/core` are documented here.
 
+## [0.1.0] — 2026-07-06
+
+### Added
+
+- **Drift report endpoint + viewer panel.** `GET /api/architecture/drift` serves
+  `architecture/.tecture/drift.json` — the report the architecture-docs skill's
+  evidence script generates by verifying the architecture against the repo's
+  CodeGraph index. The bundled viewer renders it as a **Drift** pill with a
+  grouped findings list, plus per-node **Evidence** sections in the detail panel.
+  A missing, malformed, or unconfigured report serves `null` (HTTP 200) and the
+  viewer simply shows no drift UI. Library consumers get a new optional `drift`
+  option on `createApp` (accepting an `FsDriftReader` or a per-request resolver).
+
 ## [0.0.11] — 2026-06-26
 
 ### Added

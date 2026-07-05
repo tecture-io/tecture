@@ -14,13 +14,18 @@ The output is a folder of plain files that lives in the repo alongside the code.
 
 ## Quickstart
 
-**1. Install the architecture-docs skill** (works with Claude Code, Cursor, GitHub Copilot, Codex, Windsurf, and other major coding agents)
+**1. Install Tecture** (works with Claude Code, Cursor, GitHub Copilot, Codex, Windsurf, and other major coding agents) — from the repo you want to map:
 
 ```bash
-npx @tecture/skill@latest
+npx @tecture/install@latest
 ```
 
-This installs the skill into each agent's native skills directory (interactive — pick your agents). Re-run the same command anytime to update; add `--check` to see what's installed, or `--yes` for a non-interactive install. Always use `@latest` so npx doesn't re-run a cached copy.
+One command sets up everything (interactive — pick your agents). Re-run anytime to update; add `--check` to see what's installed, or `--yes` for a non-interactive install. Always use `@latest` so npx doesn't re-run a cached copy. It installs:
+
+- the **architecture-docs skill** into each agent's native skills directory, and
+- the **CodeGraph companion** ([`@colbymchenry/codegraph`](https://www.npmjs.com/package/@colbymchenry/codegraph), ~50 MB global npm install): a local code-intelligence index the skill uses for discovery, deep-dives, and drift checking. Its MCP server is configured for agents that support it (Claude Code, Cursor, Codex) and the repo is indexed on the spot.
+
+**CodeGraph is required, not optional** — if its setup fails (offline, npm permissions), the install aborts with the exact commands to finish manually. Skill-only installs remain available via `npx @tecture/skill@latest`, but the skill will stop and ask for CodeGraph at authoring time. The drift check additionally needs Node ≥ 22.5 at run time. Tecture disables CodeGraph's telemetry (`CODEGRAPH_TELEMETRY=0`) for every process it spawns.
 
 **2. Generate the map.** From your project root, either:
 
@@ -58,6 +63,8 @@ architecture/
 
 Each diagram is one level of a multi-level architecture view (system → containers → components). Nodes represent systems, services, datastores, and similar building blocks; edges are relationships like `calls`, `reads`, or `publishes`. See [`./architecture`](./architecture) for a worked example — this repo documents itself.
 
+The skill also verifies the map against the code: its bundled evidence script reads the CodeGraph index, checks every node path and declared edge, and writes `architecture/.tecture/drift.json` — rendered by the viewers as a **Drift panel** (plus per-node Evidence sections), and committed so drift deltas show up in PRs.
+
 ## How it's different
 
 - **Not a diagram DSL.** Mermaid, PlantUML, and Structurizr expect a human to author and maintain the diagram. Tecture is authored by your coding agent and kept current by the same agent.
@@ -68,12 +75,12 @@ Each diagram is one level of a multi-level architecture view (system → contain
 
 Tecture's goal is to make software architecture legible. Architecture knowledge today tends to live in people's heads, in stale documents, or nowhere at all. We think it should be a maintained, navigable artifact that lives with the code.
 
-Today, Tecture relies entirely on AI coding agents to generate and update architecture maps — and agents are getting remarkably good at this. The human's role is to review and refine what the agent produces, the same way you'd review any other PR. Over time we plan to introduce structural analysis (parsing dependency graphs, module boundaries, call patterns) to complement what the agent sees, producing more accurate maps with less manual correction.
+Tecture pairs AI coding agents with deterministic structural analysis. The agent writes and maintains the map; the CodeGraph index grounds it — discovery starts from the real symbol/call/import graph, and the evidence check verifies every node path and declared edge against the code, so drift is caught instead of accumulating. The human's role is to review and refine what the agent produces, the same way you'd review any other PR.
 
 ## Roadmap
 
 - **Sharper skills.** Specialized skills tuned for specific tech stacks and common reference architectures.
-- **Structural analysis.** Static analysis to supplement agent-generated maps with verified dependency and call-graph data.
+- **Deeper structural analysis.** The CodeGraph integration ships today (index-first discovery, evidence-checked edges, drift reports). Next: derived candidate diagrams — module-boundary aggregation that proposes the C4 structure itself.
 
 A hosted, multi-repo edition for organisations with many services is in design separately.
 

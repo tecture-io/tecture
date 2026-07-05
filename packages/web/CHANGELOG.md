@@ -1,5 +1,16 @@
 # @tecture/web
 
+## 0.2.0
+
+- Added drift surfacing. When the host provides a drift report (from the
+  architecture-docs skill's CodeGraph evidence script), the viewer shows a
+  severity-colored **Drift: N** pill that expands into a grouped findings list —
+  generation time, stale-index banner, per-finding evidence — and the node detail
+  panel gains an **Evidence** section listing the findings that touch that node.
+  `WebDataSource` gains an optional `loadDrift()`, implemented by
+  `createHttpDataSource` against `GET /api/architecture/drift`. Hosts without
+  drift support are unaffected — no report, no UI.
+
 ## 0.1.1
 
 - Added a first-run onboarding wizard. On every architecture load the viewer shows a
