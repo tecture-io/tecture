@@ -25,16 +25,27 @@ export interface AppProps {
   dataSource: WebDataSource;
   /** Forces the bundle provider to reload when the value changes. */
   reloadKey?: unknown;
+  /** Opens the onboarding tour when the value changes, e.g. from a host command. */
+  showOnboardingKey?: unknown;
   /** Show the floating diagram list overlay. Defaults to true. */
   showDiagramList?: boolean;
 }
 
-export function App({ dataSource, reloadKey, showDiagramList = true }: AppProps) {
+export function App({
+  dataSource,
+  reloadKey,
+  showOnboardingKey,
+  showDiagramList = true,
+}: AppProps) {
   const hash = useHashRoute();
   const route = parseRoute(hash);
   if (route.view === "style-guide") return <StyleGuide />;
   return (
-    <ArchitectureBundleProvider dataSource={dataSource} reloadKey={reloadKey}>
+    <ArchitectureBundleProvider
+      dataSource={dataSource}
+      reloadKey={reloadKey}
+      showOnboardingKey={showOnboardingKey}
+    >
       <ArchitectureView
         diagramId={route.diagramId}
         showDiagramList={showDiagramList}

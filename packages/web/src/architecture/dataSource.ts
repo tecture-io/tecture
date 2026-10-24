@@ -35,6 +35,18 @@ export interface WebDataSource {
    * slugs, names, or content. Optional; the viewer works fine without it.
    */
   reportUsage?(event: string, props?: { level?: number }): void;
+  /**
+   * Whether the user chose "Don't show again" for the onboarding tour in this
+   * project. Optional: without it (or when it rejects) the tour opens on every
+   * load.
+   */
+  isOnboardingDismissed?(): Promise<boolean>;
+  /**
+   * Persist "Don't show again" for the onboarding tour in this project. The
+   * button only appears when this is implemented; a rejection is logged and the
+   * tour shows again on the next load.
+   */
+  dismissOnboarding?(): Promise<void>;
 }
 
 async function fetchJson<T>(url: string): Promise<T> {

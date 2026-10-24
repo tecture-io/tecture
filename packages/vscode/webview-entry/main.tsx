@@ -17,6 +17,7 @@ function parseDiagramSlug(hash: string): string | null {
 
 function Shell() {
   const [reloadKey, setReloadKey] = useState(0);
+  const [showOnboardingKey, setShowOnboardingKey] = useState(0);
   const lastReportedSlug = useRef<string | null>(null);
 
   useEffect(() => {
@@ -27,6 +28,9 @@ function Shell() {
       }
       if (msg && typeof msg === "object" && msg.type === "selectDiagram") {
         window.location.hash = `#/diagram/${encodeURIComponent(msg.slug)}`;
+      }
+      if (msg && typeof msg === "object" && msg.type === "showOnboarding") {
+        setShowOnboardingKey((k) => k + 1);
       }
     };
     window.addEventListener("message", onMessage);
@@ -53,6 +57,7 @@ function Shell() {
     <App
       dataSource={dataSource}
       reloadKey={reloadKey}
+      showOnboardingKey={showOnboardingKey}
       showDiagramList={false}
     />
   );

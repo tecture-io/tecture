@@ -1,5 +1,14 @@
 # @tecture/web
 
+## Unreleased
+
+- The onboarding tour now remembers being closed: a reload (a changed
+  `reloadKey`) no longer reopens it, so it shows once per mount instead of on
+  every architecture load. Data sources can implement the new optional
+  `isOnboardingDismissed()` / `dismissOnboarding()` to add a persistent
+  **Don't show again** button (hidden when they're absent), and `App` gains a
+  `showOnboardingKey` prop that reopens the tour whenever it changes.
+
 ## 0.2.0
 
 - Added drift surfacing. When the host provides a drift report (from the

@@ -2,6 +2,20 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [Unreleased]
+
+### Added
+
+- **"Don't show again" for the getting-started tour.** The choice is saved per
+  workspace, so the tour stops opening in that project while still greeting you
+  in new ones. **Tecture: Reset Getting Started Tour** brings it back.
+
+### Fixed
+
+- **The getting-started tour no longer reopens on every architecture change.**
+  Closing it now keeps it closed until the panel is reopened; before, every
+  file-change reload brought it back.
+
 ## [0.0.13] — 2026-07-06
 
 ### Added

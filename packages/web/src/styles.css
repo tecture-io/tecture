@@ -438,6 +438,32 @@ body {
   max-height: calc(90vh - 100px);
 }
 
+/* ─── Onboarding wizard buttons ───
+   Colors live here rather than in inline styles so :hover can override them.
+   Border width and the color transition come from Tailwind classes. */
+.ob-btn,
+.ob-btn-primary {
+  font-family: var(--font-mono);
+}
+.ob-btn {
+  border-color: var(--border-default);
+  color: var(--text-muted);
+}
+.ob-btn:hover {
+  border-color: var(--text-secondary);
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+.ob-btn-primary {
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+.ob-btn-primary:hover {
+  border-color: #fff;
+  color: #fff;
+  background-color: rgba(34, 211, 238, 0.15);
+}
+
 /* ─── Onboarding demo animations ─────────────────────────────────────────────
    Two looping, CSS-driven mini-diagrams used by the onboarding wizard to show
    (1) clicking a box to open its detail panel and (2) double-clicking to drill

@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -26,6 +27,8 @@ export interface ArchitectureBundle {
   missingDescriptions: Set<string>;
   /** Drift report from the evidence script, or null when none exists. */
   drift: DriftReport | null;
+  /** Whether the data source reports "Don't show again" for the onboarding tour. */
+  onboardingDismissed: boolean;
 }
 
 export type BundlePhase = "summary" | "diagrams" | "descriptions";
@@ -41,11 +44,20 @@ export type BundleState =
   | { status: "error"; message: string }
   | { status: "ready"; bundle: ArchitectureBundle };
 
+/** Onboarding tour state owned by the provider; read it through useOnboarding. */
+export interface OnboardingSession {
+  open: boolean;
+  setOpen: (open: boolean) => void;
+  /** Persist "Don't show again"; undefined when the data source can't. */
+  dismiss?: () => void;
+}
+
 interface ContextValue {
   bundle: ArchitectureBundle;
   saveLayout: (slug: string, update: ApiDiagramLayoutUpdate) => Promise<void>;
   openInEditor?: (path: string) => void;
   reportUsage: (event: string, props?: { level?: number }) => void;
+  onboarding: OnboardingSession;
 }
 
 const ArchitectureBundleContext = createContext<ContextValue | null>(null);
@@ -98,17 +110,30 @@ export function useReportUsage(): (
   return ctx.reportUsage;
 }
 
+export function useOnboardingSession(): OnboardingSession {
+  const ctx = useContext(ArchitectureBundleContext);
+  if (!ctx) {
+    throw new Error(
+      "useOnboardingSession must be used inside ArchitectureBundleProvider",
+    );
+  }
+  return ctx.onboarding;
+}
+
 export interface ArchitectureBundleProviderProps {
   dataSource: WebDataSource;
   children: ReactNode;
   /** Forces a reload when the value changes. */
   reloadKey?: unknown;
+  /** Opens the onboarding tour when the value changes. */
+  showOnboardingKey?: unknown;
 }
 
 export function ArchitectureBundleProvider({
   dataSource,
   children,
   reloadKey,
+  showOnboardingKey,
 }: ArchitectureBundleProviderProps) {
   const [state, setState] = useState<BundleState>({
     status: "loading",
@@ -116,6 +141,23 @@ export function ArchitectureBundleProvider({
     done: 0,
     total: 1,
   });
+
+  // The user's last open/close choice for the onboarding tour, or null before
+  // they make one (then the data source's dismissal decides). It lives here,
+  // not in ArchitectureView, because this provider stays mounted while it
+  // reloads: a file-change refresh must not reopen a tour the user closed.
+  const [onboardingChoice, setOnboardingChoice] = useState<boolean | null>(
+    null,
+  );
+
+  // A changed showOnboardingKey (e.g. the host's reset command) reopens the
+  // tour, even mid-reload. The initial value is ignored.
+  const lastShowOnboardingKey = useRef(showOnboardingKey);
+  useEffect(() => {
+    if (Object.is(showOnboardingKey, lastShowOnboardingKey.current)) return;
+    lastShowOnboardingKey.current = showOnboardingKey;
+    setOnboardingChoice(true);
+  }, [showOnboardingKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -164,11 +206,43 @@ export function ArchitectureBundleProvider({
     [dataSource],
   );
 
+  const dismissOnboarding = useMemo(
+    () =>
+      dataSource.dismissOnboarding
+        ? () => {
+            dataSource.dismissOnboarding?.().catch((err) => {
+              console.warn(
+                "[tecture] failed to persist onboarding dismissal",
+                err,
+              );
+            });
+          }
+        : undefined,
+    [dataSource],
+  );
+
   const bundle = state.status === "ready" ? state.bundle : null;
   const contextValue = useMemo<ContextValue | null>(() => {
     if (!bundle) return null;
-    return { bundle, saveLayout, openInEditor, reportUsage };
-  }, [bundle, saveLayout, openInEditor, reportUsage]);
+    return {
+      bundle,
+      saveLayout,
+      openInEditor,
+      reportUsage,
+      onboarding: {
+        open: onboardingChoice ?? !bundle.onboardingDismissed,
+        setOpen: setOnboardingChoice,
+        dismiss: dismissOnboarding,
+      },
+    };
+  }, [
+    bundle,
+    saveLayout,
+    openInEditor,
+    reportUsage,
+    onboardingChoice,
+    dismissOnboarding,
+  ]);
 
   if (state.status !== "ready") {
     return <LoadingSplash state={state} />;
@@ -200,6 +274,10 @@ async function loadBundle({
     const driftPromise: Promise<DriftReport | null> = dataSource.loadDrift
       ? dataSource.loadDrift().catch(() => null)
       : Promise.resolve(null);
+    const onboardingDismissedPromise: Promise<boolean> =
+      dataSource.isOnboardingDismissed
+        ? dataSource.isOnboardingDismissed().catch(() => false)
+        : Promise.resolve(false);
     const summary = await dataSource.loadSummary();
     if (isCancelled()) return;
 
@@ -290,7 +368,10 @@ async function loadBundle({
     );
     if (isCancelled()) return;
 
-    const drift = await driftPromise;
+    const [drift, onboardingDismissed] = await Promise.all([
+      driftPromise,
+      onboardingDismissedPromise,
+    ]);
     if (isCancelled()) return;
 
     onState({
@@ -302,6 +383,7 @@ async function loadBundle({
         nodes,
         missingDescriptions: missing,
         drift,
+        onboardingDismissed,
       },
     });
   } catch (err) {

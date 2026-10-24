@@ -12,6 +12,10 @@ suite("Extension activation", () => {
       commands.includes("tecture.refresh"),
       "tecture.refresh should be registered",
     );
+    assert.ok(
+      commands.includes("tecture.resetOnboarding"),
+      "tecture.resetOnboarding should be registered",
+    );
   });
 
   test("workspace contains the sample architecture", () => {

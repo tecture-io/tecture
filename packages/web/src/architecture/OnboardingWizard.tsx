@@ -14,6 +14,8 @@ interface Step {
 interface Props {
   open: boolean;
   onClose: () => void;
+  /** Persist "Don't show again" and close; the button is hidden when omitted. */
+  onDontShowAgain?: () => void;
   architectureName: string;
   architectureDescription?: string;
 }
@@ -21,6 +23,7 @@ interface Props {
 export function OnboardingWizard({
   open,
   onClose,
+  onDontShowAgain,
   architectureName,
   architectureDescription,
 }: Props) {
@@ -62,14 +65,12 @@ export function OnboardingWizard({
 
   const last = steps.length - 1;
   const next = useCallback(() => {
-    setStep((s) => {
-      if (s >= steps.length - 1) {
-        onClose();
-        return s;
-      }
-      return s + 1;
-    });
-  }, [steps.length, onClose]);
+    if (step >= last) {
+      onClose();
+      return;
+    }
+    setStep((s) => Math.min(last, s + 1));
+  }, [step, last, onClose]);
   const back = useCallback(() => setStep((s) => Math.max(0, s - 1)), []);
 
   useEffect(() => {
@@ -133,12 +134,7 @@ export function OnboardingWizard({
             type="button"
             onClick={onClose}
             aria-label="Skip tour"
-            className="ml-4 flex h-7 w-7 shrink-0 items-center justify-center border transition-colors hover:text-white"
-            style={{
-              borderColor: "var(--border-default)",
-              color: "var(--text-muted)",
-              backgroundColor: "transparent",
-            }}
+            className="ob-btn ml-4 flex h-7 w-7 shrink-0 items-center justify-center border transition-colors"
           >
             <svg
               width="12"
@@ -180,21 +176,32 @@ export function OnboardingWizard({
 
         {/* Footer */}
         <div
-          className="flex items-center justify-between border-t px-6 py-4"
+          className="flex flex-wrap items-center justify-between gap-3 border-t px-6 py-4"
           style={{ borderColor: "var(--border-default)" }}
         >
-          <div className="flex items-center gap-2">
-            {steps.map((s, i) => (
-              <span
-                key={s.title}
-                className="h-1.5 rounded-full transition-all"
-                style={{
-                  width: i === step ? "18px" : "6px",
-                  backgroundColor:
-                    i === step ? "var(--accent-cyan)" : "var(--border-default)",
-                }}
-              />
-            ))}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              {steps.map((s, i) => (
+                <span
+                  key={s.title}
+                  className="h-1.5 rounded-full transition-all"
+                  style={{
+                    width: i === step ? "18px" : "6px",
+                    backgroundColor:
+                      i === step ? "var(--accent-cyan)" : "var(--border-default)",
+                  }}
+                />
+              ))}
+            </div>
+            {onDontShowAgain && (
+              <button
+                type="button"
+                onClick={onDontShowAgain}
+                className="ob-btn whitespace-nowrap border px-3 py-1.5 text-[10px] tracking-[0.2em] uppercase transition-colors"
+              >
+                Don't show again
+              </button>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
@@ -202,13 +209,7 @@ export function OnboardingWizard({
               <button
                 type="button"
                 onClick={back}
-                className="border px-3 py-1.5 text-[10px] tracking-[0.2em] uppercase transition-colors hover:text-white"
-                style={{
-                  borderColor: "var(--border-default)",
-                  color: "var(--text-muted)",
-                  fontFamily: "var(--font-mono)",
-                  backgroundColor: "transparent",
-                }}
+                className="ob-btn whitespace-nowrap border px-3 py-1.5 text-[10px] tracking-[0.2em] uppercase transition-colors"
               >
                 Back
               </button>
@@ -216,13 +217,7 @@ export function OnboardingWizard({
             <button
               type="button"
               onClick={next}
-              className="border px-4 py-1.5 text-[10px] tracking-[0.2em] uppercase transition-colors hover:text-white"
-              style={{
-                borderColor: "var(--accent-cyan)",
-                color: "var(--accent-cyan)",
-                fontFamily: "var(--font-mono)",
-                backgroundColor: "transparent",
-              }}
+              className="ob-btn-primary whitespace-nowrap border px-4 py-1.5 text-[10px] tracking-[0.2em] uppercase transition-colors"
             >
               {step === last ? "Got it" : "Next"}
             </button>

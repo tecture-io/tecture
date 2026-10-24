@@ -71,5 +71,8 @@ export function createPostMessageDataSource(): WebDataSource {
       // Fire-and-forget notification (no response) — the host captures it.
       vscode.postMessage({ type: "usage", event, level: props?.level });
     },
+    isOnboardingDismissed: () =>
+      send<boolean>({ type: "isOnboardingDismissed" }),
+    dismissOnboarding: () => send<void>({ type: "dismissOnboarding" }),
   };
 }

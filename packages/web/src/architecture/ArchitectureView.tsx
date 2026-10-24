@@ -96,6 +96,7 @@ export function ArchitectureView({ diagramId, showDiagramList = true }: Props) {
       <OnboardingWizard
         open={onboarding.open}
         onClose={onboarding.closeWizard}
+        onDontShowAgain={onboarding.dismissPermanently}
         architectureName={bundle.summary.name}
         architectureDescription={bundle.summary.description}
       />

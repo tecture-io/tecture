@@ -1,5 +1,11 @@
 # @tecture/shared
 
+## Unreleased
+
+- Added `isOnboardingDismissed` and `dismissOnboarding` requests and a
+  `showOnboarding` event to the webview protocol, so hosts can persist the
+  viewer's "Don't show again" choice and reopen the tour.
+
 ## 0.2.0
 
 - Added the drift-report contract: `DriftReport`, `DriftFinding`, `DriftFindingKind`,

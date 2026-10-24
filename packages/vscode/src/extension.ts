@@ -11,6 +11,11 @@ import { TecturePanel } from "./panel";
 import { TectureTreeDataProvider } from "./treeView";
 import { createTelemetry, type Reporter } from "./telemetry";
 import type { MessageDeps } from "./messaging";
+import {
+  dismissOnboarding,
+  isOnboardingDismissed,
+  resetOnboarding,
+} from "./onboarding";
 
 let activeDeps: MessageDeps | undefined;
 let telemetry: Reporter | undefined;
@@ -57,12 +62,17 @@ async function openFileInWorkspace(
   }
 }
 
-function buildDeps(folder: vscode.WorkspaceFolder): MessageDeps {
+function buildDeps(
+  folder: vscode.WorkspaceFolder,
+  workspaceState: vscode.Memento,
+): MessageDeps {
   return {
     source: new VscodeFsArchitectureDataSource(resolveArchitectureRoot(folder)),
     layouts: new VscodeFsLayoutStore(resolveLayoutsRoot(folder)),
     openFile: (path) => openFileInWorkspace(folder, path),
     loadDrift: () => readWorkspaceDrift(resolveArchitectureRoot(folder)),
+    isOnboardingDismissed: () => isOnboardingDismissed(workspaceState),
+    dismissOnboarding: () => dismissOnboarding(workspaceState),
   };
 }
 
@@ -84,7 +94,7 @@ export function activate(context: vscode.ExtensionContext): void {
     return;
   }
 
-  activeDeps = buildDeps(folder);
+  activeDeps = buildDeps(folder, context.workspaceState);
 
   const treeProvider = new TectureTreeDataProvider(activeDeps.source);
   const treeView = vscode.window.createTreeView("tectureDiagrams", {
@@ -129,6 +139,14 @@ export function activate(context: vscode.ExtensionContext): void {
 
   context.subscriptions.push(
     vscode.commands.registerCommand("tecture.refresh", fireRefresh),
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand("tecture.resetOnboarding", async () => {
+      await resetOnboarding(context.workspaceState);
+      // Reopen the tour in place; a refresh would reload the whole architecture.
+      TecturePanel.current?.postEvent({ type: "showOnboarding" });
+    }),
   );
 
   // File watchers track the configured architecture folder plus its layout
@@ -178,7 +196,7 @@ export function activate(context: vscode.ExtensionContext): void {
       if (!e.affectsConfiguration("tecture.architecturePath")) return;
       const target = getWorkspaceFolder();
       if (!target) return;
-      activeDeps = buildDeps(target);
+      activeDeps = buildDeps(target, context.workspaceState);
       treeProvider.setSource(activeDeps.source);
       TecturePanel.current?.setDeps(activeDeps);
       disposeWatchers();
@@ -195,7 +213,7 @@ export function activate(context: vscode.ExtensionContext): void {
         disposeWatchers();
         return;
       }
-      activeDeps = buildDeps(next);
+      activeDeps = buildDeps(next, context.workspaceState);
       treeProvider.setSource(activeDeps.source);
       TecturePanel.current?.setDeps(activeDeps);
       disposeWatchers();

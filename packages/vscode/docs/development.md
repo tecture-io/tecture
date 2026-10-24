@@ -15,6 +15,7 @@ packages/vscode/
     panel.ts              WebviewPanel manager, CSP, HTML composition
     dataSource.ts         vscode.workspace.fs adapters for ArchitectureDataSource
     messaging.ts          Typed request/response handler
+    onboarding.ts         Per-workspace "Don't show again" flag for the tour
     treeView.ts           Activity Bar diagram list
   webview-entry/          Webview React app entry point
     main.tsx              PostMessage data source + shell
