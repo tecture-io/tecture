@@ -2,6 +2,18 @@
 
 All notable changes to the Tecture VS Code extension are documented here.
 
+## [Unreleased]
+
+### Fixed
+
+
+- **Architecture changes no longer reset the diagram view.** A file-change
+  refresh keeps the camera position and zoom, the selected node and its open
+  detail panel (without replaying the slide-in), instead of flashing the
+  loading screen and starting over. The panel closes if its node was removed.
+- **Moving a node right before or during a refresh no longer snaps it back**,
+  and a drag followed quickly by switching diagrams is still saved.
+
 ## [0.0.13] — 2026-07-06
 
 ### Added

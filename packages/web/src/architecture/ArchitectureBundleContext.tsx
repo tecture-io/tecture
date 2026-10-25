@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -117,13 +118,44 @@ export function ArchitectureBundleProvider({
     total: 1,
   });
 
+  // Layouts saved since the current load started. loadBundle reads layout
+  // files at its start, so a save that lands while it runs would otherwise be
+  // replaced by the stale copy when the new bundle arrives.
+  const layoutsSavedDuringLoad = useRef<Record<string, DiagramLayoutFile>>({});
+  // A reload (changed reloadKey) keeps the current bundle on screen until the
+  // new one is ready, so the view stays mounted: camera, selected node and the
+  // open detail panel survive a file-change refresh. Only the first load shows
+  // the splash; errors still replace the view.
   useEffect(() => {
     let cancelled = false;
-    setState({ status: "loading", phase: "summary", done: 0, total: 1 });
+    layoutsSavedDuringLoad.current = {};
+    const apply = (next: BundleState) => {
+      if (next.status !== "ready") {
+        setState((prev) =>
+          prev.status === "ready" && next.status === "loading" ? prev : next,
+        );
+        return;
+      }
+      // Take the saves out of the ref now: the updater may run later.
+      const saved = layoutsSavedDuringLoad.current;
+      layoutsSavedDuringLoad.current = {};
+      setState(
+        Object.keys(saved).length === 0
+          ? next
+          : {
+              status: "ready",
+              bundle: {
+                ...next.bundle,
+                layouts: { ...next.bundle.layouts, ...saved },
+              },
+            },
+      );
+    };
+    apply({ status: "loading", phase: "summary", done: 0, total: 1 });
     void loadBundle({
       dataSource,
       onState: (next) => {
-        if (!cancelled) setState(next);
+        if (!cancelled) apply(next);
       },
       isCancelled: () => cancelled,
     });
@@ -135,6 +167,7 @@ export function ArchitectureBundleProvider({
   const saveLayout = useCallback(
     async (slug: string, update: ApiDiagramLayoutUpdate) => {
       const saved = await dataSource.saveLayout(slug, update);
+      layoutsSavedDuringLoad.current[slug] = saved;
       setState((prev) => {
         if (prev.status !== "ready") return prev;
         return {

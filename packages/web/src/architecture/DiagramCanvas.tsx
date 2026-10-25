@@ -8,7 +8,6 @@ import {
   ReactFlowProvider,
   useEdgesState,
   useNodesState,
-  useReactFlow,
   type Edge,
   type Node,
   type NodeMouseHandler,
@@ -80,22 +79,69 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [ready, setReady] = useState(false);
   const [layoutError, setLayoutError] = useState<string | null>(null);
-  const { getNodes } = useReactFlow();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentDiagramIdRef = useRef(diagramId);
   currentDiagramIdRef.current = diagramId;
-  const bundleRef = useRef(bundle);
-  bundleRef.current = bundle;
+  const layoutRef = useRef(bundle.layouts[diagramId]);
+  layoutRef.current = bundle.layouts[diagramId];
+  // Positions sent to saveLayout that bundle.layouts may not reflect yet.
+  const unsavedEntriesRef = useRef<Record<string, NodeLayoutEntry> | null>(
+    null,
+  );
 
+  // Read the nodes this canvas last rendered: during unmount cleanup React
+  // Flow's store is already empty (getNodes() saved {} on navigation).
+  const nodesRef = useRef(nodes);
+  nodesRef.current = nodes;
+
+  const persistLayout = useCallback(() => {
+    const slug = currentDiagramIdRef.current;
+    const entries = collectLayoutEntries(nodesRef.current);
+    unsavedEntriesRef.current = entries;
+    const update: ApiDiagramLayoutUpdate = { nodes: entries };
+    saveLayout(slug, update)
+      .catch((err) => {
+        console.warn("[tecture] failed to persist layout", err);
+      })
+      .finally(() => {
+        if (unsavedEntriesRef.current === entries) {
+          unsavedEntriesRef.current = null;
+        }
+      });
+  }, [saveLayout]);
+  const persistLayoutRef = useRef(persistLayout);
+  persistLayoutRef.current = persistLayout;
+
+  // Saves a debounced drag/resize now, while the canvas still holds the
+  // user's positions.
+  const flushPendingSave = useCallback(() => {
+    if (!saveTimeoutRef.current) return;
+    clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = null;
+    persistLayoutRef.current();
+  }, []);
+
+  // Mount-only: a fresh canvas (the parent keys it by diagramId) starts with no
+  // selection. A data reload re-runs the layout effect below but must not
+  // clear the selection, so this lives in its own effect.
+  const onSelectNodeRef = useRef(onSelectNode);
+  onSelectNodeRef.current = onSelectNode;
+  useEffect(() => {
+    onSelectNodeRef.current(null);
+  }, []);
+
+  // Leaving the diagram inside the debounce window must not drop the save.
+  useEffect(() => flushPendingSave, [flushPendingSave]);
+
+  // Re-runs when the diagram object changes (first load and every file-change
+  // reload). Layout saves only replace bundle.layouts, so they never land here.
+  // The viewport is untouched: React Flow's `fitView` prop applies only on the
+  // first render, so a reload keeps the user's camera.
   useEffect(() => {
     let cancelled = false;
-    setReady(false);
     setLayoutError(null);
-    onSelectNode(null);
 
-    const currentBundle = bundleRef.current;
-    const currentDiagram = currentBundle.diagrams[diagramId];
-    if (!currentDiagram) {
+    if (!diagram) {
       setLayoutError(`Diagram "${diagramId}" was not loaded`);
       setNodes([]);
       setEdges([]);
@@ -104,13 +150,28 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
       };
     }
 
-    const currentLayout =
-      currentBundle.layouts[diagramId] ?? emptyLayout(diagramId);
-    const { nodes: rfNodes, edges: rfEdges } = diagramToFlow(currentDiagram);
-    layoutDiagram(rfNodes, rfEdges, currentDiagram.meta?.direction, currentLayout)
+    // A drag that is still debounced or in flight isn't in bundle.layouts:
+    // save it now and lay out from it, or the reload would snap those nodes
+    // back and the late save would write the old positions to disk.
+    flushPendingSave();
+    const savedLayout = layoutRef.current ?? emptyLayout(diagramId);
+    const unsaved = unsavedEntriesRef.current;
+    const currentLayout = unsaved
+      ? { ...savedLayout, nodes: { ...savedLayout.nodes, ...unsaved } }
+      : savedLayout;
+    const { nodes: rfNodes, edges: rfEdges } = diagramToFlow(diagram);
+    layoutDiagram(rfNodes, rfEdges, diagram.meta?.direction, currentLayout)
       .then((positioned) => {
         if (cancelled) return;
-        setNodes(positioned as Node<ArchNodeData>[]);
+        // Carry React Flow's selection highlight across a reload.
+        setNodes((prev) => {
+          const selected = new Set(
+            prev.filter((n) => n.selected).map((n) => n.id),
+          );
+          return (positioned as Node<ArchNodeData>[]).map((n) =>
+            selected.has(n.id) ? { ...n, selected: true } : n,
+          );
+        });
         setEdges(rfEdges);
         requestAnimationFrame(() => !cancelled && setReady(true));
       })
@@ -120,22 +181,8 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
 
     return () => {
       cancelled = true;
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = null;
-      }
     };
-  }, [diagramId, onSelectNode, setEdges, setNodes]);
-
-  const persistLayout = useCallback(() => {
-    const slug = currentDiagramIdRef.current;
-    const update: ApiDiagramLayoutUpdate = {
-      nodes: collectLayoutEntries(getNodes()),
-    };
-    saveLayout(slug, update).catch((err) => {
-      console.warn("[tecture] failed to persist layout", err);
-    });
-  }, [getNodes, saveLayout]);
+  }, [diagram, diagramId, flushPendingSave, setEdges, setNodes]);
 
   const notifyLayoutChanged = useCallback(() => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
