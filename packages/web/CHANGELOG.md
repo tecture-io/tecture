@@ -14,6 +14,11 @@
   `isOnboardingDismissed()` / `dismissOnboarding()` to add a persistent
   **Don't show again** button (hidden when they're absent), and `App` gains a
   `showOnboardingKey` prop that reopens the tour whenever it changes.
+- A reload (a changed `reloadKey`) no longer resets the view. The current
+  architecture stays on screen while the new one loads, then swaps in place:
+  camera position and zoom, the selected node and its open detail panel are
+  kept, and the panel doesn't replay its slide-in. The loading splash now shows
+  only on the first load.
 
 ## 0.2.0
 

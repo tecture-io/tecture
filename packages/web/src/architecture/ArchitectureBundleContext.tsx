@@ -159,13 +159,21 @@ export function ArchitectureBundleProvider({
     setOnboardingChoice(true);
   }, [showOnboardingKey]);
 
+  // A reload (changed reloadKey) keeps the current bundle on screen until the
+  // new one is ready, so the view stays mounted: camera, selected node and the
+  // open detail panel survive a file-change refresh. Only the first load shows
+  // the splash; errors still replace the view.
   useEffect(() => {
     let cancelled = false;
-    setState({ status: "loading", phase: "summary", done: 0, total: 1 });
+    const apply = (next: BundleState) =>
+      setState((prev) =>
+        prev.status === "ready" && next.status === "loading" ? prev : next,
+      );
+    apply({ status: "loading", phase: "summary", done: 0, total: 1 });
     void loadBundle({
       dataSource,
       onState: (next) => {
-        if (!cancelled) setState(next);
+        if (!cancelled) apply(next);
       },
       isCancelled: () => cancelled,
     });

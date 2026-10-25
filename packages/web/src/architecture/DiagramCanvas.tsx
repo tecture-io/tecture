@@ -93,18 +93,35 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentDiagramIdRef = useRef(diagramId);
   currentDiagramIdRef.current = diagramId;
-  const bundleRef = useRef(bundle);
-  bundleRef.current = bundle;
+  const layoutRef = useRef(bundle.layouts[diagramId]);
+  layoutRef.current = bundle.layouts[diagramId];
 
+  // Mount-only: a fresh canvas (the parent keys it by diagramId) starts with no
+  // selection. A data reload re-runs the layout effect below but must not
+  // clear the selection, so this lives in its own effect.
+  useEffect(() => {
+    onSelectNode(null);
+  }, [onSelectNode]);
+
+  useEffect(
+    () => () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = null;
+      }
+    },
+    [],
+  );
+
+  // Re-runs when the diagram object changes (first load and every file-change
+  // reload). Layout saves only replace bundle.layouts, so they never land here.
+  // The viewport is untouched: React Flow's `fitView` prop applies only on the
+  // first render, so a reload keeps the user's camera.
   useEffect(() => {
     let cancelled = false;
-    setReady(false);
     setLayoutError(null);
-    onSelectNode(null);
 
-    const currentBundle = bundleRef.current;
-    const currentDiagram = currentBundle.diagrams[diagramId];
-    if (!currentDiagram) {
+    if (!diagram) {
       setLayoutError(`Diagram "${diagramId}" was not loaded`);
       setNodes([]);
       setEdges([]);
@@ -113,13 +130,20 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
       };
     }
 
-    const currentLayout =
-      currentBundle.layouts[diagramId] ?? emptyLayout(diagramId);
-    const { nodes: rfNodes, edges: rfEdges } = diagramToFlow(currentDiagram);
-    layoutDiagram(rfNodes, rfEdges, currentDiagram.meta?.direction, currentLayout)
+    const currentLayout = layoutRef.current ?? emptyLayout(diagramId);
+    const { nodes: rfNodes, edges: rfEdges } = diagramToFlow(diagram);
+    layoutDiagram(rfNodes, rfEdges, diagram.meta?.direction, currentLayout)
       .then((positioned) => {
         if (cancelled) return;
-        setNodes(positioned as Node<ArchNodeData>[]);
+        // Carry React Flow's selection highlight across a reload.
+        setNodes((prev) => {
+          const selected = new Set(
+            prev.filter((n) => n.selected).map((n) => n.id),
+          );
+          return (positioned as Node<ArchNodeData>[]).map((n) =>
+            selected.has(n.id) ? { ...n, selected: true } : n,
+          );
+        });
         setEdges(rfEdges);
         requestAnimationFrame(() => !cancelled && setReady(true));
       })
@@ -129,12 +153,8 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
 
     return () => {
       cancelled = true;
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-        saveTimeoutRef.current = null;
-      }
     };
-  }, [diagramId, onSelectNode, setEdges, setNodes]);
+  }, [diagram, diagramId, setEdges, setNodes]);
 
   const persistLayout = useCallback(() => {
     const slug = currentDiagramIdRef.current;
