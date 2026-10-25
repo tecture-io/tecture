@@ -27,15 +27,17 @@ All notable changes to the Tecture VS Code extension are documented here.
 
 ### Fixed
 
-- The extension test suite ran 0 tests on Windows (test bundles were emitted
-  outside the runner's glob).
+- The extension test suite ran 0 tests (the runner's glob didn't match where
+  the test bundles are emitted).
 - **The getting-started tour no longer reopens on every architecture change.**
   Closing it now keeps it closed until the panel is reopened; before, every
   file-change reload brought it back.
 - **Architecture changes no longer reset the diagram view.** A file-change
   refresh keeps the camera position and zoom, the selected node and its open
   detail panel (without replaying the slide-in), instead of flashing the
-  loading screen and starting over.
+  loading screen and starting over. The panel closes if its node was removed.
+- **Moving a node right before or during a refresh no longer snaps it back**,
+  and a drag followed quickly by switching diagrams is still saved.
 
 ## [0.0.13] — 2026-07-06
 

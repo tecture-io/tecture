@@ -59,6 +59,16 @@ export function ArchitectureView({ diagramId, showDiagramList = true }: Props) {
     window.location.hash = `#/diagram/${slug}`;
   }, []);
 
+  // A reload keeps the selection, so drop it once the selected node is gone
+  // from the diagram (deleted or renamed) instead of showing an orphan panel.
+  const currentDiagram = diagramId ? bundle.diagrams[diagramId] : undefined;
+  useEffect(() => {
+    if (!selectedNodeId || !currentDiagram) return;
+    if (!currentDiagram.nodes.some((n) => n.id === selectedNodeId)) {
+      setSelectedNodeId(null);
+    }
+  }, [currentDiagram, selectedNodeId]);
+
   return (
     <div
       className="relative h-screen w-screen overflow-hidden"

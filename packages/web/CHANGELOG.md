@@ -18,7 +18,11 @@
   architecture stays on screen while the new one loads, then swaps in place:
   camera position and zoom, the selected node and its open detail panel are
   kept, and the panel doesn't replay its slide-in. The loading splash now shows
-  only on the first load.
+  only on the first load. If the selected node is gone after a reload, its
+  panel closes.
+- Node drags and resizes are no longer lost or reverted around a reload: a
+  save still pending (150 ms debounce) or in flight when a reload lands is kept,
+  and leaving a diagram right after a drag no longer drops the save.
 
 ## 0.2.0
 
