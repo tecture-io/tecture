@@ -22,6 +22,11 @@ import { ArchitectureNode } from "./ArchitectureNode";
 import { Legend } from "./Legend";
 import { LayoutPersistenceContext } from "./LayoutPersistenceContext";
 import { FloatingEdge } from "./edges/FloatingEdge";
+import {
+  LabelLayoutContext,
+  LabelLayoutStore,
+  LabelObstacleSync,
+} from "./edges/labelLayout";
 import { diagramToFlow, type ArchNodeData } from "./transform";
 import { layoutDiagram } from "./layout";
 import {
@@ -80,6 +85,7 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [ready, setReady] = useState(false);
   const [layoutError, setLayoutError] = useState<string | null>(null);
+  const [labelLayout] = useState(() => new LabelLayoutStore());
   const { getNodes } = useReactFlow();
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentDiagramIdRef = useRef(diagramId);
@@ -171,6 +177,7 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
 
   return (
     <LayoutPersistenceContext.Provider value={persistenceValue}>
+    <LabelLayoutContext.Provider value={labelLayout}>
     <div className="relative h-full w-full">
       <ReactFlow
         nodes={nodes}
@@ -200,6 +207,7 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
           size={1}
           color="rgba(34, 78, 130, 0.12)"
         />
+        <LabelObstacleSync store={labelLayout} />
         <Controls showInteractive={false} position="bottom-right" />
         {diagram && <Legend diagram={diagram} />}
         <MiniMap
@@ -216,6 +224,7 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
         <CanvasOverlay label={`Error: ${layoutError}`} />
       )}
     </div>
+    </LabelLayoutContext.Provider>
     </LayoutPersistenceContext.Provider>
   );
 }

@@ -172,4 +172,28 @@ describe("diagramToFlow", () => {
     expect(edges[0]!.markerEnd).toBeDefined();
     expect(edges[0]!.style).toBeDefined();
   });
+
+  it("groups edges joining the same two nodes in either direction", () => {
+    const { edges } = diagramToFlow(
+      diagram({
+        nodes: [
+          { id: "a", label: "A" },
+          { id: "b", label: "B" },
+          { id: "c", label: "C" },
+        ],
+        edges: [
+          { id: "ab", source: "a", target: "b" },
+          { id: "ac", source: "a", target: "c" },
+          { id: "ba", source: "b", target: "a" },
+        ],
+      }),
+    );
+    const slot = (id: string) => {
+      const d = edges.find((e) => e.id === id)!.data!;
+      return [d.parallelIndex, d.parallelCount];
+    };
+    expect(slot("ab")).toEqual([0, 2]);
+    expect(slot("ba")).toEqual([1, 2]);
+    expect(slot("ac")).toEqual([0, 1]);
+  });
 });
