@@ -7,9 +7,12 @@ import {
   type DescriptionNotFoundError,
   type DriftReport,
   type LayoutStore,
+  type TectureEvent,
+  type TectureNotification,
   type TectureRequest,
   type TectureResponse,
 } from "@tecture/shared";
+import type { Reporter } from "./telemetry";
 
 export interface MessageDeps {
   source: ArchitectureDataSource;
@@ -18,6 +21,36 @@ export interface MessageDeps {
   openFile?: (path: string) => Promise<void>;
   /** Load the evidence script's drift report, or null when none exists. */
   loadDrift?: () => Promise<DriftReport | null>;
+}
+
+export interface NotificationDeps {
+  postEvent: (event: TectureEvent) => void;
+  /** Raw `tecture.graph` overrides; validated by the webview. */
+  readAppearance: () => unknown;
+  onDiagramChanged?: (slug: string) => void;
+  report?: Pick<Reporter, "capture">;
+}
+
+export function handleNotification(
+  n: TectureNotification,
+  deps: NotificationDeps,
+): void {
+  switch (n.type) {
+    case "ready":
+      // Listener now exists: (re)send settings so a reloaded webview is current.
+      deps.postEvent({ type: "appearance", overrides: deps.readAppearance() });
+      return;
+    case "diagramChanged":
+      deps.onDiagramChanged?.(n.slug);
+      return;
+    case "usage":
+      // Real user-action signal from the webview — level/counts only.
+      deps.report?.capture(
+        n.event,
+        typeof n.level === "number" ? { level: n.level } : {},
+      );
+      return;
+  }
 }
 
 export async function handleRequest(

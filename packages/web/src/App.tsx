@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
+import { DEFAULT_APPEARANCE, type GraphAppearance } from "@tecture/shared";
 import { StyleGuide } from "./StyleGuide";
 import { ArchitectureView } from "./architecture/ArchitectureView";
 import { ArchitectureBundleProvider } from "./architecture/ArchitectureBundleContext";
+import { AppearanceProvider } from "./architecture/AppearanceContext";
 import type { WebDataSource } from "./architecture/dataSource";
 
 function useHashRoute() {
@@ -27,18 +29,27 @@ export interface AppProps {
   reloadKey?: unknown;
   /** Show the floating diagram list overlay. Defaults to true. */
   showDiagramList?: boolean;
+  /** Resolved graph appearance (see mergeAppearance). Defaults to the built-in look. */
+  appearance?: GraphAppearance;
 }
 
-export function App({ dataSource, reloadKey, showDiagramList = true }: AppProps) {
+export function App({
+  dataSource,
+  reloadKey,
+  showDiagramList = true,
+  appearance = DEFAULT_APPEARANCE,
+}: AppProps) {
   const hash = useHashRoute();
   const route = parseRoute(hash);
   if (route.view === "style-guide") return <StyleGuide />;
   return (
-    <ArchitectureBundleProvider dataSource={dataSource} reloadKey={reloadKey}>
-      <ArchitectureView
-        diagramId={route.diagramId}
-        showDiagramList={showDiagramList}
-      />
-    </ArchitectureBundleProvider>
+    <AppearanceProvider appearance={appearance}>
+      <ArchitectureBundleProvider dataSource={dataSource} reloadKey={reloadKey}>
+        <ArchitectureView
+          diagramId={route.diagramId}
+          showDiagramList={showDiagramList}
+        />
+      </ArchitectureBundleProvider>
+    </AppearanceProvider>
   );
 }

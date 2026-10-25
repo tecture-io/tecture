@@ -1,6 +1,5 @@
-import { MarkerType, type Edge, type Node } from "@xyflow/react";
+import type { Edge, Node } from "@xyflow/react";
 import type { ApiDiagram, ArchitectureNode, ArchitectureEdge } from "@tecture/shared";
-import { getEdgeStyleDef } from "./edgeStyles";
 
 export interface ArchNodeData extends Record<string, unknown> {
   label: string;
@@ -12,9 +11,14 @@ export interface ArchNodeData extends Record<string, unknown> {
   hasChildren: boolean;
 }
 
+/** Edge styling is resolved at render time (FloatingEdge) from the appearance context. */
+export interface ArchEdgeData extends Record<string, unknown> {
+  edgeType?: string;
+}
+
 export function diagramToFlow(diagram: ApiDiagram): {
   nodes: Node<ArchNodeData>[];
-  edges: Edge[];
+  edges: Edge<ArchEdgeData>[];
 } {
   const nodeIds = new Set(diagram.nodes.map((n) => n.id));
   const childCounts = new Map<string, number>();
@@ -55,37 +59,13 @@ function toFlowNode(n: ArchitectureNode, hasChildren: boolean): Node<ArchNodeDat
   return node;
 }
 
-function toFlowEdge(e: ArchitectureEdge): Edge {
-  const def = getEdgeStyleDef(e.meta?.type);
-  const style: Record<string, unknown> = { strokeWidth: 1.5, stroke: def.color };
-  if (def.dashed) style.strokeDasharray = "5 5";
-
+function toFlowEdge(e: ArchitectureEdge): Edge<ArchEdgeData> {
   return {
     id: e.id,
     source: e.source,
     target: e.target,
     type: "floating",
     label: e.label,
-    animated: def.animated,
-    style,
-    markerEnd: {
-      type: MarkerType.ArrowClosed,
-      width: 16,
-      height: 16,
-      color: def.color,
-    },
-    labelStyle: {
-      fontSize: 10,
-      fill: "#94a3b8",
-      fontWeight: 500,
-      letterSpacing: "0.04em",
-      fontFamily: "var(--font-mono)",
-    },
-    labelBgStyle: {
-      fill: "#0a0f1a",
-      fillOpacity: 0.92,
-    },
-    labelBgPadding: [6, 4] as [number, number],
-    labelBgBorderRadius: 4,
+    data: { edgeType: e.meta?.type },
   };
 }

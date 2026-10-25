@@ -3,6 +3,7 @@ import { Panel } from "@xyflow/react";
 import type { ApiDiagram } from "@tecture/shared";
 import { getNodeStyle, type IconPath, type NodeStyle } from "./nodeStyles";
 import { getEdgeStyleDef, type EdgeStyleDef } from "./edgeStyles";
+import { useAppearance } from "./AppearanceContext";
 
 interface Props {
   diagram: ApiDiagram;
@@ -10,6 +11,7 @@ interface Props {
 
 export function Legend({ diagram }: Props) {
   const [open, setOpen] = useState(false);
+  const appearance = useAppearance();
 
   const { nodeTypes, edgeTypes } = useMemo(() => {
     const n = new Set<string>();
@@ -56,14 +58,14 @@ export function Legend({ diagram }: Props) {
             {nodeTypes.length > 0 && (
               <Section title="Nodes">
                 {nodeTypes.map((t) => (
-                  <NodeRow key={t} type={t} style={getNodeStyle(t)} />
+                  <NodeRow key={t} type={t} style={getNodeStyle(appearance, t)} />
                 ))}
               </Section>
             )}
             {edgeTypes.length > 0 && (
               <Section title="Edges">
                 {edgeTypes.map((t) => (
-                  <EdgeRow key={t} style={getEdgeStyleDef(t)} />
+                  <EdgeRow key={t} style={getEdgeStyleDef(appearance, t)} />
                 ))}
               </Section>
             )}
@@ -103,7 +105,7 @@ function NodeRow({ type, style }: { type: string; style: NodeStyle }) {
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
           {style.iconPaths.map((p, i) => (
-            <IconPathEl key={i} p={p} />
+            <IconPathEl key={i} p={p} accent={style.accent} />
           ))}
         </svg>
       </span>
@@ -121,7 +123,8 @@ function NodeRow({ type, style }: { type: string; style: NodeStyle }) {
 }
 
 function EdgeRow({ style }: { style: EdgeStyleDef }) {
-  const dash = style.dashed ? "4 3" : undefined;
+  // Legend swatch is 28px wide; a short fixed pattern reads better than the edge's own.
+  const dash = style.dashArray ? "4 3" : undefined;
   return (
     <div className="flex items-center gap-2 text-[11px]">
       <svg width="28" height="10" className="shrink-0">
@@ -155,12 +158,12 @@ function EdgeRow({ style }: { style: EdgeStyleDef }) {
   );
 }
 
-function IconPathEl({ p }: { p: IconPath }) {
+function IconPathEl({ p, accent }: { p: IconPath; accent: string }) {
   return (
     <path
       d={p.d}
-      fill={p.fill ?? "none"}
-      stroke={p.stroke ?? "none"}
+      fill={p.fill ? accent : "none"}
+      stroke={p.stroke ? accent : "none"}
       strokeWidth={p.strokeWidth ?? 0}
       opacity={p.opacity ?? 1}
       strokeLinecap="round"

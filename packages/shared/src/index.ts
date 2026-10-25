@@ -170,7 +170,9 @@ export type TectureResponse =
 
 export type TectureEvent =
   | { type: "refresh" }
-  | { type: "selectDiagram"; slug: string };
+  | { type: "selectDiagram"; slug: string }
+  // Raw user overrides; the webview validates them with mergeAppearance().
+  | { type: "appearance"; overrides: unknown };
 
 export type TectureNotification =
   | { type: "ready" }
@@ -182,3 +184,4 @@ export type TectureNotification =
 export * from "./validators";
 export * from "./deepDive";
 export * from "./drift";
+export * from "./appearance";

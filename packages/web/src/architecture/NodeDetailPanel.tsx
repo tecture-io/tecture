@@ -7,6 +7,7 @@ import {
   isDeepDivable,
 } from "@tecture/shared";
 import { getNodeStyle } from "./nodeStyles";
+import { useAppearance } from "./AppearanceContext";
 import { MarkdownContent } from "./MarkdownContent";
 import {
   useArchitectureBundle,
@@ -27,7 +28,11 @@ export function NodeDetailPanel({ nodeId, onClose }: Props) {
     bundle.drift && detail
       ? driftForNode(bundle.drift, detail.diagramId, nodeId)
       : [];
-  const style = getNodeStyle(detail?.meta?.type as NodeMetaType | undefined);
+  const appearance = useAppearance();
+  const style = getNodeStyle(
+    appearance,
+    detail?.meta?.type as NodeMetaType | undefined,
+  );
   const path = detail?.path;
   const sourceUrl = openInEditor
     ? undefined

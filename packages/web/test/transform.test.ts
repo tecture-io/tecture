@@ -144,7 +144,7 @@ describe("diagramToFlow", () => {
     expect(edges[0]!.id).toBe("good");
   });
 
-  it("attaches edge style metadata", () => {
+  it("carries the edge type for render-time styling", () => {
     const { edges } = diagramToFlow(
       diagram({
         nodes: [
@@ -169,7 +169,6 @@ describe("diagramToFlow", () => {
       source: "a",
       target: "b",
     });
-    expect(edges[0]!.markerEnd).toBeDefined();
-    expect(edges[0]!.style).toBeDefined();
+    expect(edges[0]!.data).toEqual({ edgeType: "calls" });
   });
 });

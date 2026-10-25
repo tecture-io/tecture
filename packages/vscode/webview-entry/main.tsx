@@ -1,9 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "@tecture/web/App";
+import { mergeAppearance, type GraphAppearance } from "@tecture/shared";
 import "./styles.css";
 import "@xyflow/react/dist/style.css";
 import { createPostMessageDataSource, vscode } from "./postMessageDataSource";
+
+declare global {
+  interface Window {
+    /** Seeded by the host in composeHtml() so the first paint uses user settings. */
+    __TECTURE_APPEARANCE__?: unknown;
+  }
+}
 
 const container = document.getElementById("root");
 if (!container) throw new Error("Root container missing in index.html");
@@ -17,6 +25,9 @@ function parseDiagramSlug(hash: string): string | null {
 
 function Shell() {
   const [reloadKey, setReloadKey] = useState(0);
+  const [appearance, setAppearance] = useState<GraphAppearance>(() =>
+    mergeAppearance(window.__TECTURE_APPEARANCE__),
+  );
   const lastReportedSlug = useRef<string | null>(null);
 
   useEffect(() => {
@@ -24,6 +35,9 @@ function Shell() {
       const msg = event.data;
       if (msg && typeof msg === "object" && msg.type === "refresh") {
         setReloadKey((k) => k + 1);
+      }
+      if (msg && typeof msg === "object" && msg.type === "appearance") {
+        setAppearance(mergeAppearance(msg.overrides));
       }
       if (msg && typeof msg === "object" && msg.type === "selectDiagram") {
         window.location.hash = `#/diagram/${encodeURIComponent(msg.slug)}`;
@@ -54,6 +68,7 @@ function Shell() {
       dataSource={dataSource}
       reloadKey={reloadKey}
       showDiagramList={false}
+      appearance={appearance}
     />
   );
 }

@@ -1,6 +1,11 @@
 import * as assert from "node:assert";
 import * as vscode from "vscode";
-import { handleRequest } from "../../src/messaging";
+import { handleNotification, handleRequest } from "../../src/messaging";
+import {
+  appearanceBootScript,
+  readAppearanceOverrides,
+} from "../../src/appearance";
+import { injectIntoHead } from "../../src/panel";
 import {
   VscodeFsArchitectureDataSource,
   VscodeFsLayoutStore,
@@ -14,6 +19,7 @@ import type {
   ApiNodeDetail,
   DiagramLayoutFile,
   DriftReport,
+  TectureEvent,
 } from "@tecture/shared";
 
 function deps() {
@@ -175,5 +181,74 @@ suite("handleRequest", () => {
       recursive: true,
       useTrash: false,
     });
+  });
+});
+
+suite("handleNotification", () => {
+  test("ready replies with the current appearance overrides", () => {
+    const posted: TectureEvent[] = [];
+    const overrides = { edgeLabel: { backgroundOpacity: 0.3 } };
+    handleNotification(
+      { type: "ready" },
+      { postEvent: (e) => posted.push(e), readAppearance: () => overrides },
+    );
+    assert.deepStrictEqual(posted, [{ type: "appearance", overrides }]);
+  });
+
+  test("non-ready notifications do not post appearance", () => {
+    const posted: TectureEvent[] = [];
+    const slugs: string[] = [];
+    handleNotification(
+      { type: "diagramChanged", slug: "containers" },
+      {
+        postEvent: (e) => posted.push(e),
+        readAppearance: () => ({}),
+        onDiagramChanged: (s) => slugs.push(s),
+      },
+    );
+    assert.deepStrictEqual(posted, []);
+    assert.deepStrictEqual(slugs, ["containers"]);
+  });
+});
+
+suite("appearance settings", () => {
+  test("reads tecture.graph.* updates as a nested object", async () => {
+    const config = vscode.workspace.getConfiguration("tecture");
+    await config.update(
+      "graph.edgeLabel.backgroundOpacity",
+      0.25,
+      vscode.ConfigurationTarget.Global,
+    );
+    try {
+      const raw = readAppearanceOverrides() as {
+        edgeLabel?: { backgroundOpacity?: unknown };
+      };
+      assert.strictEqual(raw.edgeLabel?.backgroundOpacity, 0.25);
+    } finally {
+      await config.update(
+        "graph.edgeLabel.backgroundOpacity",
+        undefined,
+        vscode.ConfigurationTarget.Global,
+      );
+    }
+  });
+
+  test("boot script cannot be broken out of by a setting value", () => {
+    const html = appearanceBootScript("n0nce", {
+      canvas: { backgroundColor: "</script><script>alert(1)</script>" },
+    });
+    assert.strictEqual(html.match(/<\/script>/g)?.length, 1);
+    assert.ok(html.startsWith('<script nonce="n0nce">'));
+  });
+
+  test("$ replacement patterns in a setting value leave the page intact", () => {
+    const overrides = { canvas: { backgroundColor: "$' $` $& $$" } };
+    const page = injectIntoHead(
+      '<!doctype html><html><head>\n<title>t</title></head><body><div id="root"></div></body></html>',
+      appearanceBootScript("n0nce", overrides),
+    );
+    assert.strictEqual(page.match(/id="root"/g)?.length, 1);
+    const json = /window\.__TECTURE_APPEARANCE__=(.*);<\/script>/.exec(page)?.[1];
+    assert.deepStrictEqual(JSON.parse(json ?? "null"), overrides);
   });
 });

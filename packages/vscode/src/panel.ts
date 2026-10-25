@@ -1,5 +1,14 @@
 import * as vscode from "vscode";
-import { handleRequest, type MessageDeps } from "./messaging";
+import {
+  handleNotification,
+  handleRequest,
+  type MessageDeps,
+} from "./messaging";
+import {
+  APPEARANCE_SECTION,
+  appearanceBootScript,
+  readAppearanceOverrides,
+} from "./appearance";
 import type { Reporter } from "./telemetry";
 import type {
   TectureEvent,
@@ -14,6 +23,7 @@ export class TecturePanel {
   private static readonly viewType = "tecture.architecture";
 
   private onDiagramChanged?: (slug: string) => void;
+  private readonly disposables: vscode.Disposable[] = [];
 
   static async createOrShow(
     extensionUri: vscode.Uri,
@@ -62,21 +72,25 @@ export class TecturePanel {
     private readonly report?: Reporter,
   ) {
     this.onDiagramChanged = onDiagramChanged;
-    this.panel.onDidDispose(() => this.dispose(), null);
+    this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
+    // Live updates; re-sending on `ready` covers webview reloads after the
+    // initial HTML (which already inlines the settings) was composed.
+    vscode.workspace.onDidChangeConfiguration(
+      (e) => {
+        if (e.affectsConfiguration(APPEARANCE_SECTION)) this.postAppearance();
+      },
+      null,
+      this.disposables,
+    );
     this.panel.webview.onDidReceiveMessage(async (raw) => {
       const notification = asNotification(raw);
       if (notification) {
-        if (notification.type === "diagramChanged") {
-          this.onDiagramChanged?.(notification.slug);
-        } else if (notification.type === "usage") {
-          // Real user-action signal from the webview — level/counts only.
-          this.report?.capture(
-            notification.event,
-            typeof notification.level === "number"
-              ? { level: notification.level }
-              : {},
-          );
-        }
+        handleNotification(notification, {
+          postEvent: (event) => this.postEvent(event),
+          readAppearance: readAppearanceOverrides,
+          onDiagramChanged: this.onDiagramChanged,
+          report: this.report,
+        });
         return;
       }
       if (!isRequest(raw)) return;
@@ -97,8 +111,13 @@ export class TecturePanel {
     void this.panel.webview.postMessage(event);
   }
 
+  private postAppearance(): void {
+    this.postEvent({ type: "appearance", overrides: readAppearanceOverrides() });
+  }
+
   dispose(): void {
     TecturePanel.current = undefined;
+    for (const d of this.disposables.splice(0)) d.dispose();
     this.panel.dispose();
   }
 
@@ -141,14 +160,23 @@ export class TecturePanel {
     // Add nonce to every script tag Vite emitted.
     html = html.replace(/<script\b/g, `<script nonce="${nonce}"`);
 
-    // Inject CSP meta into <head>.
-    html = html.replace(
-      /<head>/,
-      `<head>\n    <meta http-equiv="Content-Security-Policy" content="${csp}">`,
+    // Inject CSP meta + initial appearance into <head>, ahead of the bundle.
+    html = injectIntoHead(
+      html,
+      `<meta http-equiv="Content-Security-Policy" content="${csp}">\n    ${appearanceBootScript(nonce, readAppearanceOverrides())}`,
     );
 
     return html;
   }
+}
+
+/**
+ * Insert `markup` right after `<head>`. Uses a replacer function, not a string:
+ * `markup` carries raw setting values, and `$'`, `` $` `` or `$&` in a
+ * replacement string would splice parts of the page into the boot script.
+ */
+export function injectIntoHead(html: string, markup: string): string {
+  return html.replace(/<head>/, () => `<head>\n    ${markup}`);
 }
 
 function isRequest(value: unknown): value is TectureRequest {

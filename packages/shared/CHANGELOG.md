@@ -1,5 +1,15 @@
 # @tecture/shared
 
+## Unreleased
+
+- Added the graph appearance model: the `GraphAppearance` type,
+  `DEFAULT_APPEARANCE`, `mergeAppearance()` (merges untrusted overrides key by
+  key and drops invalid values), `isCssColor()`, `isEdgeAnimated()`, the
+  `GridVariant` / `ContainerBorderStyle` / `EdgeAnimationMode` constants,
+  `NODE_TYPE_KEYS` / `EDGE_TYPE_KEYS`, and the `CSS_COLOR_PATTERN` /
+  `DASH_PATTERN` JSON-schema patterns.
+- Added an `appearance` event to the `TectureEvent` webview protocol.
+
 ## 0.2.0
 
 - Added the drift-report contract: `DriftReport`, `DriftFinding`, `DriftFindingKind`,

@@ -1,26 +1,46 @@
+import {
+  EDGE_TYPE_KEYS,
+  isEdgeAnimated,
+  type EdgeTypeKey,
+  type GraphAppearance,
+} from "@tecture/shared";
+
+const EDGE_LABELS: Record<EdgeTypeKey, string> = {
+  calls: "Calls",
+  "data-flow": "Data Flow",
+  publishes: "Publishes",
+  subscribes: "Subscribes",
+  reads: "Reads",
+  writes: "Writes",
+  default: "Connection",
+};
+
 export interface EdgeStyleDef {
   color: string;
-  dashed: boolean;
+  /** Resolved dash pattern, or undefined for a solid line. */
+  dashArray: string | undefined;
   animated: boolean;
   label: string;
 }
 
-const edgeStyles: Record<string, EdgeStyleDef> = {
-  calls: { color: "#818cf8", dashed: false, animated: false, label: "Calls" },
-  "data-flow": { color: "#34d399", dashed: false, animated: true, label: "Data Flow" },
-  publishes: { color: "#fbbf24", dashed: true, animated: false, label: "Publishes" },
-  subscribes: { color: "#fbbf24", dashed: true, animated: false, label: "Subscribes" },
-  reads: { color: "#34d399", dashed: false, animated: false, label: "Reads" },
-  writes: { color: "#fb923c", dashed: false, animated: false, label: "Writes" },
-};
-
-const defaultEdgeStyle: EdgeStyleDef = {
-  color: "#22d3ee",
-  dashed: false,
-  animated: false,
-  label: "Connection",
-};
-
-export function getEdgeStyleDef(type?: string): EdgeStyleDef {
-  return type ? (edgeStyles[type] ?? defaultEdgeStyle) : defaultEdgeStyle;
+/**
+ * Precedence: a type's `dashed` flag decides whether it is dashed and the
+ * global `edge.dashPattern` decides how; the global `edge.animation` mode
+ * (`always`/`never`) overrides a type's `animated` flag, `auto` defers to it.
+ */
+export function getEdgeStyleDef(
+  appearance: GraphAppearance,
+  type?: string,
+): EdgeStyleDef {
+  const key: EdgeTypeKey =
+    type && (EDGE_TYPE_KEYS as readonly string[]).includes(type)
+      ? (type as EdgeTypeKey)
+      : "default";
+  const t = appearance.edgeTypes[key];
+  return {
+    color: t.color,
+    dashArray: t.dashed ? appearance.edge.dashPattern : undefined,
+    animated: isEdgeAnimated(appearance, t),
+    label: EDGE_LABELS[key],
+  };
 }

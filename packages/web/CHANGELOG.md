@@ -1,5 +1,14 @@
 # @tecture/web
 
+## Unreleased
+
+- `App` takes an optional `appearance?: GraphAppearance` prop (type from
+  `@tecture/shared`) that restyles edge labels, edges, nodes, containers, the
+  canvas grid, minimap, controls, legend and per-type colours. Omitting it keeps
+  the built-in look. Pass the output of `mergeAppearance()` to apply untrusted
+  overrides safely. Requires the matching `@tecture/shared` release, which adds
+  these exports.
+
 ## 0.2.0
 
 - Added drift surfacing. When the host provides a drift report (from the

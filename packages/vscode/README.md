@@ -55,6 +55,25 @@ Drag nodes to rearrange the diagram. Positions are saved to `architecture/.tectu
 
 Edit any file under `architecture/` (including `architecture/.tecture/`) and the panel reloads automatically. When the agent updates the map, you see the changes instantly.
 
+### Customisable graph appearance
+
+Every visual knob lives under `tecture.graph.*` in your settings (UI or `settings.json`). Changes apply live, with no reload. Invalid values are ignored per key and fall back to the default.
+
+```jsonc
+{
+  "tecture.graph.edgeLabel.backgroundOpacity": 0.8,
+  "tecture.graph.edgeLabel.backgroundColor": "#1e293b",
+  "tecture.graph.edgeLabel.wrap": true,
+  "tecture.graph.edgeLabel.wrapAt": 24,
+  "tecture.graph.edge.strokeWidth": 2,
+  "tecture.graph.canvas.grid": "dots",
+  "tecture.graph.nodeTypes": { "database": { "accent": "#f472b6" } },
+  "tecture.graph.edgeTypes": { "calls": { "color": "#a78bfa", "dashed": true } }
+}
+```
+
+Groups: `edgeLabel` (visibility, colours, opacity, font, padding, radius, border, wrapping), `edge` (width, dash, arrow size, corner radius, animation), `node` (min width, font sizes, radius, icons, corner marks), `container` (fill/header opacity, border), `canvas` (background, grid style/gap/colour), `minimap`, `controls`, `legend`, and per-type `nodeTypes` / `edgeTypes` colour overrides. Colours accept hex (`#rgb`, `#rrggbb`, `#rrggbbaa`), `rgb()`/`rgba()`, `hsl()`/`hsla()` or a CSS colour name such as `teal`; other syntaxes such as `var(--…)` or `oklch()` fall back to the default.
+
 ## Requirements
 
 - VS Code 1.90+ (or Cursor / Windsurf / VSCodium via [Open VSX](https://open-vsx.org/extension/tecture/tecture-vscode))

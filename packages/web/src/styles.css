@@ -166,10 +166,6 @@ body {
 }
 
 /* ─── React Flow Overrides ─── */
-.react-flow {
-  background-color: var(--bg-deep);
-}
-
 /* Keep edge labels above edges, even when an edge's own SVG is elevated
    because its source/target node is selected or nested (parentId). The
    elevation formula in @xyflow/system can push an edge SVG to ~z-index 1000. */
@@ -205,13 +201,8 @@ body {
 }
 
 .react-flow__minimap-node {
-  fill: #22d3ee;
   stroke: #1e2d4a;
   stroke-width: 1;
-}
-
-.react-flow__minimap-mask {
-  fill: rgba(10, 15, 26, 0.7);
 }
 
 .react-flow__edge-text {

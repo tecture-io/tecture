@@ -22,12 +22,20 @@ import { ArchitectureNode } from "./ArchitectureNode";
 import { Legend } from "./Legend";
 import { LayoutPersistenceContext } from "./LayoutPersistenceContext";
 import { FloatingEdge } from "./edges/FloatingEdge";
-import { diagramToFlow, type ArchNodeData } from "./transform";
+import { diagramToFlow, type ArchEdgeData, type ArchNodeData } from "./transform";
 import { layoutDiagram } from "./layout";
 import {
   useArchitectureBundle,
   useSaveLayout,
 } from "./ArchitectureBundleContext";
+import { useAppearance } from "./AppearanceContext";
+import { GridVariant } from "@tecture/shared";
+
+const BACKGROUND_VARIANT = {
+  [GridVariant.Lines]: BackgroundVariant.Lines,
+  [GridVariant.Dots]: BackgroundVariant.Dots,
+  [GridVariant.Cross]: BackgroundVariant.Cross,
+} as const;
 
 const nodeTypes = { architecture: ArchitectureNode };
 const edgeTypes = { floating: FloatingEdge };
@@ -74,10 +82,11 @@ function collectLayoutEntries(
 function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
   const bundle = useArchitectureBundle();
   const saveLayout = useSaveLayout();
+  const appearance = useAppearance();
   const diagram = bundle.diagrams[diagramId];
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node<ArchNodeData>>([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<ArchEdgeData>>([]);
   const [ready, setReady] = useState(false);
   const [layoutError, setLayoutError] = useState<string | null>(null);
   const { getNodes } = useReactFlow();
@@ -192,24 +201,31 @@ function DiagramCanvasInner({ diagramId, onSelectNode, onDrillIn }: Props) {
         style={{
           opacity: ready ? 1 : 0,
           transition: "opacity 0.2s ease-in",
+          backgroundColor: appearance.canvas.backgroundColor,
         }}
       >
-        <Background
-          variant={BackgroundVariant.Lines}
-          gap={20}
-          size={1}
-          color="rgba(34, 78, 130, 0.12)"
-        />
-        <Controls showInteractive={false} position="bottom-right" />
-        {diagram && <Legend diagram={diagram} />}
-        <MiniMap
-          position="bottom-left"
-          pannable
-          zoomable
-          nodeColor="#22d3ee"
-          nodeStrokeColor="#1e2d4a"
-          maskColor="rgba(10, 15, 26, 0.7)"
-        />
+        {appearance.canvas.grid !== GridVariant.None && (
+          <Background
+            variant={BACKGROUND_VARIANT[appearance.canvas.grid]}
+            gap={appearance.canvas.gridGap}
+            color={appearance.canvas.gridColor}
+            bgColor={appearance.canvas.backgroundColor}
+          />
+        )}
+        {appearance.controls.visible && (
+          <Controls showInteractive={false} position="bottom-right" />
+        )}
+        {diagram && appearance.legend.visible && <Legend diagram={diagram} />}
+        {appearance.minimap.visible && (
+          <MiniMap
+            position="bottom-left"
+            pannable
+            zoomable
+            nodeColor={appearance.minimap.nodeColor}
+            nodeStrokeColor="#1e2d4a"
+            maskColor={appearance.minimap.maskColor}
+          />
+        )}
       </ReactFlow>
 
       {layoutError && (

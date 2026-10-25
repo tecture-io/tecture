@@ -8,8 +8,10 @@ import {
   type NodeProps,
   type ReactFlowState,
 } from "@xyflow/react";
-import { getNodeStyle, type NodeStyle } from "./nodeStyles";
+import { getNodeStyle, type IconPath, type NodeStyle } from "./nodeStyles";
+import { useAppearance, withAlpha } from "./AppearanceContext";
 import type { ArchNodeData } from "./transform";
+import type { GraphAppearance } from "@tecture/shared";
 import { useActiveHandleSides } from "./hooks/useActiveHandleSides";
 import { LayoutPersistenceContext } from "./LayoutPersistenceContext";
 
@@ -22,7 +24,9 @@ const HANDLE_SIDES = [
 
 function ArchitectureNodeInner({ data, selected }: NodeProps) {
   const d = data as ArchNodeData;
-  const style = getNodeStyle(d.nodeType);
+  const appearance = useAppearance();
+  const style = getNodeStyle(appearance, d.nodeType);
+  const nodeOpts = appearance.node;
   const activeSides = useActiveHandleSides();
 
   const handleDrillDown = (e: React.MouseEvent) => {
@@ -51,12 +55,13 @@ function ArchitectureNodeInner({ data, selected }: NodeProps) {
         background: style.bg,
         borderColor: style.border,
         color: style.text,
-        minWidth: 160,
+        borderRadius: nodeOpts.borderRadius,
+        minWidth: nodeOpts.minWidth,
         cursor: "pointer",
         ["--tw-ring-color" as string]: d.hasSubDiagram ? style.accent : undefined,
       } as React.CSSProperties}
     >
-      <CornerMarks accent={style.accent} />
+      {showCornerMarks(nodeOpts) && <CornerMarks accent={style.accent} />}
 
       {HANDLE_SIDES.map(({ position, prefix }) => {
         const isActive = activeSides.has(position);
@@ -71,41 +76,25 @@ function ArchitectureNodeInner({ data, selected }: NodeProps) {
         );
       })}
 
-      <div className="mx-auto mb-2.5 flex items-center justify-center">
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="shrink-0"
-        >
-          {style.iconPaths.map((p, i) => (
-            <path
-              key={i}
-              d={p.d}
-              fill={p.fill ?? "none"}
-              stroke={p.stroke ?? "none"}
-              strokeWidth={p.strokeWidth ?? 0}
-              opacity={p.opacity ?? 1}
-            />
-          ))}
-        </svg>
-      </div>
+      {nodeOpts.showIcons && (
+        <div className="mx-auto mb-2.5 flex items-center justify-center">
+          <NodeIcon paths={style.iconPaths} accent={style.accent} size={28} />
+        </div>
+      )}
 
       <div
-        className="truncate text-[13px] leading-tight font-semibold tracking-tight"
-        style={{ fontFamily: "var(--font-sans)" }}
+        className="truncate leading-tight font-semibold tracking-tight"
+        style={{ fontFamily: "var(--font-sans)", fontSize: nodeOpts.labelFontSize }}
       >
         {d.label}
       </div>
 
       {d.technology && (
         <div
-          className="mx-auto mt-1 w-fit px-1.5 py-px text-[9px] leading-tight font-medium"
+          className="mx-auto mt-1 w-fit px-1.5 py-px leading-tight font-medium"
           style={{
-            color: `${style.accent}99`,
+            fontSize: nodeOpts.technologyFontSize,
+            color: withAlpha(style.accent, 0.6),
             fontFamily: "var(--font-mono)",
             letterSpacing: "0.08em",
           }}
@@ -119,9 +108,9 @@ function ArchitectureNodeInner({ data, selected }: NodeProps) {
           onClick={handleDrillDown}
           className="mx-auto mt-2 flex w-fit cursor-pointer items-center gap-1 px-2.5 py-0.5 text-[10px] font-medium transition-opacity hover:opacity-80"
           style={{
-            background: `${style.accent}10`,
+            background: withAlpha(style.accent, 0.06),
             color: style.accent,
-            border: `1px solid ${style.accent}25`,
+            border: `1px solid ${withAlpha(style.accent, 0.15)}`,
             fontFamily: "var(--font-mono)",
             letterSpacing: "0.05em",
           }}
@@ -147,6 +136,7 @@ const CONTAINER_HEADER = 48;
 
 function ContainerNode({ d, style, selected, activeSides, onDrillDown }: ContainerNodeProps) {
   const nodeId = useNodeId();
+  const { container, node: nodeOpts } = useAppearance();
   const persistence = useContext(LayoutPersistenceContext);
   const onResizeEnd = useCallback(() => {
     persistence?.notifyLayoutChanged();
@@ -179,11 +169,12 @@ function ContainerNode({ d, style, selected, activeSides, onDrillDown }: Contain
       style={{
         width: "100%",
         height: "100%",
-        background: `${style.accent}08`,
-        border: `1.5px dashed ${style.accent}80`,
+        background: withAlpha(style.accent, container.backgroundOpacity),
+        border: `${container.borderWidth}px ${container.borderStyle} ${withAlpha(style.accent, 0.5)}`,
+        borderRadius: nodeOpts.borderRadius,
         color: style.text,
         cursor: "pointer",
-        boxShadow: `inset 0 0 0 1px ${style.accent}14`,
+        boxShadow: `inset 0 0 0 1px ${withAlpha(style.accent, 0.08)}`,
       }}
     >
       <NodeResizer
@@ -192,7 +183,7 @@ function ContainerNode({ d, style, selected, activeSides, onDrillDown }: Contain
         minHeight={minSize.minHeight}
         onResizeEnd={onResizeEnd}
         lineStyle={{
-          borderColor: `${style.accent}55`,
+          borderColor: withAlpha(style.accent, 0.33),
           borderWidth: 1,
         }}
         handleStyle={{
@@ -204,7 +195,7 @@ function ContainerNode({ d, style, selected, activeSides, onDrillDown }: Contain
           boxShadow: `0 0 0 1px ${style.accent}`,
         }}
       />
-      <CornerMarks accent={style.accent} />
+      {showCornerMarks(nodeOpts) && <CornerMarks accent={style.accent} />}
 
       {HANDLE_SIDES.map(({ position, prefix }) => {
         const isActive = activeSides.has(position);
@@ -222,42 +213,29 @@ function ContainerNode({ d, style, selected, activeSides, onDrillDown }: Contain
       <div
         className="pointer-events-auto absolute top-0 right-0 left-0 flex items-center justify-between gap-2 px-3 py-2"
         style={{
-          borderBottom: `1px dashed ${style.accent}55`,
-          background: `${style.bg}e6`,
+          borderBottom: `1px ${container.borderStyle} ${withAlpha(style.accent, 0.33)}`,
+          background: withAlpha(style.bg, container.headerOpacity),
         }}
       >
         <div className="flex min-w-0 items-center gap-2">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="shrink-0"
-          >
-            {style.iconPaths.map((p, i) => (
-              <path
-                key={i}
-                d={p.d}
-                fill={p.fill ?? "none"}
-                stroke={p.stroke ?? "none"}
-                strokeWidth={p.strokeWidth ?? 0}
-                opacity={p.opacity ?? 1}
-              />
-            ))}
-          </svg>
+          {nodeOpts.showIcons && (
+            <NodeIcon paths={style.iconPaths} accent={style.accent} size={16} />
+          )}
           <div
-            className="truncate text-[12px] leading-tight font-semibold tracking-tight"
-            style={{ fontFamily: "var(--font-sans)" }}
+            className="truncate leading-tight font-semibold tracking-tight"
+            style={{
+              fontFamily: "var(--font-sans)",
+              fontSize: Math.max(nodeOpts.labelFontSize - 1, 8),
+            }}
           >
             {d.label}
           </div>
           {d.technology && (
             <span
-              className="shrink-0 text-[9px] leading-tight font-medium"
+              className="shrink-0 leading-tight font-medium"
               style={{
-                color: `${style.accent}99`,
+                fontSize: nodeOpts.technologyFontSize,
+                color: withAlpha(style.accent, 0.6),
                 fontFamily: "var(--font-mono)",
                 letterSpacing: "0.08em",
               }}
@@ -271,9 +249,9 @@ function ContainerNode({ d, style, selected, activeSides, onDrillDown }: Contain
             onClick={onDrillDown}
             className="flex shrink-0 cursor-pointer items-center gap-1 px-2 py-0.5 text-[10px] font-medium transition-opacity hover:opacity-80"
             style={{
-              background: `${style.accent}10`,
+              background: withAlpha(style.accent, 0.06),
               color: style.accent,
-              border: `1px solid ${style.accent}25`,
+              border: `1px solid ${withAlpha(style.accent, 0.15)}`,
               fontFamily: "var(--font-mono)",
               letterSpacing: "0.05em",
             }}
@@ -285,6 +263,44 @@ function ContainerNode({ d, style, selected, activeSides, onDrillDown }: Contain
       </div>
     </div>
   );
+}
+
+function NodeIcon({
+  paths,
+  accent,
+  size,
+}: {
+  paths: IconPath[];
+  accent: string;
+  size: number;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+    >
+      {paths.map((p, i) => (
+        <path
+          key={i}
+          d={p.d}
+          fill={p.fill ? accent : "none"}
+          stroke={p.stroke ? accent : "none"}
+          strokeWidth={p.strokeWidth ?? 0}
+          opacity={p.opacity ?? 1}
+        />
+      ))}
+    </svg>
+  );
+}
+
+/** The square marks sit on the box corners, so a rounded box would leave them sticking out. */
+function showCornerMarks(opts: GraphAppearance["node"]): boolean {
+  return opts.showCornerMarks && opts.borderRadius === 0;
 }
 
 function CornerMarks({ accent }: { accent: string }) {

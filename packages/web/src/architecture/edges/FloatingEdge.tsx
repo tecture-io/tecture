@@ -2,23 +2,22 @@ import {
   EdgeLabelRenderer,
   getSmoothStepPath,
   useInternalNode,
+  type Edge,
   type EdgeProps,
 } from "@xyflow/react";
 import { getEdgeParams } from "./utils";
+import { getEdgeStyleDef } from "../edgeStyles";
+import { useAppearance, withAlpha } from "../AppearanceContext";
+import type { ArchEdgeData } from "../transform";
 
 export function FloatingEdge({
   id,
   source,
   target,
-  markerEnd,
-  style,
   label,
-  labelStyle,
-  labelBgStyle,
-  labelBgPadding,
-  labelBgBorderRadius,
-  animated,
-}: EdgeProps) {
+  data,
+}: EdgeProps<Edge<ArchEdgeData>>) {
+  const appearance = useAppearance();
   const sourceNode = useInternalNode(source);
   const targetNode = useInternalNode(target);
 
@@ -36,54 +35,90 @@ export function FloatingEdge({
     targetPosition: targetPos,
     targetX: tx,
     targetY: ty,
-    borderRadius: 8,
+    borderRadius: appearance.edge.cornerRadius,
   });
+
+  const def = getEdgeStyleDef(appearance, data?.edgeType);
+  const { edgeLabel } = appearance;
+  const markerId = `arrow-${id}`;
+  const arrow = appearance.edge.arrowSize;
 
   return (
     <>
+      <defs>
+        <marker
+          id={markerId}
+          viewBox="-10 -10 20 20"
+          refX="0"
+          refY="0"
+          markerWidth={arrow}
+          markerHeight={arrow}
+          markerUnits="strokeWidth"
+          orient="auto-start-reverse"
+        >
+          <polyline
+            points="-5,-4 0,0 -5,4 -5,-4"
+            fill={def.color}
+            stroke={def.color}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1}
+          />
+        </marker>
+      </defs>
       <path
         id={id}
-        className={`react-flow__edge-path${animated ? " react-flow__edge-path--animated" : ""}`}
+        className={`react-flow__edge-path${def.animated ? " react-flow__edge-path--animated" : ""}`}
         d={edgePath}
-        markerEnd={markerEnd}
-        style={style}
+        markerEnd={`url(#${markerId})`}
+        style={{
+          stroke: def.color,
+          strokeWidth: appearance.edge.strokeWidth,
+          strokeDasharray: def.dashArray,
+        }}
       />
-      {label && (
+      {label && edgeLabel.visible && (
         <EdgeLabelRenderer>
           <div
             style={{
               position: "absolute",
               transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
               pointerEvents: "all",
-              ...(labelBgStyle
-                ? {
-                    background: resolveLabelBg(labelBgStyle),
-                    borderRadius: labelBgBorderRadius ?? 4,
-                    padding: labelBgPadding
-                      ? `${(labelBgPadding as [number, number])[1]}px ${(labelBgPadding as [number, number])[0]}px`
-                      : "4px 6px",
-                  }
-                : {}),
+              background: withAlpha(
+                edgeLabel.backgroundColor,
+                edgeLabel.backgroundOpacity,
+              ),
+              border: edgeLabel.borderColor
+                ? `1px solid ${edgeLabel.borderColor}`
+                : undefined,
+              borderRadius: edgeLabel.borderRadius,
+              padding: `${edgeLabel.paddingY}px ${edgeLabel.paddingX}px`,
             }}
           >
-            <span style={labelStyle as React.CSSProperties}>{label}</span>
+            <span
+              style={{
+                display: "block",
+                fontSize: edgeLabel.fontSize,
+                color: edgeLabel.textColor,
+                fontWeight: edgeLabel.fontWeight,
+                letterSpacing: "0.04em",
+                fontFamily: "var(--font-mono)",
+                textAlign: "center",
+                ...(edgeLabel.wrap
+                  ? {
+                      // Mono font: 1ch = one character; add the per-char letter-spacing.
+                      maxWidth: `calc(${edgeLabel.wrapAt}ch + ${edgeLabel.wrapAt * 0.04}em)`,
+                      whiteSpace: "normal",
+                      overflowWrap: "anywhere",
+                    }
+                  : { whiteSpace: "nowrap" }),
+              }}
+            >
+              {label}
+            </span>
           </div>
         </EdgeLabelRenderer>
       )}
     </>
   );
-}
-
-function resolveLabelBg(labelBgStyle: unknown): string {
-  const s = labelBgStyle as { fill?: string; fillOpacity?: number };
-  const fill = s.fill ?? "#0a0f1a";
-  const alpha = s.fillOpacity ?? 1;
-  if (alpha >= 1) return fill;
-  const hex = fill.replace("#", "");
-  if (hex.length !== 3 && hex.length !== 6) return fill;
-  const full = hex.length === 3 ? hex.split("").map((c) => c + c).join("") : hex;
-  const r = parseInt(full.slice(0, 2), 16);
-  const g = parseInt(full.slice(2, 4), 16);
-  const b = parseInt(full.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }

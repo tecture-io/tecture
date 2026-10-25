@@ -58,6 +58,11 @@ export function isFiniteNumber(v: unknown): v is number {
   return typeof v === "number" && Number.isFinite(v);
 }
 
+/** Plain (non-array) object; fields stay `unknown` and must be checked individually. */
+export function isRecord(v: unknown): v is Record<string, unknown> {
+  return !!v && typeof v === "object" && !Array.isArray(v);
+}
+
 export function isValidLayoutEntry(v: unknown): v is NodeLayoutEntry {
   if (!v || typeof v !== "object") return false;
   const e = v as Record<string, unknown>;
